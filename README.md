@@ -6,7 +6,7 @@ A real-time visualization tool for UWB (Ultra-Wideband) positioning data via MQT
 
 ## 🎥 Live Demo
 
-**Try it now:** [GitHub Pages Demo](https://dynamicdevices.github.io/inst-tag-visualizer/)
+**Try it now:** [GitHub Pages Demo](https://dynamicdevices.github.io/inst-visualiser/)
 
 ### Demo Animation Description
 The visualizer creates an engaging real-time experience:
