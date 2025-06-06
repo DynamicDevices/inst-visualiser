@@ -1,0 +1,10 @@
+# CI/CD Pipeline - Setup Required
+# Copy content from the ".github/workflows/ci-cd.yml" artifact in Claude
+
+name: Setup Required
+on: [push]
+jobs:
+  setup-check:
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo "Copy content from Claude artifacts to complete setup"

@@ -1,0 +1,6 @@
+# Basic .gitignore - Setup Required
+# Copy content from the ".gitignore" artifact in Claude for complete version
+
+node_modules/
+*.log
+.DS_Store

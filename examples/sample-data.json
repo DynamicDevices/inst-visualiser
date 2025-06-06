@@ -1,0 +1,152 @@
+[
+  {
+    "name": "Basic Triangle Test",
+    "description": "Simple 3-node triangle for testing geometric positioning",
+    "measurements": [
+      ["B5A4", "Room1", 2.0],
+      ["B5A4", "Room2", 3.0],
+      ["Room1", "Room2", 2.5]
+    ]
+  },
+  {
+    "name": "Office Layout",
+    "description": "Realistic office environment with gateway and room anchors",
+    "measurements": [
+      ["B5A4", "Conference", 4.2],
+      ["B5A4", "Kitchen", 6.8],
+      ["B5A4", "Office1", 3.1],
+      ["B5A4", "Office2", 5.5],
+      ["Conference", "Kitchen", 8.1],
+      ["Conference", "Office1", 2.9],
+      ["Office1", "Office2", 4.7],
+      ["Kitchen", "Office2", 3.8]
+    ]
+  },
+  {
+    "name": "Warehouse Tracking",
+    "description": "Large warehouse with multiple anchors and mobile tags",
+    "measurements": [
+      ["Anchor_A1", "Anchor_B1", 15.0],
+      ["Anchor_A1", "Anchor_C1", 20.0],
+      ["Anchor_B1", "Anchor_C1", 12.0],
+      ["Anchor_A1", "TAG_001", 8.3],
+      ["Anchor_B1", "TAG_001", 11.2],
+      ["Anchor_C1", "TAG_001", 16.8],
+      ["Anchor_A1", "TAG_002", 12.1],
+      ["Anchor_B1", "TAG_002", 6.9],
+      ["Anchor_C1", "TAG_002", 9.4]
+    ]
+  },
+  {
+    "name": "Small Room Precision",
+    "description": "High-precision tracking in small conference room",
+    "measurements": [
+      ["B5A4", "Corner1", 1.23],
+      ["B5A4", "Corner2", 1.87],
+      ["B5A4", "Corner3", 2.45],
+      ["Corner1", "Corner2", 1.41],
+      ["Corner1", "Corner3", 2.12],
+      ["Corner2", "Corner3", 1.73],
+      ["B5A4", "Phone", 0.95],
+      ["Corner1", "Phone", 0.78],
+      ["Corner2", "Phone", 1.22]
+    ]
+  },
+  {
+    "name": "Manufacturing Floor",
+    "description": "Industrial environment with equipment tracking",
+    "measurements": [
+      ["Gateway_Main", "Station_A", 7.2],
+      ["Gateway_Main", "Station_B", 9.8],
+      ["Gateway_Main", "Station_C", 12.3],
+      ["Gateway_Main", "Conveyor", 5.1],
+      ["Station_A", "Station_B", 6.7],
+      ["Station_B", "Station_C", 8.9],
+      ["Station_A", "Conveyor", 4.8],
+      ["Conveyor", "Station_C", 9.2],
+      ["Gateway_Main", "Tool_Cart", 3.4],
+      ["Station_A", "Tool_Cart", 4.9],
+      ["Tool_Cart", "Conveyor", 2.1]
+    ]
+  },
+  {
+    "name": "Retail Store",
+    "description": "Customer and staff tracking in retail environment",
+    "measurements": [
+      ["Entrance", "Checkout1", 8.5],
+      ["Entrance", "Checkout2", 9.2],
+      ["Entrance", "Electronics", 12.0],
+      ["Checkout1", "Checkout2", 2.1],
+      ["Checkout1", "Electronics", 7.8],
+      ["Checkout2", "Electronics", 8.9],
+      ["Entrance", "Customer_01", 4.2],
+      ["Electronics", "Customer_01", 8.1],
+      ["Checkout1", "Staff_Badge", 1.5],
+      ["Electronics", "Staff_Badge", 6.9]
+    ]
+  },
+  {
+    "name": "Multi-Floor Building",
+    "description": "Vertical positioning test with floor indicators",
+    "measurements": [
+      ["Floor1_A", "Floor1_B", 8.0],
+      ["Floor1_A", "Floor1_C", 6.5],
+      ["Floor1_B", "Floor1_C", 4.2],
+      ["Floor2_A", "Floor2_B", 8.0],
+      ["Floor2_A", "Floor2_C", 6.5],
+      ["Floor2_B", "Floor2_C", 4.2],
+      ["Floor1_A", "Floor2_A", 3.8],
+      ["Floor1_B", "Floor2_B", 3.8],
+      ["Elevator", "Floor1_A", 2.1],
+      ["Elevator", "Floor2_A", 5.9]
+    ]
+  },
+  {
+    "name": "Healthcare Facility",
+    "description": "Hospital ward with patient and equipment tracking",
+    "measurements": [
+      ["Nurses_Station", "Room_101", 5.5],
+      ["Nurses_Station", "Room_102", 7.2],
+      ["Nurses_Station", "Room_103", 9.1],
+      ["Room_101", "Room_102", 3.8],
+      ["Room_102", "Room_103", 4.1],
+      ["Nurses_Station", "Equipment_Cart", 2.3],
+      ["Room_101", "Patient_Monitor", 1.2],
+      ["Equipment_Cart", "Room_102", 5.8],
+      ["Nurses_Station", "Doctor_Badge", 1.8],
+      ["Room_103", "Doctor_Badge", 8.7]
+    ]
+  },
+  {
+    "name": "Outdoor Construction",
+    "description": "Construction site with wide-area coverage",
+    "measurements": [
+      ["Base_Station", "Crane", 45.2],
+      ["Base_Station", "Equipment_Shed", 32.8],
+      ["Base_Station", "Office_Trailer", 28.5],
+      ["Crane", "Equipment_Shed", 38.9],
+      ["Crane", "Office_Trailer", 52.1],
+      ["Equipment_Shed", "Office_Trailer", 25.7],
+      ["Base_Station", "Supervisor", 15.3],
+      ["Crane", "Operator", 2.1],
+      ["Equipment_Shed", "Forklift", 8.4],
+      ["Office_Trailer", "Safety_Inspector", 3.2]
+    ]
+  },
+  {
+    "name": "Laboratory Research",
+    "description": "Clean room environment with precise positioning",
+    "measurements": [
+      ["Lab_Entrance", "Workstation_1", 3.25],
+      ["Lab_Entrance", "Workstation_2", 4.67],
+      ["Lab_Entrance", "Workstation_3", 6.12],
+      ["Workstation_1", "Workstation_2", 2.15],
+      ["Workstation_2", "Workstation_3", 2.33],
+      ["Workstation_1", "Workstation_3", 3.89],
+      ["Lab_Entrance", "Fume_Hood", 5.45],
+      ["Workstation_2", "Centrifuge", 1.78],
+      ["Workstation_3", "Researcher_Badge", 0.95],
+      ["Fume_Hood", "Sample_Tray", 1.23]
+    ]
+  }
+]

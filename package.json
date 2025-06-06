@@ -1,0 +1,64 @@
+{
+  "name": "inst-tag-visualizer",
+  "version": "1.4.0",
+  "description": "Real-time UWB positioning visualization tool with MQTT connectivity and geometric node placement",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 8080 -o",
+    "dev": "npx live-server --port=8080 --open=/",
+    "build": "echo 'Static HTML project - no build required'",
+    "test": "echo 'Integration tests via simulation mode'",
+    "lint": "npx htmlhint index.html && npx eslint js/visualizer.js",
+    "serve": "python3 -m http.server 8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/inst-tag-visualizer.git"
+  },
+  "keywords": [
+    "mqtt",
+    "uwb",
+    "ultra-wideband",
+    "positioning",
+    "visualization",
+    "realtime",
+    "iot",
+    "tracking",
+    "indoor-positioning",
+    "websocket",
+    "eclipse-paho",
+    "geometric-layout",
+    "distance-measurement"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/inst-tag-visualizer/issues"
+  },
+  "homepage": "https://github.com/yourusername/inst-tag-visualizer#readme",
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "htmlhint": "^1.1.4",
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "files": [
+    "index.html",
+    "css/",
+    "js/",
+    "docs/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ]
+}
