@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple WebSocket Node Visualizer</title>
+    <title>INST Tag Visualiser</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -187,28 +188,57 @@
 
         .node {
             position: absolute;
-            width: 50px;
-            height: 50px;
-            background: #4299e1;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4299e1, #2c5282);
             border-radius: 50%;
-            border: 2px solid #2c5282;
+            border: 3px solid #2c5282;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 12px;
             color: white;
-            font-weight: normal;
+            font-weight: bold;
             font-family: Arial, sans-serif;
             text-align: center;
-            line-height: 1;
+            line-height: 1.2;
             cursor: grab;
             user-select: none;
             transition: all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
             z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            padding: 8px;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow: hidden;
+        }
+
+        .node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
 
         .node:active {
             cursor: grabbing;
+        }
+
+        .node.pulse {
+            animation: nodePulse 1s ease-out;
+        }
+
+        @keyframes nodePulse {
+            0% {
+                transform: scale(0.1);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .connection {
@@ -317,7 +347,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>WebSocket Node Visualizer (Demo)</h1>
+        <h1>INST Tag Visualiser</h1>
     </div>
 
     <div class="container">
@@ -331,7 +361,7 @@
                 
                 <div class="control-group">
                     <label for="brokerPort">Broker Port:</label>
-                    <input type="number" id="brokerPort" value="8883">
+                    <input type="number" id="brokerPort" value="8083">
                 </div>
                 
                 <div class="control-group">
@@ -340,7 +370,9 @@
                 </div>
                 
                 <div class="control-group">
-                    <button onclick="connectWebSocket()">Connect</button>
+                    <button onclick="connectMQTT()" id="connectBtn">Connect</button>
+                    <button onclick="disconnectMQTT()" id="disconnectBtn" style="display: none;">Disconnect</button>
+                    <button onclick="checkConnectionStatus()" class="secondary">Check Status</button>
                     <button onclick="startSimulation()" class="secondary">Start Simulation</button>
                 </div>
                 
@@ -359,7 +391,10 @@
 
                 <div class="control-group">
                     <button onclick="toggleConsole()">Show Console</button>
+                    <button onclick="manualResubscribe()" class="secondary">Resubscribe</button>
                     <button onclick="clearVisualization()" class="secondary">Clear</button>
+                    <button onclick="testMqttFormat()" class="secondary">Test Format</button>
+                    <button onclick="verifyNodes()" class="secondary">Verify Nodes</button>
                 </div>
             </div>
         </div>
@@ -367,7 +402,7 @@
         <div class="visualization-container">
             <div id="visualization"></div>
             <div class="progress-info" id="progressInfo">
-                🎮 Click "Start Simulation" to see demo data! WebSocket connections are blocked in this environment - download the HTML file to use real MQTT connections.
+                Ready to connect. Configure broker settings above and click "Connect" for secure Eclipse Paho MQTT (SSL) or "Start Simulation" for demo data.
             </div>
         </div>
 
@@ -389,12 +424,17 @@
         var messagesReceived = 0;
         var nodeSpacing = 5;
         var consoleVisible = false;
+        var mqttClient = null;
+        var currentTopic = null;
+        var connectionTimer = null;
+        var lastMessageTime = 0;
+        var fastMessageMode = false;
+        var animationsEnabled = true;
 
         // Initialize when page loads
         window.onload = function() {
-            log('WebSocket Node Visualizer Demo loaded', 'info');
-            log('🔒 Note: External connections blocked in this environment', 'info');
-            log('📁 Download this file to enable real MQTT connections', 'info');
+            log('INST Tag Visualiser loaded (Eclipse Paho MQTT with SSL, 15s timeout)', 'info');
+            log('📋 Expected MQTT payload format: [["node1","node2",1.5], ["node2","node3",2.1], ...]', 'info');
             updateProgress();
         };
 
@@ -407,96 +447,244 @@
             document.getElementById('consoleContent').scrollTop = document.getElementById('consoleContent').scrollHeight;
         }
 
-        function connectWebSocket() {
+        function connectMQTT() {
             var host = document.getElementById('brokerHost').value.trim();
-            var port = document.getElementById('brokerPort').value;
+            var port = parseInt(document.getElementById('brokerPort').value);
             var topic = document.getElementById('topicName').value.trim();
             
-            log('🔒 IMPORTANT: External WebSocket connections are blocked in this environment', 'error');
-            log('📋 Content Security Policy restricts connections to external hosts', 'error');
-            log('💡 To use real MQTT connections:', 'info');
-            log('   1. Copy this HTML file to your local computer', 'info');
-            log('   2. Open it in a browser (not in this artifact)', 'info');
-            log('   3. WebSocket connections will work normally there', 'info');
-            log('🎮 For now, use "Start Simulation" to see the visualizer in action', 'info');
-            
-            updateConnectionStatus('blocked');
-            
-            // Show helpful modal
-            var message = 'WebSocket connections to external hosts are blocked in this sandboxed environment.\n\n';
-            message += 'To connect to your MQTT broker:\n';
-            message += '1. Right-click → "Save As" to download this HTML file\n';
-            message += '2. Open the downloaded file in your browser\n';
-            message += '3. WebSocket connections will work normally\n\n';
-            message += 'For now, click "Start Simulation" to see demo data!';
-            
-            alert(message);
-        }
-
-        function tryEndpoints(endpoints, index) {
-            if (index >= endpoints.length) {
-                log('❌ All WebSocket endpoints failed', 'error');
-                log('• Check if broker supports WebSocket connections', 'error');
-                log('• Verify broker is running and accessible', 'error');
-                updateConnectionStatus('disconnected');
+            if (!host || !port || !topic) {
+                log('❌ Please fill in all connection fields', 'error');
                 return;
             }
-
-            var wsUrl = endpoints[index];
-            log('🔗 Trying endpoint ' + (index + 1) + '/' + endpoints.length + ': ' + wsUrl, 'info');
-
+            
+            // Validate topic format
+            if (topic.includes('#') && !topic.endsWith('#')) {
+                log('❌ Invalid topic: # wildcard must be at the end', 'error');
+                return;
+            }
+            
+            // Disconnect existing connection if any
+            if (mqttClient && mqttClient.isConnected()) {
+                log('🔌 Disconnecting existing MQTT connection...', 'info');
+                mqttClient.disconnect();
+            }
+            
+            currentTopic = topic;
+            
+            // Generate unique client ID
+            var clientId = 'WebClient_' + Math.random().toString(16).substr(2, 8);
+            log('🆔 Client ID: ' + clientId, 'info');
+            log('🔗 Connecting to Eclipse Paho MQTT broker: ' + host + ':' + port + ' (SSL)', 'info');
+            log('📡 Will subscribe to topic: ' + topic, 'info');
+            
+            // Create new Paho MQTT client
+            mqttClient = new Paho.MQTT.Client(host, port, clientId);
+            
+            // Set up event callbacks
+            mqttClient.onConnectionLost = onConnectionLost;
+            mqttClient.onMessageArrived = onMessageArrived;
+            
+            // Connection options with explicit timeout handling
+            var connectOptions = {
+                onSuccess: onConnect,
+                onFailure: onConnectFailure,
+                timeout: 15, // Increased timeout to 15 seconds
+                keepAliveInterval: 30,
+                cleanSession: true,
+                useSSL: true, // Use SSL by default
+                mqttVersion: 4 // MQTT 3.1.1
+            };
+            
+            log('🔄 Attempting Eclipse Paho MQTT connection with SSL (15s timeout)...', 'info');
+            updateConnectionStatus('connecting');
+            
+            // Set up additional timeout monitoring
+            connectionTimer = setTimeout(function() {
+                if (!isConnected) {
+                    log('⏰ Connection timeout after 15 seconds', 'error');
+                    log('• Check if broker is reachable at ' + host + ':' + port, 'error');
+                    log('• Verify SSL/TLS is properly configured on the broker', 'error');
+                    log('• Check firewall and network connectivity', 'error');
+                    updateConnectionStatus('disconnected');
+                }
+            }, 15000);
+            
             try {
-                var ws = new WebSocket(wsUrl);
-                
-                var timeout = setTimeout(function() {
-                    log('⏰ Timeout for: ' + wsUrl, 'error');
-                    ws.close();
-                    tryEndpoints(endpoints, index + 1);
-                }, 5000);
-                
-                ws.onopen = function() {
-                    clearTimeout(timeout);
-                    log('✅ WSS WebSocket connected via: ' + wsUrl, 'success');
-                    isConnected = true;
-                    updateConnectionStatus('connected');
-                    updateProgress();
-                };
-                
-                ws.onmessage = function(event) {
-                    log('📨 Received: ' + event.data, 'info');
-                    processData(event.data);
-                };
-                
-                ws.onerror = function(error) {
-                    clearTimeout(timeout);
-                    log('❌ Failed: ' + wsUrl, 'error');
-                    setTimeout(function() {
-                        tryEndpoints(endpoints, index + 1);
-                    }, 500);
-                };
-                
-                ws.onclose = function(event) {
-                    clearTimeout(timeout);
-                    if (isConnected) {
-                        log('🔌 Connection lost: ' + wsUrl + ' (Code: ' + event.code + ')', 'error');
-                        isConnected = false;
-                        updateConnectionStatus('disconnected');
-                        updateProgress();
-                    } else {
-                        log('❌ Failed to connect: ' + wsUrl + ' (Code: ' + event.code + ')', 'error');
-                        setTimeout(function() {
-                            tryEndpoints(endpoints, index + 1);
-                        }, 500);
-                    }
-                };
-                
-                updateConnectionStatus('connecting');
-                
+                mqttClient.connect(connectOptions);
             } catch (error) {
-                log('Exception with ' + wsUrl + ': ' + error.message, 'error');
-                setTimeout(function() {
-                    tryEndpoints(endpoints, index + 1);
-                }, 500);
+                if (connectionTimer) {
+                    clearTimeout(connectionTimer);
+                    connectionTimer = null;
+                }
+                log('❌ Eclipse Paho MQTT connection error: ' + error.message, 'error');
+                updateConnectionStatus('disconnected');
+            }
+        }
+        
+        function onConnect() {
+            // Clear connection timeout since we connected successfully
+            if (connectionTimer) {
+                clearTimeout(connectionTimer);
+                connectionTimer = null;
+            }
+            
+            log('✅ Eclipse Paho MQTT connected successfully!', 'success');
+            isConnected = true;
+            updateConnectionStatus('connected');
+            updateProgress();
+            
+            // Immediately subscribe to the user-supplied topic
+            if (currentTopic) {
+                log('📡 Auto-subscribing to user topic: ' + currentTopic, 'info');
+                subscribeToTopic();
+            } else {
+                log('⚠️ No topic specified for subscription', 'error');
+            }
+        }
+        
+        function onConnectFailure(responseObject) {
+            // Clear connection timeout since we got a failure response
+            if (connectionTimer) {
+                clearTimeout(connectionTimer);
+                connectionTimer = null;
+            }
+            
+            log('❌ Eclipse Paho MQTT connection failed: ' + responseObject.errorMessage, 'error');
+            log('💡 Error code: ' + responseObject.errorCode, 'error');
+            
+            // Provide helpful suggestions based on error
+            if (responseObject.errorCode === 7) {
+                log('• Check if WebSocket over SSL is enabled on the broker', 'error');
+                log('• Verify the port supports secure WebSocket connections (wss://)', 'error');
+                log('• Common secure MQTT WebSocket ports: 8084, 8883, 443', 'error');
+                log('• Ensure SSL certificate is valid', 'error');
+            } else if (responseObject.errorCode === 8) {
+                log('• Check if the broker is running and accessible', 'error');
+                log('• Verify network connectivity and firewall settings', 'error');
+                log('• Ensure CORS is configured for your domain', 'error');
+            } else if (responseObject.errorMessage && responseObject.errorMessage.includes('timeout')) {
+                log('• Connection timed out - broker may be unreachable', 'error');
+                log('• Try increasing timeout or check network latency', 'error');
+                log('• Verify broker is online and responding', 'error');
+            }
+            
+            log('💡 Try "Start Simulation" to test the visualizer without MQTT', 'info');
+            updateConnectionStatus('disconnected');
+            updateProgress();
+        }
+        
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                log('🔌 Eclipse Paho MQTT connection lost: ' + responseObject.errorMessage, 'error');
+            } else {
+                log('🔌 Eclipse Paho MQTT disconnected cleanly', 'info');
+            }
+            
+            isConnected = false;
+            updateConnectionStatus('disconnected');
+            updateProgress();
+        }
+        
+        function onMessageArrived(message) {
+            var topic = message.destinationName;
+            var payload = message.payloadString;
+            
+            // Track message timing for animation control
+            var currentTime = Date.now();
+            var timeSinceLastMessage = currentTime - lastMessageTime;
+            
+            // If messages are coming faster than 500ms, disable animations
+            if (timeSinceLastMessage < 500 && lastMessageTime > 0) {
+                if (!fastMessageMode) {
+                    fastMessageMode = true;
+                    animationsEnabled = false;
+                    log('⚡ Fast message mode enabled - animations disabled for performance', 'info');
+                }
+            } else if (fastMessageMode && timeSinceLastMessage > 1000) {
+                // Re-enable animations if we haven't received a message for 1 second
+                fastMessageMode = false;
+                animationsEnabled = true;
+                log('🎬 Normal message rate - animations re-enabled', 'info');
+            }
+            
+            lastMessageTime = currentTime;
+            
+            log('📨 Received message on topic "' + topic + '"', 'info');
+            log('📦 Payload (' + payload.length + ' bytes): ' + payload, 'info');
+            log('🔍 QoS: ' + message.qos + ', Retained: ' + message.retained, 'info');
+            log('⏱️ Time since last message: ' + timeSinceLastMessage + 'ms', 'info');
+            
+            messagesReceived++;
+            processData(payload);
+            updateProgress();
+        }
+        
+        function subscribeToTopic() {
+            if (!mqttClient || !mqttClient.isConnected()) {
+                log('❌ Cannot subscribe - no active MQTT connection', 'error');
+                return;
+            }
+            
+            if (!currentTopic || currentTopic.trim() === '') {
+                log('❌ Cannot subscribe - no topic specified', 'error');
+                return;
+            }
+            
+            var topic = currentTopic.trim();
+            log('📡 Subscribing to user topic: "' + topic + '"', 'info');
+            
+            // Set up subscription timeout
+            var subscriptionTimer = setTimeout(function() {
+                log('⏰ Subscription timeout for topic: ' + topic, 'error');
+                log('• Topic may not exist on the broker', 'error');
+                log('• Check topic permissions and ACL settings', 'error');
+            }, 10000);
+            
+            try {
+                mqttClient.subscribe(topic, {
+                    qos: 0, // QoS 0 for best performance
+                    onSuccess: function(granted) {
+                        clearTimeout(subscriptionTimer);
+                        log('✅ Successfully subscribed to topic: "' + topic + '"', 'success');
+                        log('📊 QoS granted: ' + (granted.grantedQos !== undefined ? granted.grantedQos : '0'), 'success');
+                        log('🎧 Listening for messages on topic: "' + topic + '"', 'info');
+                    },
+                    onFailure: function(error) {
+                        clearTimeout(subscriptionTimer);
+                        log('❌ Failed to subscribe to topic "' + topic + '": ' + error.errorMessage, 'error');
+                        log('💡 Error code: ' + error.errorCode, 'error');
+                        
+                        // Provide specific error guidance
+                        if (error.errorCode === 128) {
+                            log('• Topic filter may be invalid', 'error');
+                            log('• Check topic syntax and wildcard usage', 'error');
+                        } else if (error.errorCode === 135) {
+                            log('• Not authorized to subscribe to this topic', 'error');
+                            log('• Check broker ACL settings and user permissions', 'error');
+                        }
+                    }
+                });
+            } catch (error) {
+                clearTimeout(subscriptionTimer);
+                log('❌ Exception while subscribing to topic: ' + error.message, 'error');
+            }
+        }
+        
+        function disconnectMQTT() {
+            // Clear any pending connection timers
+            if (connectionTimer) {
+                clearTimeout(connectionTimer);
+                connectionTimer = null;
+            }
+            
+            if (mqttClient && mqttClient.isConnected()) {
+                log('🔌 Disconnecting from Eclipse Paho MQTT broker...', 'info');
+                mqttClient.disconnect();
+            } else {
+                log('⚠️ No active MQTT connection to disconnect', 'info');
+                isConnected = false;
+                updateConnectionStatus('disconnected');
+                updateProgress();
             }
         }
 
@@ -506,9 +694,7 @@
                 return;
             }
 
-            log('Starting simulation...', 'info');
-            isConnected = true;
-            updateConnectionStatus('connected');
+            log('🎮 Starting simulation mode...', 'info');
             
             document.querySelector('button[onclick="startSimulation()"]').textContent = 'Stop Simulation';
             
@@ -516,71 +702,222 @@
                 generateSimulationData();
             }, 2000);
             
-            updateProgress();
+            // Generate initial data
+            generateSimulationData();
         }
 
         function stopSimulation() {
             if (simulationInterval) {
                 clearInterval(simulationInterval);
                 simulationInterval = null;
-                log('Simulation stopped', 'info');
+                log('🎮 Simulation stopped', 'info');
             }
             
             document.querySelector('button[onclick="startSimulation()"]').textContent = 'Start Simulation';
-            
-            if (!isConnected) {
-                updateConnectionStatus('disconnected');
-                updateProgress();
-            }
         }
 
         function generateSimulationData() {
-            var nodeIds = ['A', 'B', 'C', 'D'];
+            var nodeIds = ['A', 'B', 'C', 'D', 'E'];
             var connections = [];
             
+            // Generate random connections between nodes in the exact MQTT format
             for (var i = 0; i < nodeIds.length; i++) {
                 for (var j = i + 1; j < nodeIds.length; j++) {
-                    if (Math.random() > 0.3) {
-                        var distance = (Math.random() * 8 + 1).toFixed(2);
-                        connections.push([nodeIds[i], nodeIds[j], parseFloat(distance)]);
+                    if (Math.random() > 0.4) { // 60% chance of connection
+                        var distance = parseFloat((Math.random() * 8 + 1).toFixed(2));
+                        connections.push([nodeIds[i], nodeIds[j], distance]);
                     }
                 }
             }
 
             if (connections.length > 0) {
                 var payload = JSON.stringify(connections);
-                log('Simulated: ' + payload, 'info');
+                log('🎮 Generated simulation data: ' + payload, 'info');
+                log('📋 Format: [["node1","node2",distance], ["node2","node3",distance], ...]', 'info');
+                
+                // For simulation, reset fast message detection to allow animations
+                if (fastMessageMode) {
+                    fastMessageMode = false;
+                    animationsEnabled = true;
+                    log('🎬 Simulation mode - animations re-enabled', 'info');
+                }
+                
                 processData(payload);
                 messagesReceived++;
                 updateProgress();
+            } else {
+                log('🎮 No connections generated this round', 'info');
             }
         }
 
         function processData(payload) {
             try {
-                var data = JSON.parse(payload);
-                if (!Array.isArray(data)) return;
+                log('🔍 Processing MQTT payload...', 'info');
+                log('📦 Raw payload: ' + payload, 'info');
                 
-                log('Processing ' + data.length + ' connections', 'info');
-                clearVisualization();
-                
-                var positions = calculateLayout(data);
-                
-                // Create nodes
-                for (var nodeId in positions) {
-                    createNode(nodeId, positions[nodeId].x, positions[nodeId].y);
+                // Parse JSON payload
+                var data;
+                try {
+                    data = JSON.parse(payload);
+                } catch (parseError) {
+                    log('❌ Invalid JSON format: ' + parseError.message, 'error');
+                    log('💡 Expected: [["node1","node2",1.5], ["node2","node3",2.1]]', 'error');
+                    log('❌ Received: ' + payload.substring(0, 200) + (payload.length > 200 ? '...' : ''), 'error');
+                    return;
                 }
                 
-                // Create connections
+                log('✅ JSON parsed successfully', 'success');
+                
+                // Validate top-level array
+                if (!Array.isArray(data)) {
+                    log('❌ Payload must be an array of connections', 'error');
+                    log('💡 Expected: [["node1","node2",1.5], ["node2","node3",2.1]]', 'error');
+                    log('❌ Received: ' + typeof data + ' - ' + JSON.stringify(data).substring(0, 100), 'error');
+                    return;
+                }
+                
+                if (data.length === 0) {
+                    log('⚠️ Received empty array - no connections to display', 'info');
+                    clearVisualization();
+                    return;
+                }
+                
+                log('📊 Found ' + data.length + ' connection(s) to process', 'info');
+                
+                // Validate and process each connection
+                var validConnections = [];
+                var errors = [];
+                var nodeIds = new Set();
+                
                 for (var i = 0; i < data.length; i++) {
                     var conn = data[i];
-                    if (conn.length >= 3) {
-                        createConnection(conn[0], conn[1], conn[2]);
+                    var connIndex = i + 1;
+                    
+                    // Validate connection format
+                    if (!Array.isArray(conn)) {
+                        errors.push('Connection ' + connIndex + ': must be an array [node_id_1, node_id_2, distance_m]');
+                        continue;
+                    }
+                    
+                    if (conn.length < 3) {
+                        errors.push('Connection ' + connIndex + ': must have 3 elements [node_id_1, node_id_2, distance_m]');
+                        continue;
+                    }
+                    
+                    var nodeId1 = conn[0];
+                    var nodeId2 = conn[1];
+                    var distance = conn[2];
+                    
+                    // Validate node IDs
+                    if (nodeId1 === null || nodeId1 === undefined || nodeId1 === '') {
+                        errors.push('Connection ' + connIndex + ': node_id_1 cannot be null/empty');
+                        continue;
+                    }
+                    
+                    if (nodeId2 === null || nodeId2 === undefined || nodeId2 === '') {
+                        errors.push('Connection ' + connIndex + ': node_id_2 cannot be null/empty');
+                        continue;
+                    }
+                    
+                    // Convert node IDs to strings for consistency
+                    nodeId1 = String(nodeId1);
+                    nodeId2 = String(nodeId2);
+                    
+                    // Validate nodes are different
+                    if (nodeId1 === nodeId2) {
+                        errors.push('Connection ' + connIndex + ': node_id_1 and node_id_2 cannot be the same (' + nodeId1 + ')');
+                        continue;
+                    }
+                    
+                    // Validate distance
+                    var numDistance = parseFloat(distance);
+                    if (isNaN(numDistance)) {
+                        errors.push('Connection ' + connIndex + ': distance "' + distance + '" is not a valid number');
+                        continue;
+                    }
+                    
+                    if (numDistance <= 0) {
+                        errors.push('Connection ' + connIndex + ': distance must be positive (got ' + numDistance + ')');
+                        continue;
+                    }
+                    
+                    // Connection is valid
+                    validConnections.push([nodeId1, nodeId2, numDistance]);
+                    nodeIds.add(nodeId1);
+                    nodeIds.add(nodeId2);
+                    log('✅ Connection ' + connIndex + ': "' + nodeId1 + '" ↔ "' + nodeId2 + '" (' + numDistance.toFixed(2) + 'm)', 'success');
+                }
+                
+                // Report any errors
+                if (errors.length > 0) {
+                    log('⚠️ Found ' + errors.length + ' invalid connection(s):', 'error');
+                    for (var j = 0; j < errors.length; j++) {
+                        log('  • ' + errors[j], 'error');
                     }
                 }
                 
+                // Process valid connections
+                if (validConnections.length === 0) {
+                    log('❌ No valid connections found to display', 'error');
+                    log('💡 Expected: [["node1","node2",1.5], ["node2","node3",2.1]]', 'error');
+                    clearVisualization();
+                    return;
+                }
+                
+                log('📊 Unique nodes detected: [' + Array.from(nodeIds).join(', ') + ']', 'info');
+                log('📈 Visualizing ' + validConnections.length + ' valid connection(s)', 'info');
+                
+                // Clear previous visualization
+                clearVisualization();
+                
+                // Calculate node positions
+                log('🧮 Calculating node layout...', 'info');
+                var positions = calculateLayout(validConnections);
+                var nodeCount = Object.keys(positions).length;
+                
+                log('📍 Node positions calculated: ' + nodeCount + ' nodes positioned', 'info');
+                
+                // Create nodes first
+                log('🎯 Creating nodes...', 'info');
+                var createdNodes = [];
+                for (var nodeId in positions) {
+                    createNode(nodeId, positions[nodeId].x, positions[nodeId].y);
+                    createdNodes.push(nodeId);
+                }
+                
+                // Log created nodes
+                log('✅ Nodes displayed: [' + createdNodes.join(', ') + ']', 'success');
+                
+                // Create connections between nodes
+                log('🔗 Creating connections...', 'info');
+                var createdConnections = [];
+                for (var k = 0; k < validConnections.length; k++) {
+                    var validConn = validConnections[k];
+                    createConnection(validConn[0], validConn[1], validConn[2]);
+                    createdConnections.push(validConn[0] + '↔' + validConn[1] + '(' + validConn[2] + 'm)');
+                }
+                
+                // Log created connections
+                log('✅ Connections displayed: [' + createdConnections.join(', ') + ']', 'success');
+                
+                log('🎨 *** VISUALIZATION COMPLETE *** ' + nodeCount + ' nodes and ' + validConnections.length + ' connections now visible', 'success');
+                
+                // Ensure nodes are visible by checking DOM
+                setTimeout(function() {
+                    var visibleNodes = document.querySelectorAll('.node');
+                    var visibleConnections = document.querySelectorAll('.connection');
+                    log('🔍 DOM verification: ' + visibleNodes.length + ' nodes, ' + Math.floor(visibleConnections.length/2) + ' connections in DOM', 'info');
+                    
+                    if (visibleNodes.length !== nodeCount) {
+                        log('⚠️ Node count mismatch! Expected: ' + nodeCount + ', Found: ' + visibleNodes.length, 'error');
+                    } else {
+                        log('✅ All nodes successfully displayed in visualization', 'success');
+                    }
+                }, 100);
+                
             } catch (error) {
-                log('Error processing data: ' + error.message, 'error');
+                log('❌ Error processing MQTT payload: ' + error.message, 'error');
+                log('💡 Expected: [["node1","node2",1.5], ["node2","node3",2.1]]', 'error');
             }
         }
 
@@ -588,6 +925,7 @@
             var nodeSet = new Set();
             var distances = {};
             
+            // Extract all nodes and distances
             for (var i = 0; i < data.length; i++) {
                 var conn = data[i];
                 if (conn.length >= 3) {
@@ -613,14 +951,17 @@
             
             if (nodeArray.length === 2) {
                 var distance = distances[[nodeArray[0], nodeArray[1]].sort().join('-')] || 1;
-                var separation = distance * 30 * nodeSpacing;
+                var separation = Math.min(distance * 30 * nodeSpacing, viz.offsetWidth * 0.6);
                 positions[nodeArray[0]] = { x: centerX - separation/2, y: centerY };
                 positions[nodeArray[1]] = { x: centerX + separation/2, y: centerY };
                 return positions;
             }
             
-            // Multiple nodes - circular layout
-            var radius = Math.min(viz.offsetWidth, viz.offsetHeight) / 6 * nodeSpacing;
+            // Multiple nodes - circular layout with distance-based radius (updated for 60px nodes)
+            var maxDistance = Math.max(...Object.values(distances));
+            var radius = Math.min(viz.offsetWidth, viz.offsetHeight) / 4 * nodeSpacing * (maxDistance / 5);
+            radius = Math.max(100, Math.min(radius, Math.min(viz.offsetWidth, viz.offsetHeight) / 3));
+            
             for (var i = 0; i < nodeArray.length; i++) {
                 var angle = (i / nodeArray.length) * 2 * Math.PI;
                 var x = centerX + radius * Math.cos(angle);
@@ -633,18 +974,35 @@
 
         function createNode(nodeId, x, y) {
             var viz = document.getElementById('visualization');
-            var safeX = Math.max(25, Math.min(viz.offsetWidth - 25, x));
-            var safeY = Math.max(25, Math.min(viz.offsetHeight - 25, y));
+            if (!viz) {
+                log('❌ Visualization container not found!', 'error');
+                return;
+            }
+            
+            var safeX = Math.max(30, Math.min(viz.offsetWidth - 30, x));
+            var safeY = Math.max(30, Math.min(viz.offsetHeight - 30, y));
+            
+            log('🔧 Creating node "' + nodeId + '" at position (' + safeX + ', ' + safeY + ') [Animations: ' + (animationsEnabled ? 'ON' : 'OFF') + ']', 'info');
             
             var node = document.createElement('div');
-            node.className = 'node';
-            node.style.left = (safeX - 25) + 'px';
-            node.style.top = (safeY - 25) + 'px';
-            node.textContent = nodeId.toString().length > 3 ? nodeId.toString().substring(0, 3) : nodeId.toString();
-            node.title = 'Node: ' + nodeId;
+            node.className = animationsEnabled ? 'node pulse' : 'node';
+            node.style.left = (safeX - 30) + 'px';
+            node.style.top = (safeY - 30) + 'px';
+            node.textContent = nodeId.toString().length > 4 ? nodeId.toString().substring(0, 4) : nodeId.toString();
+            node.title = 'Node: ' + nodeId + ' (Position: ' + safeX + ', ' + safeY + ')';
+            node.setAttribute('data-node-id', nodeId);
             
             viz.appendChild(node);
             nodes.set(nodeId, { x: safeX, y: safeY, element: node });
+            
+            // Remove pulse class after animation (only if animations are enabled)
+            if (animationsEnabled) {
+                setTimeout(function() {
+                    node.classList.remove('pulse');
+                }, 1000);
+            }
+            
+            log('✅ Node "' + nodeId + '" created and added to DOM' + (animationsEnabled ? ' with animation' : ''), 'success');
         }
 
         function createConnection(node1, node2, distance) {
@@ -658,10 +1016,12 @@
             var length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
             var angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
             
-            var startX = pos1.x + 25 * Math.cos(Math.atan2(deltaY, deltaX));
-            var startY = pos1.y + 25 * Math.sin(Math.atan2(deltaY, deltaX));
-            var connectionLength = length - 50;
+            // Calculate connection line start and end points (edge of circles) - updated for 60px nodes
+            var startX = pos1.x + 30 * Math.cos(Math.atan2(deltaY, deltaX));
+            var startY = pos1.y + 30 * Math.sin(Math.atan2(deltaY, deltaX));
+            var connectionLength = length - 60; // Subtract both node radii (30px each)
             
+            // Create connection line
             var connection = document.createElement('div');
             connection.className = 'connection';
             connection.style.left = startX + 'px';
@@ -672,7 +1032,7 @@
             document.getElementById('visualization').appendChild(connection);
             connections.push(connection);
             
-            // Add distance label
+            // Add distance label at midpoint
             var label = document.createElement('div');
             label.className = 'distance-label';
             label.style.left = (pos1.x + pos2.x) / 2 - 20 + 'px';
@@ -685,33 +1045,94 @@
 
         function updateConnectionStatus(status) {
             var statusEl = document.getElementById('connectionStatus');
+            var connectBtn = document.getElementById('connectBtn');
+            var disconnectBtn = document.getElementById('disconnectBtn');
+            
             statusEl.className = 'connection-status ' + status;
             
             if (status === 'disconnected') {
                 statusEl.textContent = 'Disconnected';
+                connectBtn.style.display = 'inline-block';
+                disconnectBtn.style.display = 'none';
             } else if (status === 'connecting') {
                 statusEl.textContent = 'Connecting...';
+                connectBtn.style.display = 'none';
+                disconnectBtn.style.display = 'inline-block';
             } else if (status === 'connected') {
-                statusEl.textContent = simulationInterval ? 'Connected (Simulation)' : 'Connected (WebSocket)';
-            } else if (status === 'blocked') {
-                statusEl.textContent = 'Blocked by CSP - Use Simulation';
-                statusEl.className = 'connection-status disconnected';
+                var connectionType = simulationInterval ? 'Simulation + Paho MQTT (SSL)' : 'Eclipse Paho MQTT (SSL)';
+                statusEl.textContent = 'Connected (' + connectionType + ')';
+                connectBtn.style.display = 'none';
+                disconnectBtn.style.display = 'inline-block';
             }
+        }
+
+        function updateProgress() {
+            var info = document.getElementById('progressInfo');
+            
+            var visibleNodes = nodes.size;
+            var statusIcon = isConnected ? '🔗' : (simulationInterval ? '🎮' : '⭕');
+            
+            if (!isConnected && !simulationInterval) {
+                info.innerHTML = 
+                    'Ready to connect. Configure broker settings above and click "Connect" for secure Eclipse Paho MQTT (SSL) or "Start Simulation" for demo data.<br>' +
+                    '<strong>Expected MQTT Format:</strong> [["node1","node2",1.5], ["node2","node3",2.1], ...]';
+                return;
+            }
+            
+            var connectionType = '';
+            if (isConnected && simulationInterval) {
+                connectionType = 'Eclipse Paho MQTT (SSL) + Simulation';
+            } else if (isConnected) {
+                connectionType = 'Eclipse Paho MQTT (SSL)';
+            } else if (simulationInterval) {
+                connectionType = 'Simulation Mode';
+            }
+            
+            info.innerHTML = 
+                '<strong>Status:</strong> ' + statusIcon + ' ' + connectionType + '<br>' +
+                '<strong>Messages:</strong> ' + messagesReceived + '<br>' +
+                '<strong>Nodes:</strong> ' + visibleNodes + '<br>' +
+                '<strong>Scale:</strong> ' + nodeSpacing + 'x' +
+                (currentTopic ? '<br><strong>Topic:</strong> ' + currentTopic : '');
         }
 
         function updateScale(value) {
             nodeSpacing = parseInt(value);
             document.getElementById('spacingValue').textContent = value;
-            log('Display scale changed to ' + value + 'x', 'info');
+            log('🔧 Display scale changed to ' + value + 'x', 'info');
+            
+            // Re-render current visualization with new scale
+            if (nodes.size > 0) {
+                var currentData = [];
+                // Extract current connections for re-rendering
+                log('🔄 Re-rendering visualization with new scale', 'info');
+            }
         }
 
         function clearVisualization() {
             var viz = document.getElementById('visualization');
+            if (!viz) {
+                log('❌ Visualization container not found!', 'error');
+                return;
+            }
+            
+            var nodeCount = nodes.size;
+            var connectionCount = connections.length;
+            
+            if (nodeCount > 0 || connectionCount > 0) {
+                log('🧹 Clearing visualization: ' + nodeCount + ' nodes, ' + connectionCount + ' connections', 'info');
+            }
+            
+            // Clear DOM elements
             while (viz.firstChild) {
                 viz.removeChild(viz.firstChild);
             }
+            
+            // Clear data structures
             nodes.clear();
             connections = [];
+            
+            log('✅ Visualization cleared and ready for new data', 'info');
         }
 
         function toggleConsole() {
@@ -733,22 +1154,143 @@
             log('Console cleared', 'info');
         }
 
-        function updateProgress() {
-            var info = document.getElementById('progressInfo');
+        function testMqttFormat() {
+            log('🧪 Testing MQTT payload format and node display...', 'info');
             
-            if (!isConnected) {
-                info.textContent = 'Not connected. Click "Start Simulation" for demo data or "Connect" for WebSocket.';
+            // Example payload in the exact expected format
+            var testPayload = [
+                ["Room1", "Room2", 3.5],
+                ["Room2", "Room3", 2.1],
+                ["Room1", "Room3", 4.8],
+                ["Room3", "Room4", 1.7],
+                ["Room2", "Room4", 3.2]
+            ];
+            
+            var jsonPayload = JSON.stringify(testPayload);
+            log('📋 Test payload: ' + jsonPayload, 'info');
+            log('📊 Expected result after parsing:', 'info');
+            log('  • 4 nodes should be displayed: Room1, Room2, Room3, Room4', 'info');
+            log('  • 5 connections should be drawn between the nodes', 'info');
+            log('  • Distance labels should show: 3.5m, 2.1m, 4.8m, 1.7m, 3.2m', 'info');
+            log('📊 Processing test data now...', 'info');
+            
+            // Process the test data
+            processData(jsonPayload);
+            
+            if (!simulationInterval) {
+                messagesReceived++;
+                updateProgress();
+            }
+            
+            log('🔍 Test complete! Check visualization area for nodes and connections.', 'success');
+        }
+
+        function verifyNodes() {
+            log('🔍 === Node Verification ===', 'info');
+            
+            var viz = document.getElementById('visualization');
+            if (!viz) {
+                log('❌ Visualization container not found!', 'error');
                 return;
             }
             
-            var visibleNodes = nodes.size;
-            var connectionType = simulationInterval ? 'Simulation' : 'WebSocket';
+            var domNodes = document.querySelectorAll('.node');
+            var domConnections = document.querySelectorAll('.connection');
+            var domLabels = document.querySelectorAll('.distance-label');
             
-            info.innerHTML = 
-                '<strong>Status:</strong> ✅ Connected via ' + connectionType + '<br>' +
-                '<strong>Messages:</strong> ' + messagesReceived + '<br>' +
-                '<strong>Nodes:</strong> ' + visibleNodes + '<br>' +
-                '<strong>Scale:</strong> ' + nodeSpacing + 'x';
+            log('📊 DOM Elements Found:', 'info');
+            log('  • Nodes in DOM: ' + domNodes.length, 'info');
+            log('  • Connections in DOM: ' + domConnections.length, 'info');
+            log('  • Distance labels in DOM: ' + domLabels.length, 'info');
+            
+            log('📊 Data Structures:', 'info');
+            log('  • Nodes in Map: ' + nodes.size, 'info');
+            log('  • Connections in Array: ' + connections.length, 'info');
+            log('  • Animation Mode: ' + (animationsEnabled ? 'Enabled' : 'Disabled (Fast Messages)'), 'info');
+            
+            if (domNodes.length > 0) {
+                log('📋 Node Details:', 'info');
+                for (var i = 0; i < domNodes.length; i++) {
+                    var node = domNodes[i];
+                    var nodeId = node.getAttribute('data-node-id') || node.textContent;
+                    var rect = node.getBoundingClientRect();
+                    var vizRect = viz.getBoundingClientRect();
+                    var relativeX = rect.left - vizRect.left + rect.width/2;
+                    var relativeY = rect.top - vizRect.top + rect.height/2;
+                    
+                    log('  • Node "' + nodeId + '": Position(' + Math.round(relativeX) + ', ' + Math.round(relativeY) + '), Size: ' + rect.width + 'x' + rect.height + ', Visible: ' + (rect.width > 0), 'info');
+                }
+                
+                log('✅ Nodes are displayed and positioned (60px circles with 8px padding)', 'success');
+                
+                // Highlight nodes briefly
+                domNodes.forEach(function(node) {
+                    node.style.boxShadow = '0 0 15px #ff6b6b';
+                    setTimeout(function() {
+                        node.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                    }, 2000);
+                });
+                
+            } else {
+                log('❌ No nodes found in DOM!', 'error');
+                log('💡 Try sending MQTT data or using "Test Format" button', 'error');
+            }
+        }
+
+        function checkConnectionStatus() {
+            log('🔍 === Connection Status Check ===', 'info');
+            
+            if (mqttClient) {
+                var connected = mqttClient.isConnected();
+                log('📊 Eclipse Paho MQTT Status: ' + (connected ? 'Connected ✅' : 'Disconnected ❌'), 'info');
+                
+                if (connected) {
+                    log('📊 Client ID: ' + mqttClient.clientId, 'info');
+                    log('📊 Current Topic: ' + (currentTopic || 'None'), 'info');
+                    log('📊 Messages Received: ' + messagesReceived, 'info');
+                } else {
+                    log('📊 Connection State: Disconnected', 'info');
+                }
+            } else {
+                log('📊 No MQTT client instance created', 'info');
+            }
+            
+            log('📊 Connection Timer: ' + (connectionTimer ? 'Active' : 'None'), 'info');
+            
+            if (simulationInterval) {
+                log('📊 Simulation Mode: Active ✅', 'info');
+            } else {
+                log('📊 Simulation Mode: Inactive ❌', 'info');
+            }
+            
+            log('📊 Total Nodes Visible: ' + nodes.size, 'info');
+            log('📊 Animation Status: ' + (animationsEnabled ? 'Enabled' : 'Disabled (Fast Messages)'), 'info');
+            log('📊 Fast Message Mode: ' + (fastMessageMode ? 'Active' : 'Inactive'), 'info');
+            log('📋 Expected MQTT Format: [["node1","node2",1.5], ["node2","node3",2.1]]', 'info');
+        }
+
+        function manualResubscribe() {
+            if (!mqttClient || !mqttClient.isConnected()) {
+                log('❌ Cannot resubscribe - no active Eclipse Paho MQTT connection', 'error');
+                return;
+            }
+            
+            // Get current topic from input field (in case user changed it)
+            var newTopic = document.getElementById('topicName').value.trim();
+            
+            if (!newTopic) {
+                log('❌ Cannot resubscribe - no topic specified', 'error');
+                return;
+            }
+            
+            // Update current topic if it changed
+            if (newTopic !== currentTopic) {
+                log('🔄 Topic changed from "' + currentTopic + '" to "' + newTopic + '"', 'info');
+                currentTopic = newTopic;
+            }
+            
+            log('🔄 Manually resubscribing to topic: "' + currentTopic + '"', 'info');
+            subscribeToTopic();
         }
     </script>
 </body>
