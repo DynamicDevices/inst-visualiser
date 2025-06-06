@@ -66,8 +66,8 @@ The visualizer creates an engaging real-time experience:
 ### 🚀 Option 1: Download and Run
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/inst-tag-visualizer.git
-cd inst-tag-visualizer
+git clone https://github.com/yourusername/inst-visualiser.git
+cd inst-visualiser
 
 # Serve locally (choose one)
 npm start                    # Uses http-server
@@ -76,7 +76,7 @@ python3 -m http.server 8080  # Python built-in
 ```
 
 ### 🌐 Option 2: Use GitHub Pages
-Visit the [live demo](https://yourusername.github.io/inst-tag-visualizer/) and start immediately.
+Visit the [live demo](https://yourusername.github.io/inst-visualiser/) and start immediately.
 
 ### 🧪 Testing Without Hardware
 1. Open the visualizer
@@ -189,7 +189,7 @@ client.publish("uwb/distances", json.dumps(distances))
 
 ### Project Structure
 ```
-inst-tag-visualizer/
+inst-visualiser/
 ├── index.html              # Main HTML file
 ├── css/
 │   └── styles.css          # All styles and animations
@@ -205,7 +205,7 @@ inst-tag-visualizer/
 │   └── integration.md      # Integration examples
 ├── package.json            # NPM configuration
 ├── README.md               # This file
-└── LICENSE                 # MIT license
+└── LICENSE                 # GPLv3 license
 ```
 
 ### Development Scripts
@@ -231,7 +231,7 @@ See [docs/API.md](docs/API.md) for detailed MQTT API specification and integrati
 ### GitHub Pages
 1. Enable GitHub Pages in repository settings
 2. Select "Deploy from a branch" → `main` branch
-3. Your visualizer will be available at `https://yourusername.github.io/inst-tag-visualizer/`
+3. Your visualizer will be available at `https://yourusername.github.io/inst-visualiser/`
 
 ### Custom Hosting
 1. Upload files to any web server
@@ -290,13 +290,12 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+GPLv3 License - see [LICENSE](LICENSE) file for details.
 
 ## Support
 
 - 📧 **Email**: your.email@example.com
-- 🐛 **Issues**: [GitHub Issues](https://github.com/yourusername/inst-tag-visualizer/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/inst-tag-visualizer/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/dynamicdevices/inst-visualiser/issues)
 - 📖 **Documentation**: [docs/](docs/) folder
 
 ## Acknowledgments

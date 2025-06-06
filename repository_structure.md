@@ -5,9 +5,9 @@ This document lists all files created for the professional INST Tag Visualizer G
 ## 📁 Repository File Tree
 
 ```
-inst-tag-visualizer/
+inst-visualiser/
 ├── 📄 README.md                          # Comprehensive project documentation
-├── 📄 LICENSE                            # MIT License
+├── 📄 LICENSE                            # GPLv3 License
 ├── 📄 CONTRIBUTING.md                     # Contribution guidelines
 ├── 📄 REPOSITORY-STRUCTURE.md             # This file
 ├── 📄 package.json                       # NPM configuration and scripts
@@ -60,7 +60,7 @@ inst-tag-visualizer/
   - Browser compatibility targets
   - Development dependencies
 - **Version**: 1.4.0
-- **License**: MIT
+- **License**: GPLv3
 
 #### `index.html`
 - **Purpose**: Main application entry point
@@ -72,7 +72,7 @@ inst-tag-visualizer/
 - **Dependencies**: Paho MQTT via CDN
 
 #### `LICENSE`
-- **Purpose**: MIT License for open source distribution
+- **Purpose**: GPLv3 License for open source distribution
 - **Permissions**: Commercial use, modification, distribution, private use
 - **Conditions**: Include license and copyright notice
 
@@ -248,12 +248,12 @@ inst-tag-visualizer/
 
 ```bash
 # 1. Create repository structure
-mkdir inst-tag-visualizer
-cd inst-tag-visualizer
+mkdir inst-visualiser
+cd inst-visualiser
 
 # 2. Initialize git
 git init
-git remote add origin https://github.com/yourusername/inst-tag-visualizer.git
+git remote add origin https://github.com/yourusername/inst-visualiser.git
 
 # 3. Create directory structure
 mkdir -p css js docs examples .github/workflows
@@ -300,7 +300,7 @@ git push -u origin main
 ## 🔧 Customization
 
 ### Repository Name
-Replace `inst-tag-visualizer` with your preferred name in:
+Replace `inst-visualiser` with your preferred name in:
 - [ ] `package.json` → `name` field
 - [ ] `README.md` → URLs and links
 - [ ] `.github/workflows/ci-cd.yml` → deployment settings

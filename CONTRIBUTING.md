@@ -19,7 +19,7 @@ We welcome various types of contributions:
 
 ### Before You Start
 
-1. **Check existing issues** - Look through [existing issues](https://github.com/yourusername/inst-tag-visualizer/issues) to see if your bug/feature is already being discussed
+1. **Check existing issues** - Look through [existing issues](https://github.com/yourusername/inst-visualiser/issues) to see if your bug/feature is already being discussed
 2. **Open an issue** - For new features or significant changes, please open an issue first to discuss the approach
 3. **Read the docs** - Familiarize yourself with the [API documentation](docs/API.md) and [architecture](#architecture-overview)
 
@@ -29,8 +29,8 @@ We welcome various types of contributions:
 
 1. **Fork and clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/inst-tag-visualizer.git
-   cd inst-tag-visualizer
+   git clone https://github.com/yourusername/inst-visualiser.git
+   cd inst-visualiser
    ```
 
 2. **Install development dependencies**:

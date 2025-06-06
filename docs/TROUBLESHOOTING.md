@@ -494,8 +494,8 @@ Sample Data: [MQTT payload that causes issue]
 ```
 
 ### Community Resources
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/yourusername/inst-tag-visualizer/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/inst-tag-visualizer/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/yourusername/inst-visualiser/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/inst-visualiser/discussions)
 - 📧 **Email Support**: your.email@example.com
 - 📖 **Documentation**: [docs/](docs/) folder
 
@@ -510,4 +510,4 @@ Contact: enterprise-support@example.com
 
 ---
 
-**Still having issues?** Open a [GitHub issue](https://github.com/yourusername/inst-tag-visualizer/issues/new) with the debugging information above.
+**Still having issues?** Open a [GitHub issue](https://github.com/yourusername/inst-visualiser/issues/new) with the debugging information above.

@@ -16,7 +16,7 @@ This guide covers various deployment options for the INST Tag Visualizer, from s
    ```
 
 2. **Access your site**:
-   - URL: `https://yourusername.github.io/inst-tag-visualizer/`
+   - URL: `https://yourusername.github.io/inst-visualiser/`
    - Updates automatically on push to main branch
    - Custom domain support available
 
@@ -125,13 +125,13 @@ http {
 ### Build and Run Docker
 ```bash
 # Build image
-docker build -t inst-tag-visualizer .
+docker build -t inst-visualiser .
 
 # Run container
 docker run -d \
   --name visualizer \
   -p 8080:80 \
-  inst-tag-visualizer
+  inst-visualiser
 
 # Access at http://localhost:8080
 ```
@@ -178,15 +178,15 @@ docker-compose logs -f
 
 1. **Create S3 Bucket**:
    ```bash
-   aws s3 mb s3://inst-tag-visualizer-prod
-   aws s3 website s3://inst-tag-visualizer-prod \
+   aws s3 mb s3://inst-visualiser-prod
+   aws s3 website s3://inst-visualiser-prod \
      --index-document index.html \
      --error-document index.html
    ```
 
 2. **Upload Files**:
    ```bash
-   aws s3 sync . s3://inst-tag-visualizer-prod \
+   aws s3 sync . s3://inst-visualiser-prod \
      --exclude ".*" \
      --exclude "node_modules/*" \
      --exclude "docs/*"
@@ -196,14 +196,14 @@ docker-compose logs -f
    ```json
    {
      "Origins": [{
-       "DomainName": "inst-tag-visualizer-prod.s3.amazonaws.com",
-       "Id": "S3-inst-tag-visualizer",
+       "DomainName": "inst-visualiser-prod.s3.amazonaws.com",
+       "Id": "S3-inst-visualiser",
        "S3OriginConfig": {
          "OriginAccessIdentity": ""
        }
      }],
      "DefaultCacheBehavior": {
-       "TargetOriginId": "S3-inst-tag-visualizer",
+       "TargetOriginId": "S3-inst-visualiser",
        "ViewerProtocolPolicy": "redirect-to-https",
        "CachePolicyId": "managed-caching-optimized"
      },
@@ -215,16 +215,16 @@ docker-compose logs -f
 ### Google Cloud Storage + CDN
 ```bash
 # Create bucket
-gsutil mb gs://inst-tag-visualizer
+gsutil mb gs://inst-visualiser
 
 # Upload files
-gsutil -m cp -r . gs://inst-tag-visualizer
+gsutil -m cp -r . gs://inst-visualiser
 
 # Make public
-gsutil iam ch allUsers:objectViewer gs://inst-tag-visualizer
+gsutil iam ch allUsers:objectViewer gs://inst-visualiser
 
 # Enable website hosting
-gsutil web set -m index.html -e index.html gs://inst-tag-visualizer
+gsutil web set -m index.html -e index.html gs://inst-visualiser
 ```
 
 ### Azure Static Web Apps
@@ -292,7 +292,7 @@ server {
     add_header X-Content-Type-Options nosniff;
     add_header Referrer-Policy "strict-origin-when-cross-origin";
     
-    root /var/www/inst-tag-visualizer;
+    root /var/www/inst-visualiser;
     index index.html;
     
     # Enable compression
@@ -454,7 +454,7 @@ window.addEventListener('error', (e) => {
 ### Service Worker for Offline Support
 ```javascript
 // sw.js
-const CACHE_NAME = 'inst-tag-visualizer-v1.4.0';
+const CACHE_NAME = 'inst-visualiser-v1.4.0';
 const urlsToCache = [
     '/',
     '/css/styles.css',
@@ -577,4 +577,4 @@ add_header Permissions-Policy "geolocation=(), microphone=(), camera=()";
 
 ---
 
-Need help with deployment? Check our [troubleshooting guide](TROUBLESHOOTING.md) or [open an issue](https://github.com/yourusername/inst-tag-visualizer/issues).
+Need help with deployment? Check our [troubleshooting guide](TROUBLESHOOTING.md) or [open an issue](https://github.com/yourusername/inst-visualiser/issues).

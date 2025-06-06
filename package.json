@@ -1,5 +1,5 @@
 {
-  "name": "inst-tag-visualizer",
+  "name": "inst-visualiser",
   "version": "1.4.0",
   "description": "Real-time UWB positioning visualization tool with MQTT connectivity and geometric node placement",
   "main": "index.html",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/inst-tag-visualizer.git"
+    "url": "git+https://github.com/yourusername/inst-visualiser.git"
   },
   "keywords": [
     "mqtt",
@@ -30,12 +30,12 @@
     "geometric-layout",
     "distance-measurement"
   ],
-  "author": "Your Name <your.email@example.com>",
-  "license": "MIT",
+  "author": "Alex J Lennon <ajlennon@dynamicdevices.co.uk>",
+  "license": "GPLv3",
   "bugs": {
-    "url": "https://github.com/yourusername/inst-tag-visualizer/issues"
+    "url": "https://github.com/dynamicdevices/inst-visualiser/issues"
   },
-  "homepage": "https://github.com/yourusername/inst-tag-visualizer#readme",
+  "homepage": "https://github.com/dynamicdevices/inst-visualiser#readme",
   "devDependencies": {
     "eslint": "^8.0.0",
     "htmlhint": "^1.1.4",
