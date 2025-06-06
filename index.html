@@ -225,6 +225,10 @@
             overflow: hidden;
         }
 
+        .node.moving {
+            transition: left 2s ease-in-out, top 2s ease-in-out;
+        }
+
         .node.gateway {
             background: linear-gradient(135deg, #e53e3e, #c53030);
             border-color: #c53030;
@@ -303,12 +307,14 @@
             color: black;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             z-index: 100;
             border: 1px solid #e53e3e;
             pointer-events: none;
             white-space: nowrap;
+            min-width: 45px;
+            text-align: center;
         }
 
         .progress-info {
@@ -468,7 +474,7 @@
                     <button onclick="toggleConsole()">Show Console</button>
                     <button onclick="manualResubscribe()" class="secondary" style="display: none;">Resubscribe</button>
                     <button onclick="clearVisualization()" class="secondary">Clear</button>
-                    <button onclick="testMqttFormat()" class="secondary" style="display: none;">Test Format</button>
+                    <button onclick="testMqttFormat()" class="secondary">Test Positioning</button>
                     <button onclick="verifyNodes()" class="secondary" style="display: none;">Verify Nodes</button>
                 </div>
             </div>
@@ -505,6 +511,10 @@
         var lastMessageTime = 0;
         var fastMessageMode = false;
         var animationsEnabled = true;
+        var currentDistances = new Map(); // Store current distance measurements
+        var layoutUpdateInterval = null;
+        var isLayoutAnimating = false;
+        var animationFrameId = null;
 
         // Initialize when page loads
         window.onload = function() {
@@ -947,31 +957,50 @@
                 }
                 
                 log('📊 Unique nodes detected: [' + Array.from(nodeIds).join(', ') + ']', 'info');
-                log('📈 Visualizing ' + validConnections.length + ' valid connection(s)', 'info');
+                log('📈 Processing ' + validConnections.length + ' valid connection(s)', 'info');
                 
-                // Clear previous visualization
-                clearVisualization();
+                // Track new distance measurements and detect changes
+                var distanceChanges = 0;
+                var newNodes = [];
                 
-                // Calculate node positions
-                log('🧮 Calculating node layout...', 'info');
-                var positions = calculateLayout(validConnections);
-                var nodeCount = Object.keys(positions).length;
-                
-                log('📍 Node positions calculated: ' + nodeCount + ' nodes positioned', 'info');
-                
-                // Create nodes first
-                log('🎯 Creating nodes...', 'info');
-                var createdNodes = [];
-                for (var nodeId in positions) {
-                    createNode(nodeId, positions[nodeId].x, positions[nodeId].y);
-                    createdNodes.push(nodeId);
+                // Update distance measurements
+                for (var k = 0; k < validConnections.length; k++) {
+                    var conn = validConnections[k];
+                    var key = [conn[0], conn[1]].sort().join('-');
+                    var newDistance = conn[2];
+                    var oldDistance = currentDistances.get(key);
+                    
+                    if (oldDistance === undefined) {
+                        log('📏 New distance measurement: ' + key + ' = ' + newDistance + 'm', 'info');
+                    } else if (Math.abs(oldDistance - newDistance) > 0.1) {
+                        log('📏 Distance change: ' + key + ' = ' + oldDistance + 'm → ' + newDistance + 'm', 'info');
+                        distanceChanges++;
+                    }
+                    
+                    currentDistances.set(key, newDistance);
                 }
                 
-                // Log created nodes
-                log('✅ Nodes displayed: [' + createdNodes.join(', ') + ']', 'success');
+                // Check for new nodes that need to be created
+                nodeIds.forEach(function(nodeId) {
+                    if (!nodes.has(nodeId)) {
+                        newNodes.push(nodeId);
+                    }
+                });
                 
-                // Create connections between nodes
-                log('🔗 Creating connections...', 'info');
+                // Create new nodes if needed
+                if (newNodes.length > 0) {
+                    log('🆕 Creating new nodes: [' + newNodes.join(', ') + ']', 'info');
+                    
+                    // Calculate initial positions for new nodes
+                    var positions = calculateLayout(validConnections);
+                    
+                    newNodes.forEach(function(nodeId) {
+                        createNode(nodeId, positions[nodeId].x, positions[nodeId].y);
+                    });
+                }
+                
+                // Clear and recreate connections
+                clearConnections();
                 var createdConnections = [];
                 for (var k = 0; k < validConnections.length; k++) {
                     var validConn = validConnections[k];
@@ -979,10 +1008,20 @@
                     createdConnections.push(validConn[0] + '↔' + validConn[1] + '(' + validConn[2] + 'm)');
                 }
                 
-                // Log created connections
-                log('✅ Connections displayed: [' + createdConnections.join(', ') + ']', 'success');
+                log('✅ Connections updated: [' + createdConnections.join(', ') + ']', 'success');
                 
-                log('🎨 *** VISUALIZATION COMPLETE *** ' + nodeCount + ' nodes and ' + validConnections.length + ' connections now visible', 'success');
+                // Update layout if distances changed or we have multiple measurements
+                if (distanceChanges > 0 || (currentDistances.size >= 2 && nodes.size >= 3)) {
+                    log('🔄 Triggering layout update due to ' + (distanceChanges > 0 ? distanceChanges + ' distance changes' : 'sufficient data for optimization'), 'info');
+                    
+                    // Delay layout update to allow new nodes to be created
+                    setTimeout(function() {
+                        updateLayout();
+                    }, newNodes.length > 0 ? 1000 : 100);
+                }
+                
+                var nodeCount = nodes.size;
+                log('🎨 *** VISUALIZATION COMPLETE *** ' + nodeCount + ' nodes and ' + validConnections.length + ' connections displayed', 'success');
                 
                 // Ensure nodes are visible by checking DOM
                 setTimeout(function() {
@@ -995,12 +1034,289 @@
                     } else {
                         log('✅ All nodes successfully displayed in visualization', 'success');
                     }
-                }, 100);
+                }, 200);
                 
             } catch (error) {
                 log('❌ Error processing MQTT payload: ' + error.message, 'error');
                 log('💡 Expected: [["node1","node2",1.5], ["node2","node3",2.1]]', 'error');
             }
+        }
+
+        function calculateOptimalLayout(distances, currentPositions) {
+            var viz = document.getElementById('visualization');
+            var centerX = viz.offsetWidth / 2;
+            var centerY = viz.offsetHeight / 2;
+            var nodeIds = Array.from(new Set([...distances.keys()].flatMap(key => key.split('-'))));
+            
+            if (nodeIds.length === 0) return {};
+            
+            var positions = {};
+            
+            // Scale factor: convert meters to pixels (adjustable)
+            var pixelsPerMeter = nodeSpacing * 50;
+            
+            if (nodeIds.length === 1) {
+                positions[nodeIds[0]] = { x: centerX, y: centerY };
+                return positions;
+            }
+            
+            if (nodeIds.length === 2) {
+                // Two nodes: place them at exact distance apart
+                var node1 = nodeIds[0];
+                var node2 = nodeIds[1];
+                var key = [node1, node2].sort().join('-');
+                var distance = distances.get(key) || 1;
+                var pixelDistance = distance * pixelsPerMeter;
+                
+                positions[node1] = { x: centerX - pixelDistance/2, y: centerY };
+                positions[node2] = { x: centerX + pixelDistance/2, y: centerY };
+                
+                log('📐 Two nodes: ' + node1 + ' and ' + node2 + ' placed ' + pixelDistance.toFixed(0) + 'px apart (' + distance + 'm)', 'info');
+                return positions;
+            }
+            
+            if (nodeIds.length === 3) {
+                // Three nodes: use triangle geometry for exact positioning
+                return calculateTriangleLayout(nodeIds, distances, centerX, centerY, pixelsPerMeter);
+            }
+            
+            // Four or more nodes: use improved force-directed algorithm
+            return calculateForceDirectedLayout(nodeIds, distances, currentPositions, centerX, centerY, pixelsPerMeter);
+        }
+
+        function calculateTriangleLayout(nodeIds, distances, centerX, centerY, pixelsPerMeter) {
+            var positions = {};
+            var node1 = nodeIds[0];
+            var node2 = nodeIds[1]; 
+            var node3 = nodeIds[2];
+            
+            // Get distances between all pairs
+            var d12 = distances.get([node1, node2].sort().join('-')) || 1;
+            var d13 = distances.get([node1, node3].sort().join('-')) || 1;
+            var d23 = distances.get([node2, node3].sort().join('-')) || 1;
+            
+            // Convert to pixels
+            var a = d23 * pixelsPerMeter; // distance between node2 and node3
+            var b = d13 * pixelsPerMeter; // distance between node1 and node3
+            var c = d12 * pixelsPerMeter; // distance between node1 and node2
+            
+            log('📐 Triangle layout: ' + node1 + '-' + node2 + '=' + d12 + 'm (' + c.toFixed(0) + 'px), ' + node1 + '-' + node3 + '=' + d13 + 'm (' + b.toFixed(0) + 'px), ' + node2 + '-' + node3 + '=' + d23 + 'm (' + a.toFixed(0) + 'px)', 'info');
+            
+            // Check if triangle is valid
+            if (a + b <= c || a + c <= b || b + c <= a) {
+                log('⚠️ Invalid triangle distances (triangle inequality violated), using fallback circular layout', 'error');
+                return calculateCircularLayout(nodeIds, centerX, centerY, 100);
+            }
+            
+            // Place first node at center-left
+            positions[node1] = { x: centerX - c/2, y: centerY };
+            
+            // Place second node at center-right
+            positions[node2] = { x: centerX + c/2, y: centerY };
+            
+            // Calculate third node position using triangle geometry
+            // Using law of cosines: cos(A) = (b² + c² - a²) / (2bc)
+            var cosA = (b*b + c*c - a*a) / (2*b*c);
+            cosA = Math.max(-1, Math.min(1, cosA)); // Clamp to valid range
+            var angleA = Math.acos(cosA);
+            
+            var x3 = positions[node1].x + b * Math.cos(angleA);
+            var y3 = positions[node1].y - b * Math.sin(angleA); // Negative for upward
+            
+            positions[node3] = { x: x3, y: y3 };
+            
+            // Center the triangle
+            var avgX = (positions[node1].x + positions[node2].x + positions[node3].x) / 3;
+            var avgY = (positions[node1].y + positions[node2].y + positions[node3].y) / 3;
+            var offsetX = centerX - avgX;
+            var offsetY = centerY - avgY;
+            
+            Object.keys(positions).forEach(function(nodeId) {
+                positions[nodeId].x += offsetX;
+                positions[nodeId].y += offsetY;
+                
+                // Keep within bounds
+                var viz = document.getElementById('visualization');
+                positions[nodeId].x = Math.max(50, Math.min(viz.offsetWidth - 50, positions[nodeId].x));
+                positions[nodeId].y = Math.max(50, Math.min(viz.offsetHeight - 50, positions[nodeId].y));
+            });
+            
+            log('✅ Triangle positioned with geometric accuracy', 'success');
+            return positions;
+        }
+
+        function calculateForceDirectedLayout(nodeIds, distances, currentPositions, centerX, centerY, pixelsPerMeter) {
+            var positions = {};
+            
+            // Initialize positions (use current if available, otherwise circular)
+            if (currentPositions) {
+                nodeIds.forEach(function(nodeId) {
+                    if (currentPositions[nodeId]) {
+                        positions[nodeId] = { x: currentPositions[nodeId].x, y: currentPositions[nodeId].y };
+                    } else {
+                        // New node: place near center
+                        positions[nodeId] = { x: centerX + (Math.random() - 0.5) * 100, y: centerY + (Math.random() - 0.5) * 100 };
+                    }
+                });
+            } else {
+                positions = calculateCircularLayout(nodeIds, centerX, centerY, 150);
+            }
+            
+            // Force-directed algorithm with higher precision
+            var iterations = 200; // More iterations for better convergence
+            var springStrength = 0.05; // Gentler force
+            var dampening = 0.95; // Less dampening for better movement
+            
+            for (var iter = 0; iter < iterations; iter++) {
+                var forces = {};
+                var maxForce = 0;
+                
+                // Initialize forces
+                nodeIds.forEach(function(nodeId) {
+                    forces[nodeId] = { x: 0, y: 0 };
+                });
+                
+                // Calculate spring forces for each distance constraint
+                distances.forEach(function(targetDistance, key) {
+                    var nodes = key.split('-');
+                    var node1 = nodes[0];
+                    var node2 = nodes[1];
+                    
+                    if (!positions[node1] || !positions[node2]) return;
+                    
+                    var dx = positions[node2].x - positions[node1].x;
+                    var dy = positions[node2].y - positions[node1].y;
+                    var currentDistance = Math.sqrt(dx * dx + dy * dy);
+                    var targetPixelDistance = targetDistance * pixelsPerMeter;
+                    
+                    if (currentDistance > 0) {
+                        var error = targetPixelDistance - currentDistance;
+                        var force = error * springStrength;
+                        var fx = (dx / currentDistance) * force;
+                        var fy = (dy / currentDistance) * force;
+                        
+                        forces[node1].x -= fx;
+                        forces[node1].y -= fy;
+                        forces[node2].x += fx;
+                        forces[node2].y += fy;
+                        
+                        maxForce = Math.max(maxForce, Math.abs(fx), Math.abs(fy));
+                    }
+                });
+                
+                // Apply forces
+                nodeIds.forEach(function(nodeId) {
+                    positions[nodeId].x += forces[nodeId].x * dampening;
+                    positions[nodeId].y += forces[nodeId].y * dampening;
+                    
+                    // Keep nodes within bounds with padding
+                    var viz = document.getElementById('visualization');
+                    positions[nodeId].x = Math.max(80, Math.min(viz.offsetWidth - 80, positions[nodeId].x));
+                    positions[nodeId].y = Math.max(80, Math.min(viz.offsetHeight - 80, positions[nodeId].y));
+                });
+                
+                // Early termination if forces are small (converged)
+                if (maxForce < 0.1) {
+                    log('📐 Force-directed layout converged after ' + (iter + 1) + ' iterations', 'info');
+                    break;
+                }
+            }
+            
+            log('📐 Force-directed layout completed with ' + nodeIds.length + ' nodes, scale: ' + pixelsPerMeter + 'px/m', 'info');
+            return positions;
+        }
+
+        function calculateCircularLayout(nodeIds, centerX, centerY, radius) {
+            var positions = {};
+            for (var i = 0; i < nodeIds.length; i++) {
+                var angle = (i / nodeIds.length) * 2 * Math.PI;
+                var x = centerX + radius * Math.cos(angle);
+                var y = centerY + radius * Math.sin(angle);
+                positions[nodeIds[i]] = { x: x, y: y };
+            }
+            return positions;
+        }
+
+        function moveNodeToPosition(nodeId, newX, newY) {
+            var nodeData = nodes.get(nodeId);
+            if (!nodeData || !nodeData.element) return;
+            
+            var element = nodeData.element;
+            
+            // Add moving class for smooth CSS transition
+            element.classList.add('moving');
+            
+            // Update CSS position for smooth animation
+            element.style.left = (newX - 30) + 'px';
+            element.style.top = (newY - 30) + 'px';
+            
+            // Store original position for interpolation
+            var startX = nodeData.x;
+            var startY = nodeData.y;
+            var startTime = Date.now();
+            var duration = 2000; // Match CSS transition duration
+            
+            // Animate stored position and update connections during movement
+            function updateDuringAnimation() {
+                var elapsed = Date.now() - startTime;
+                var progress = Math.min(elapsed / duration, 1);
+                
+                // Use ease-in-out interpolation to match CSS transition
+                var easedProgress = progress < 0.5 
+                    ? 2 * progress * progress 
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                
+                // Update stored position for connection calculations
+                nodeData.x = startX + (newX - startX) * easedProgress;
+                nodeData.y = startY + (newY - startY) * easedProgress;
+                
+                // Update connections to follow the animated position
+                updateConnections();
+                
+                if (progress < 1) {
+                    animationFrameId = requestAnimationFrame(updateDuringAnimation);
+                } else {
+                    // Animation complete - set final position
+                    nodeData.x = newX;
+                    nodeData.y = newY;
+                    element.classList.remove('moving');
+                    updateConnections(); // Final update
+                }
+            }
+            
+            // Start the animation
+            updateDuringAnimation();
+            
+            log('📍 Moving node "' + nodeId + '" to position (' + Math.round(newX) + ', ' + Math.round(newY) + ') with live connection updates', 'info');
+        }
+
+        function updateLayout() {
+            if (currentDistances.size === 0 || isLayoutAnimating) return;
+            
+            isLayoutAnimating = true;
+            
+            log('🔄 Updating node layout based on distance measurements...', 'info');
+            
+            // Get current positions
+            var currentPositions = {};
+            nodes.forEach(function(nodeData, nodeId) {
+                currentPositions[nodeId] = { x: nodeData.x, y: nodeData.y };
+            });
+            
+            // Calculate optimal positions
+            var optimalPositions = calculateOptimalLayout(currentDistances, currentPositions);
+            
+            // Move nodes to new positions (connections will update during animation)
+            Object.keys(optimalPositions).forEach(function(nodeId) {
+                var newPos = optimalPositions[nodeId];
+                moveNodeToPosition(nodeId, newPos.x, newPos.y);
+            });
+            
+            // Mark layout animation as complete after movement duration
+            setTimeout(function() {
+                isLayoutAnimating = false;
+                log('✅ Layout update complete with smooth connection following', 'success');
+            }, 2100);
         }
 
         function calculateLayout(data) {
@@ -1116,13 +1432,13 @@
             
             var deltaX = pos2.x - pos1.x;
             var deltaY = pos2.y - pos1.y;
-            var length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            var actualPixelDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
             var angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
             
             // Calculate connection line start and end points (edge of circles) - updated for 60px nodes
             var startX = pos1.x + 30 * Math.cos(Math.atan2(deltaY, deltaX));
             var startY = pos1.y + 30 * Math.sin(Math.atan2(deltaY, deltaX));
-            var connectionLength = length - 60; // Subtract both node radii (30px each)
+            var connectionLength = actualPixelDistance - 60; // Subtract both node radii (30px each)
             
             // Create connection line
             var connection = document.createElement('div');
@@ -1135,15 +1451,26 @@
             document.getElementById('visualization').appendChild(connection);
             connections.push(connection);
             
-            // Add distance label at midpoint
+            // Add distance label with both expected and actual distances
             var label = document.createElement('div');
             label.className = 'distance-label';
-            label.style.left = (pos1.x + pos2.x) / 2 - 20 + 'px';
-            label.style.top = (pos1.y + pos2.y) / 2 - 10 + 'px';
-            label.textContent = parseFloat(distance).toFixed(1) + 'm';
+            label.style.left = (pos1.x + pos2.x) / 2 - 25 + 'px';
+            label.style.top = (pos1.y + pos2.y) / 2 - 15 + 'px';
+            
+            var expectedPixels = distance * (nodeSpacing * 50);
+            var actualMeters = actualPixelDistance / (nodeSpacing * 50);
+            var accuracy = Math.abs(distance - actualMeters) < 0.1 ? '✓' : '⚠';
+            
+            label.textContent = distance.toFixed(1) + 'm ' + accuracy;
+            label.title = 'Target: ' + distance + 'm, Actual position: ' + actualMeters.toFixed(2) + 'm (' + actualPixelDistance.toFixed(0) + 'px)';
             
             document.getElementById('visualization').appendChild(label);
             connections.push(label);
+            
+            // Log positioning accuracy
+            if (Math.abs(distance - actualMeters) > 0.2) {
+                log('📏 Distance ' + node1 + '↔' + node2 + ': target=' + distance + 'm, actual=' + actualMeters.toFixed(2) + 'm (needs adjustment)', 'info');
+            }
         }
 
         function updateConnectionStatus(status) {
@@ -1178,7 +1505,8 @@
             if (!isConnected && !simulationInterval) {
                 info.innerHTML = 
                     'Ready to connect. Configure broker settings above and click "Connect" for secure Eclipse Paho MQTT (SSL) or "Start Simulation" for demo data.<br>' +
-                    '<strong>Expected MQTT Format:</strong> [["node1","node2",1.5], ["node2","node3",2.1], ...]';
+                    '<strong>Expected MQTT Format:</strong> [["node1","node2",1.5], ["node2","node3",2.1], ...]<br>' +
+                    '<strong>Positioning:</strong> Nodes positioned with accurate relative distances (50px = 1 meter)';
                 return;
             }
             
@@ -1212,6 +1540,30 @@
             }
         }
 
+        function clearConnections() {
+            var viz = document.getElementById('visualization');
+            if (!viz) return;
+            
+            // Remove only connection elements, not nodes
+            var existingConnections = viz.querySelectorAll('.connection, .distance-label');
+            existingConnections.forEach(function(elem) {
+                elem.remove();
+            });
+            
+            connections = [];
+        }
+
+        function updateConnections() {
+            // Clear existing connections
+            clearConnections();
+            
+            // Recreate connections with current positions
+            currentDistances.forEach(function(distance, key) {
+                var nodeIds = key.split('-');
+                createConnection(nodeIds[0], nodeIds[1], distance);
+            });
+        }
+
         function clearVisualization() {
             var viz = document.getElementById('visualization');
             if (!viz) {
@@ -1221,9 +1573,16 @@
             
             var nodeCount = nodes.size;
             var connectionCount = connections.length;
+            var distanceCount = currentDistances.size;
             
-            if (nodeCount > 0 || connectionCount > 0) {
-                log('🧹 Clearing visualization: ' + nodeCount + ' nodes, ' + connectionCount + ' connections', 'info');
+            if (nodeCount > 0 || connectionCount > 0 || distanceCount > 0) {
+                log('🧹 Clearing visualization: ' + nodeCount + ' nodes, ' + connectionCount + ' connections, ' + distanceCount + ' distance measurements', 'info');
+            }
+            
+            // Clear layout update timer
+            if (layoutUpdateInterval) {
+                clearTimeout(layoutUpdateInterval);
+                layoutUpdateInterval = null;
             }
             
             // Clear DOM elements
@@ -1234,6 +1593,8 @@
             // Clear data structures
             nodes.clear();
             connections = [];
+            currentDistances.clear();
+            isLayoutAnimating = false;
             
             log('✅ Visualization cleared and ready for new data', 'info');
         }
@@ -1258,25 +1619,27 @@
         }
 
         function testMqttFormat() {
-            log('🧪 Testing MQTT payload format and node display...', 'info');
+            log('🧪 Testing MQTT payload format with accurate distance positioning...', 'info');
             
-            // Example payload in the exact expected format - includes B5A4 gateway node
+            // Test with known distances to verify accuracy
             var testPayload = [
-                ["B5A4", "Room2", 3.5],
-                ["Room2", "Room3", 2.1],
-                ["B5A4", "Room3", 4.8],
-                ["Room3", "Room4", 1.7],
-                ["Room2", "Room4", 3.2]
+                ["B5A4", "Room2", 2.0],  // Gateway to Room2: 2 meters
+                ["B5A4", "Room3", 3.0],  // Gateway to Room3: 3 meters  
+                ["Room2", "Room3", 2.5]  // Room2 to Room3: 2.5 meters
             ];
             
             var jsonPayload = JSON.stringify(testPayload);
             log('📋 Test payload: ' + jsonPayload, 'info');
-            log('📊 Expected result after parsing:', 'info');
-            log('  • 4 nodes should be displayed: B5A4 (as "GW" in bold red), Room2, Room3, Room4', 'info');
-            log('  • 5 connections should be drawn between the nodes', 'info');
-            log('  • Distance labels should show: 3.5m, 2.1m, 4.8m, 1.7m, 3.2m', 'info');
-            log('  • B5A4 gateway node should appear in bold red with "GW" text', 'info');
-            log('📊 Processing test data now...', 'info');
+            log('📊 Expected positioning:', 'info');
+            log('  • B5A4 (GW) should be positioned as one vertex of triangle', 'info');
+            log('  • Room2 should be 2.0m (100px) from GW', 'info');
+            log('  • Room3 should be 3.0m (150px) from GW', 'info');
+            log('  • Room2 and Room3 should be 2.5m (125px) from each other', 'info');
+            log('  • Triangle geometry will determine exact positions', 'info');
+            log('📊 Processing test data with geometric layout...', 'info');
+            
+            // Clear first to start fresh
+            clearVisualization();
             
             // Process the test data
             processData(jsonPayload);
@@ -1286,7 +1649,8 @@
                 updateProgress();
             }
             
-            log('🔍 Test complete! Check visualization area for nodes and connections.', 'success');
+            log('🔍 Test complete! Nodes should now be positioned with correct relative distances.', 'success');
+            log('💡 Tip: Hover over nodes to see their exact positions', 'info');
         }
 
         function verifyNodes() {
@@ -1310,7 +1674,16 @@
             log('📊 Data Structures:', 'info');
             log('  • Nodes in Map: ' + nodes.size, 'info');
             log('  • Connections in Array: ' + connections.length, 'info');
+            log('  • Distance measurements: ' + currentDistances.size, 'info');
             log('  • Animation Mode: ' + (animationsEnabled ? 'Enabled' : 'Disabled (Fast Messages)'), 'info');
+            log('  • Layout Animating: ' + (isLayoutAnimating ? 'Yes' : 'No'), 'info');
+            
+            if (currentDistances.size > 0) {
+                log('📏 Current Distance Measurements:', 'info');
+                currentDistances.forEach(function(distance, key) {
+                    log('  • ' + key + ': ' + distance + 'm', 'info');
+                });
+            }
             
             if (domNodes.length > 0) {
                 log('📋 Node Details:', 'info');
@@ -1325,7 +1698,7 @@
                     log('  • Node "' + nodeId + '": Position(' + Math.round(relativeX) + ', ' + Math.round(relativeY) + '), Size: ' + rect.width + 'x' + rect.height + ', Visible: ' + (rect.width > 0), 'info');
                 }
                 
-                log('✅ Nodes are displayed and positioned (60px circles with 8px padding)', 'success');
+                log('✅ Nodes are displayed and positioned (60px circles with dynamic layout)', 'success');
                 
                 // Highlight nodes briefly
                 domNodes.forEach(function(node) {
@@ -1368,8 +1741,10 @@
             }
             
             log('📊 Total Nodes Visible: ' + nodes.size, 'info');
+            log('📊 Distance Measurements: ' + currentDistances.size, 'info');
             log('📊 Animation Status: ' + (animationsEnabled ? 'Enabled' : 'Disabled (Fast Messages)'), 'info');
             log('📊 Fast Message Mode: ' + (fastMessageMode ? 'Active' : 'Inactive'), 'info');
+            log('📊 Layout Animation: ' + (isLayoutAnimating ? 'In Progress' : 'Idle'), 'info');
             log('📋 Expected MQTT Format: [["node1","node2",1.5], ["node2","node3",2.1]]', 'info');
         }
 
