@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple WebSocket Node Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            border-bottom: 3px solid #4a5568;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            font-weight: 300;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .control-section h3 {
+            color: #2d3748;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 120px;
+        }
+
+        input[type="text"], input[type="number"], input[type="range"] {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"] {
+            width: 200px;
+        }
+
+        input[type="number"] {
+            width: 100px;
+        }
+
+        input[type="range"] {
+            width: 150px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #3182ce, #2c5282);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+        }
+
+        button.secondary:hover {
+            background: linear-gradient(135deg, #2f855a, #276749);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+        }
+
+        button.danger:hover {
+            background: linear-gradient(135deg, #c53030, #9c2626);
+        }
+
+        .connection-status {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .connection-status.disconnected {
+            background: #fed7d7;
+            color: #c53030;
+            border: 2px solid #e53e3e;
+        }
+
+        .connection-status.connecting {
+            background: #fefcbf;
+            color: #d69e2e;
+            border: 2px solid #f6e05e;
+        }
+
+        .connection-status.connected {
+            background: #c6f6d5;
+            color: #2f855a;
+            border: 2px solid #38a169;
+        }
+
+        .visualization-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+        }
+
+        #visualization {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8f9fa;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .node {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #4299e1;
+            border-radius: 50%;
+            border: 2px solid #2c5282;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            font-weight: normal;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            line-height: 1;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+            z-index: 10;
+        }
+
+        .node:active {
+            cursor: grabbing;
+        }
+
+        .connection {
+            position: absolute;
+            background: #e53e3e;
+            height: 3px;
+            transform-origin: left center;
+            z-index: 1;
+        }
+
+        .distance-label {
+            position: absolute;
+            background: rgba(255, 255, 0, 0.9);
+            color: black;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 100;
+            border: 1px solid #e53e3e;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .progress-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .console-container {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .console-header {
+            padding: 1rem 2rem;
+            background: #2d3748;
+            color: white;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-content {
+            height: 300px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .console-line {
+            margin-bottom: 0.25rem;
+            padding: 0.25rem 0;
+        }
+
+        .console-line.error {
+            color: #fed7d7;
+        }
+
+        .console-line.info {
+            color: #bee3f8;
+        }
+
+        .console-line.success {
+            color: #c6f6d5;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .controls-panel {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            label {
+                min-width: auto;
+            }
+
+            #visualization {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>WebSocket Node Visualizer (Demo)</h1>
+    </div>
+
+    <div class="container">
+        <div class="controls-panel">
+            <div class="control-section">
+                <h3>Connection</h3>
+                <div class="control-group">
+                    <label for="brokerHost">Broker Host:</label>
+                    <input type="text" id="brokerHost" value="mqtt.dynamicdevices.co.uk">
+                </div>
+                
+                <div class="control-group">
+                    <label for="brokerPort">Broker Port:</label>
+                    <input type="number" id="brokerPort" value="8883">
+                </div>
+                
+                <div class="control-group">
+                    <label for="topicName">Topic:</label>
+                    <input type="text" id="topicName" value="inst/uwbtest1">
+                </div>
+                
+                <div class="control-group">
+                    <button onclick="connectWebSocket()">Connect</button>
+                    <button onclick="startSimulation()" class="secondary">Start Simulation</button>
+                </div>
+                
+                <div class="connection-status disconnected" id="connectionStatus">
+                    Disconnected
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Controls</h3>
+                <div class="control-group">
+                    <label for="nodeSpacing">Display Scale:</label>
+                    <input type="range" id="nodeSpacing" min="1" max="20" value="5" onchange="updateScale(this.value)">
+                    <span id="spacingValue">5</span>
+                </div>
+
+                <div class="control-group">
+                    <button onclick="toggleConsole()">Show Console</button>
+                    <button onclick="clearVisualization()" class="secondary">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="visualization-container">
+            <div id="visualization"></div>
+            <div class="progress-info" id="progressInfo">
+                🎮 Click "Start Simulation" to see demo data! WebSocket connections are blocked in this environment - download the HTML file to use real MQTT connections.
+            </div>
+        </div>
+
+        <div class="console-container hidden" id="consoleContainer">
+            <div class="console-header">
+                <h3>Console Log</h3>
+                <button onclick="clearConsole()" style="background: #e53e3e; padding: 0.5rem 1rem;">Clear</button>
+            </div>
+            <div class="console-content" id="consoleContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        var nodes = new Map();
+        var connections = [];
+        var simulationInterval = null;
+        var isConnected = false;
+        var messagesReceived = 0;
+        var nodeSpacing = 5;
+        var consoleVisible = false;
+
+        // Initialize when page loads
+        window.onload = function() {
+            log('WebSocket Node Visualizer Demo loaded', 'info');
+            log('🔒 Note: External connections blocked in this environment', 'info');
+            log('📁 Download this file to enable real MQTT connections', 'info');
+            updateProgress();
+        };
+
+        function log(message, type) {
+            var timestamp = new Date().toLocaleTimeString();
+            var line = document.createElement('div');
+            line.className = 'console-line ' + (type || 'info');
+            line.textContent = '[' + timestamp + '] ' + message;
+            document.getElementById('consoleContent').appendChild(line);
+            document.getElementById('consoleContent').scrollTop = document.getElementById('consoleContent').scrollHeight;
+        }
+
+        function connectWebSocket() {
+            var host = document.getElementById('brokerHost').value.trim();
+            var port = document.getElementById('brokerPort').value;
+            var topic = document.getElementById('topicName').value.trim();
+            
+            log('🔒 IMPORTANT: External WebSocket connections are blocked in this environment', 'error');
+            log('📋 Content Security Policy restricts connections to external hosts', 'error');
+            log('💡 To use real MQTT connections:', 'info');
+            log('   1. Copy this HTML file to your local computer', 'info');
+            log('   2. Open it in a browser (not in this artifact)', 'info');
+            log('   3. WebSocket connections will work normally there', 'info');
+            log('🎮 For now, use "Start Simulation" to see the visualizer in action', 'info');
+            
+            updateConnectionStatus('blocked');
+            
+            // Show helpful modal
+            var message = 'WebSocket connections to external hosts are blocked in this sandboxed environment.\n\n';
+            message += 'To connect to your MQTT broker:\n';
+            message += '1. Right-click → "Save As" to download this HTML file\n';
+            message += '2. Open the downloaded file in your browser\n';
+            message += '3. WebSocket connections will work normally\n\n';
+            message += 'For now, click "Start Simulation" to see demo data!';
+            
+            alert(message);
+        }
+
+        function tryEndpoints(endpoints, index) {
+            if (index >= endpoints.length) {
+                log('❌ All WebSocket endpoints failed', 'error');
+                log('• Check if broker supports WebSocket connections', 'error');
+                log('• Verify broker is running and accessible', 'error');
+                updateConnectionStatus('disconnected');
+                return;
+            }
+
+            var wsUrl = endpoints[index];
+            log('🔗 Trying endpoint ' + (index + 1) + '/' + endpoints.length + ': ' + wsUrl, 'info');
+
+            try {
+                var ws = new WebSocket(wsUrl);
+                
+                var timeout = setTimeout(function() {
+                    log('⏰ Timeout for: ' + wsUrl, 'error');
+                    ws.close();
+                    tryEndpoints(endpoints, index + 1);
+                }, 5000);
+                
+                ws.onopen = function() {
+                    clearTimeout(timeout);
+                    log('✅ WSS WebSocket connected via: ' + wsUrl, 'success');
+                    isConnected = true;
+                    updateConnectionStatus('connected');
+                    updateProgress();
+                };
+                
+                ws.onmessage = function(event) {
+                    log('📨 Received: ' + event.data, 'info');
+                    processData(event.data);
+                };
+                
+                ws.onerror = function(error) {
+                    clearTimeout(timeout);
+                    log('❌ Failed: ' + wsUrl, 'error');
+                    setTimeout(function() {
+                        tryEndpoints(endpoints, index + 1);
+                    }, 500);
+                };
+                
+                ws.onclose = function(event) {
+                    clearTimeout(timeout);
+                    if (isConnected) {
+                        log('🔌 Connection lost: ' + wsUrl + ' (Code: ' + event.code + ')', 'error');
+                        isConnected = false;
+                        updateConnectionStatus('disconnected');
+                        updateProgress();
+                    } else {
+                        log('❌ Failed to connect: ' + wsUrl + ' (Code: ' + event.code + ')', 'error');
+                        setTimeout(function() {
+                            tryEndpoints(endpoints, index + 1);
+                        }, 500);
+                    }
+                };
+                
+                updateConnectionStatus('connecting');
+                
+            } catch (error) {
+                log('Exception with ' + wsUrl + ': ' + error.message, 'error');
+                setTimeout(function() {
+                    tryEndpoints(endpoints, index + 1);
+                }, 500);
+            }
+        }
+
+        function startSimulation() {
+            if (simulationInterval) {
+                stopSimulation();
+                return;
+            }
+
+            log('Starting simulation...', 'info');
+            isConnected = true;
+            updateConnectionStatus('connected');
+            
+            document.querySelector('button[onclick="startSimulation()"]').textContent = 'Stop Simulation';
+            
+            simulationInterval = setInterval(function() {
+                generateSimulationData();
+            }, 2000);
+            
+            updateProgress();
+        }
+
+        function stopSimulation() {
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+                log('Simulation stopped', 'info');
+            }
+            
+            document.querySelector('button[onclick="startSimulation()"]').textContent = 'Start Simulation';
+            
+            if (!isConnected) {
+                updateConnectionStatus('disconnected');
+                updateProgress();
+            }
+        }
+
+        function generateSimulationData() {
+            var nodeIds = ['A', 'B', 'C', 'D'];
+            var connections = [];
+            
+            for (var i = 0; i < nodeIds.length; i++) {
+                for (var j = i + 1; j < nodeIds.length; j++) {
+                    if (Math.random() > 0.3) {
+                        var distance = (Math.random() * 8 + 1).toFixed(2);
+                        connections.push([nodeIds[i], nodeIds[j], parseFloat(distance)]);
+                    }
+                }
+            }
+
+            if (connections.length > 0) {
+                var payload = JSON.stringify(connections);
+                log('Simulated: ' + payload, 'info');
+                processData(payload);
+                messagesReceived++;
+                updateProgress();
+            }
+        }
+
+        function processData(payload) {
+            try {
+                var data = JSON.parse(payload);
+                if (!Array.isArray(data)) return;
+                
+                log('Processing ' + data.length + ' connections', 'info');
+                clearVisualization();
+                
+                var positions = calculateLayout(data);
+                
+                // Create nodes
+                for (var nodeId in positions) {
+                    createNode(nodeId, positions[nodeId].x, positions[nodeId].y);
+                }
+                
+                // Create connections
+                for (var i = 0; i < data.length; i++) {
+                    var conn = data[i];
+                    if (conn.length >= 3) {
+                        createConnection(conn[0], conn[1], conn[2]);
+                    }
+                }
+                
+            } catch (error) {
+                log('Error processing data: ' + error.message, 'error');
+            }
+        }
+
+        function calculateLayout(data) {
+            var nodeSet = new Set();
+            var distances = {};
+            
+            for (var i = 0; i < data.length; i++) {
+                var conn = data[i];
+                if (conn.length >= 3) {
+                    nodeSet.add(conn[0]);
+                    nodeSet.add(conn[1]);
+                    var key = [conn[0], conn[1]].sort().join('-');
+                    distances[key] = parseFloat(conn[2]);
+                }
+            }
+            
+            var nodeArray = Array.from(nodeSet);
+            var viz = document.getElementById('visualization');
+            var centerX = viz.offsetWidth / 2;
+            var centerY = viz.offsetHeight / 2;
+            var positions = {};
+            
+            if (nodeArray.length === 0) return positions;
+            
+            if (nodeArray.length === 1) {
+                positions[nodeArray[0]] = { x: centerX, y: centerY };
+                return positions;
+            }
+            
+            if (nodeArray.length === 2) {
+                var distance = distances[[nodeArray[0], nodeArray[1]].sort().join('-')] || 1;
+                var separation = distance * 30 * nodeSpacing;
+                positions[nodeArray[0]] = { x: centerX - separation/2, y: centerY };
+                positions[nodeArray[1]] = { x: centerX + separation/2, y: centerY };
+                return positions;
+            }
+            
+            // Multiple nodes - circular layout
+            var radius = Math.min(viz.offsetWidth, viz.offsetHeight) / 6 * nodeSpacing;
+            for (var i = 0; i < nodeArray.length; i++) {
+                var angle = (i / nodeArray.length) * 2 * Math.PI;
+                var x = centerX + radius * Math.cos(angle);
+                var y = centerY + radius * Math.sin(angle);
+                positions[nodeArray[i]] = { x: x, y: y };
+            }
+            
+            return positions;
+        }
+
+        function createNode(nodeId, x, y) {
+            var viz = document.getElementById('visualization');
+            var safeX = Math.max(25, Math.min(viz.offsetWidth - 25, x));
+            var safeY = Math.max(25, Math.min(viz.offsetHeight - 25, y));
+            
+            var node = document.createElement('div');
+            node.className = 'node';
+            node.style.left = (safeX - 25) + 'px';
+            node.style.top = (safeY - 25) + 'px';
+            node.textContent = nodeId.toString().length > 3 ? nodeId.toString().substring(0, 3) : nodeId.toString();
+            node.title = 'Node: ' + nodeId;
+            
+            viz.appendChild(node);
+            nodes.set(nodeId, { x: safeX, y: safeY, element: node });
+        }
+
+        function createConnection(node1, node2, distance) {
+            var pos1 = nodes.get(node1);
+            var pos2 = nodes.get(node2);
+            
+            if (!pos1 || !pos2) return;
+            
+            var deltaX = pos2.x - pos1.x;
+            var deltaY = pos2.y - pos1.y;
+            var length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            var angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+            
+            var startX = pos1.x + 25 * Math.cos(Math.atan2(deltaY, deltaX));
+            var startY = pos1.y + 25 * Math.sin(Math.atan2(deltaY, deltaX));
+            var connectionLength = length - 50;
+            
+            var connection = document.createElement('div');
+            connection.className = 'connection';
+            connection.style.left = startX + 'px';
+            connection.style.top = (startY - 1.5) + 'px';
+            connection.style.width = Math.max(0, connectionLength) + 'px';
+            connection.style.transform = 'rotate(' + angle + 'deg)';
+            
+            document.getElementById('visualization').appendChild(connection);
+            connections.push(connection);
+            
+            // Add distance label
+            var label = document.createElement('div');
+            label.className = 'distance-label';
+            label.style.left = (pos1.x + pos2.x) / 2 - 20 + 'px';
+            label.style.top = (pos1.y + pos2.y) / 2 - 10 + 'px';
+            label.textContent = parseFloat(distance).toFixed(1) + 'm';
+            
+            document.getElementById('visualization').appendChild(label);
+            connections.push(label);
+        }
+
+        function updateConnectionStatus(status) {
+            var statusEl = document.getElementById('connectionStatus');
+            statusEl.className = 'connection-status ' + status;
+            
+            if (status === 'disconnected') {
+                statusEl.textContent = 'Disconnected';
+            } else if (status === 'connecting') {
+                statusEl.textContent = 'Connecting...';
+            } else if (status === 'connected') {
+                statusEl.textContent = simulationInterval ? 'Connected (Simulation)' : 'Connected (WebSocket)';
+            } else if (status === 'blocked') {
+                statusEl.textContent = 'Blocked by CSP - Use Simulation';
+                statusEl.className = 'connection-status disconnected';
+            }
+        }
+
+        function updateScale(value) {
+            nodeSpacing = parseInt(value);
+            document.getElementById('spacingValue').textContent = value;
+            log('Display scale changed to ' + value + 'x', 'info');
+        }
+
+        function clearVisualization() {
+            var viz = document.getElementById('visualization');
+            while (viz.firstChild) {
+                viz.removeChild(viz.firstChild);
+            }
+            nodes.clear();
+            connections = [];
+        }
+
+        function toggleConsole() {
+            var container = document.getElementById('consoleContainer');
+            var btn = document.querySelector('button[onclick="toggleConsole()"]');
+            
+            consoleVisible = !consoleVisible;
+            if (consoleVisible) {
+                container.classList.remove('hidden');
+                btn.textContent = 'Hide Console';
+            } else {
+                container.classList.add('hidden');
+                btn.textContent = 'Show Console';
+            }
+        }
+
+        function clearConsole() {
+            document.getElementById('consoleContent').innerHTML = '';
+            log('Console cleared', 'info');
+        }
+
+        function updateProgress() {
+            var info = document.getElementById('progressInfo');
+            
+            if (!isConnected) {
+                info.textContent = 'Not connected. Click "Start Simulation" for demo data or "Connect" for WebSocket.';
+                return;
+            }
+            
+            var visibleNodes = nodes.size;
+            var connectionType = simulationInterval ? 'Simulation' : 'WebSocket';
+            
+            info.innerHTML = 
+                '<strong>Status:</strong> ✅ Connected via ' + connectionType + '<br>' +
+                '<strong>Messages:</strong> ' + messagesReceived + '<br>' +
+                '<strong>Nodes:</strong> ' + visibleNodes + '<br>' +
+                '<strong>Scale:</strong> ' + nodeSpacing + 'x';
+        }
+    </script>
+</body>
+</html>
