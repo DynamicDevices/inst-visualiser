@@ -25,6 +25,17 @@
             padding: 1rem 2rem;
             box-shadow: 0 2px 20px rgba(0,0,0,0.1);
             border-bottom: 3px solid #4a5568;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .header .logo {
+            height: 50px;
+            width: 50px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .header h1 {
@@ -32,6 +43,7 @@
             font-size: 2rem;
             font-weight: 300;
             text-align: center;
+            margin: 0;
         }
 
         .container {
@@ -88,7 +100,7 @@
         }
 
         input[type="text"] {
-            width: 200px;
+            width: 300px;
         }
 
         input[type="number"] {
@@ -213,6 +225,20 @@
             overflow: hidden;
         }
 
+        .node.gateway {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            border-color: #c53030;
+            color: #ffffff;
+            font-weight: 900;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .node.gateway:hover {
+            background: linear-gradient(135deg, #c53030, #9c2626);
+            transform: scale(1.15);
+        }
+
         .node:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 12px rgba(0,0,0,0.3);
@@ -224,6 +250,10 @@
 
         .node.pulse {
             animation: nodePulse 1s ease-out;
+        }
+
+        .node.gateway.pulse {
+            animation: gatewayPulse 1s ease-out;
         }
 
         @keyframes nodePulse {
@@ -238,6 +268,24 @@
             100% {
                 transform: scale(1);
                 opacity: 1;
+            }
+        }
+
+        @keyframes gatewayPulse {
+            0% {
+                transform: scale(0.1);
+                opacity: 0;
+                box-shadow: 0 0 0 rgba(229, 62, 62, 0.7);
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.8;
+                box-shadow: 0 0 20px rgba(229, 62, 62, 0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             }
         }
 
@@ -342,11 +390,38 @@
             #visualization {
                 height: 400px;
             }
+
+            .header {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header .logo {
+                height: 40px;
+                width: 40px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
+        <svg class="logo" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <rect width="50" height="50" rx="8" fill="url(#logoGradient)"/>
+            <text x="25" y="32" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">
+                INST
+            </text>
+        </svg>
         <h1>INST Tag Visualiser</h1>
     </div>
 
@@ -391,10 +466,10 @@
 
                 <div class="control-group">
                     <button onclick="toggleConsole()">Show Console</button>
-                    <button onclick="manualResubscribe()" class="secondary">Resubscribe</button>
+                    <button onclick="manualResubscribe()" class="secondary" style="display: none;">Resubscribe</button>
                     <button onclick="clearVisualization()" class="secondary">Clear</button>
-                    <button onclick="testMqttFormat()" class="secondary">Test Format</button>
-                    <button onclick="verifyNodes()" class="secondary">Verify Nodes</button>
+                    <button onclick="testMqttFormat()" class="secondary" style="display: none;">Test Format</button>
+                    <button onclick="verifyNodes()" class="secondary" style="display: none;">Verify Nodes</button>
                 </div>
             </div>
         </div>
@@ -718,6 +793,13 @@
 
         function generateSimulationData() {
             var nodeIds = ['A', 'B', 'C', 'D', 'E'];
+            
+            // Occasionally include the gateway node B5A4 in simulation
+            if (Math.random() > 0.7) {
+                nodeIds.push('B5A4');
+                log('🎮 Including gateway node B5A4 in this simulation round', 'info');
+            }
+            
             var connections = [];
             
             // Generate random connections between nodes in the exact MQTT format
@@ -985,11 +1067,32 @@
             log('🔧 Creating node "' + nodeId + '" at position (' + safeX + ', ' + safeY + ') [Animations: ' + (animationsEnabled ? 'ON' : 'OFF') + ']', 'info');
             
             var node = document.createElement('div');
-            node.className = animationsEnabled ? 'node pulse' : 'node';
+            var isGateway = false;
+            
+            // Special display text for specific node IDs
+            var displayText;
+            if (nodeId === 'B5A4') {
+                displayText = 'GW';
+                isGateway = true;
+                log('📝 Special display: Node "' + nodeId + '" will show as "' + displayText + '" (Gateway styling)', 'info');
+            } else {
+                displayText = nodeId.toString().length > 4 ? nodeId.toString().substring(0, 4) : nodeId.toString();
+            }
+            
+            // Apply appropriate CSS classes
+            var nodeClasses = 'node';
+            if (isGateway) {
+                nodeClasses += ' gateway';
+            }
+            if (animationsEnabled) {
+                nodeClasses += ' pulse';
+            }
+            
+            node.className = nodeClasses;
             node.style.left = (safeX - 30) + 'px';
             node.style.top = (safeY - 30) + 'px';
-            node.textContent = nodeId.toString().length > 4 ? nodeId.toString().substring(0, 4) : nodeId.toString();
-            node.title = 'Node: ' + nodeId + ' (Position: ' + safeX + ', ' + safeY + ')';
+            node.textContent = displayText;
+            node.title = 'Node: ' + nodeId + (isGateway ? ' (Gateway)' : '') + ' (Position: ' + safeX + ', ' + safeY + ')';
             node.setAttribute('data-node-id', nodeId);
             
             viz.appendChild(node);
@@ -1002,7 +1105,7 @@
                 }, 1000);
             }
             
-            log('✅ Node "' + nodeId + '" created and added to DOM' + (animationsEnabled ? ' with animation' : ''), 'success');
+            log('✅ Node "' + nodeId + '" created and added to DOM' + (animationsEnabled ? ' with animation' : '') + (isGateway ? ' [GATEWAY STYLING]' : ''), 'success');
         }
 
         function createConnection(node1, node2, distance) {
@@ -1157,11 +1260,11 @@
         function testMqttFormat() {
             log('🧪 Testing MQTT payload format and node display...', 'info');
             
-            // Example payload in the exact expected format
+            // Example payload in the exact expected format - includes B5A4 gateway node
             var testPayload = [
-                ["Room1", "Room2", 3.5],
+                ["B5A4", "Room2", 3.5],
                 ["Room2", "Room3", 2.1],
-                ["Room1", "Room3", 4.8],
+                ["B5A4", "Room3", 4.8],
                 ["Room3", "Room4", 1.7],
                 ["Room2", "Room4", 3.2]
             ];
@@ -1169,9 +1272,10 @@
             var jsonPayload = JSON.stringify(testPayload);
             log('📋 Test payload: ' + jsonPayload, 'info');
             log('📊 Expected result after parsing:', 'info');
-            log('  • 4 nodes should be displayed: Room1, Room2, Room3, Room4', 'info');
+            log('  • 4 nodes should be displayed: B5A4 (as "GW" in bold red), Room2, Room3, Room4', 'info');
             log('  • 5 connections should be drawn between the nodes', 'info');
             log('  • Distance labels should show: 3.5m, 2.1m, 4.8m, 1.7m, 3.2m', 'info');
+            log('  • B5A4 gateway node should appear in bold red with "GW" text', 'info');
             log('📊 Processing test data now...', 'info');
             
             // Process the test data
