@@ -29,25 +29,22 @@ The original `mqtt-live-publisher.py` has been updated to match the **exact brok
 
 ## Official INST Visualizer Settings
 
-### Default Configuration (matches index.html exactly):
+### Python Client Configuration (this example):
 ```python
 BROKER_HOST = "mqtt.dynamicdevices.co.uk"  # Official DynamicDevices broker
-BROKER_PORT = 8083                         # WebSocket port
+BROKER_PORT = 1883                         # Standard MQTT over TCP
 TOPIC = "uwb/positions"                    # UWB positioning topic
 USERNAME = None                            # No authentication required
 PASSWORD = None
 ```
 
-## Web Visualizer Settings
-
-When using the [INST Visualizer web app](https://dynamicdevices.github.io/inst-visualiser/), the default settings are:
-
+### Web Browser Client Configuration (index.html):
 - **Broker Host**: `mqtt.dynamicdevices.co.uk`
-- **Broker Port**: `8083` (WebSocket port)
+- **Broker Port**: `8083` (MQTT over WebSocket)
 - **Topic**: `uwb/positions`
 - **SSL**: Enabled automatically for secure connections
 
-These settings are pre-configured in the web application and match exactly what the Python publisher uses.
+> **Note**: Python clients use port **1883** (standard MQTT over TCP), while web browsers use port **8083** (MQTT over WebSocket). Both connect to the same broker and can communicate with each other.
 
 ## Alternative Broker Options
 
@@ -55,7 +52,6 @@ These settings are pre-configured in the web application and match exactly what 
 ```python
 BROKER_HOST = "localhost"       # Local Mosquitto broker
 BROKER_PORT = 1883              # Standard MQTT port
-BROKER_WEBSOCKET_PORT = 8083    # WebSocket port for browser
 TOPIC = "uwb/positions"         # Keep same topic
 USERNAME = None
 PASSWORD = None
@@ -64,8 +60,7 @@ PASSWORD = None
 ### Option 2: Free Public Broker (for testing)
 ```python
 BROKER_HOST = "broker.emqx.io"
-BROKER_PORT = 1883              # For direct MQTT connections
-BROKER_WEBSOCKET_PORT = 8083    # For WebSocket connections
+BROKER_PORT = 1883              # Standard MQTT over TCP
 TOPIC = "uwb/positions"         # Keep same topic
 USERNAME = None
 PASSWORD = None
@@ -74,12 +69,17 @@ PASSWORD = None
 ### Option 3: EMQX Cloud Service
 ```python
 BROKER_HOST = "your-deployment.emqxsl.com"
-BROKER_PORT = 8883              # SSL/TLS port
-BROKER_WEBSOCKET_PORT = 8084    # WebSocket SSL port
+BROKER_PORT = 8883              # MQTT over SSL/TLS
 TOPIC = "uwb/positions"         # Keep same topic
 USERNAME = "your_username"
 PASSWORD = "your_password"
 ```
+
+> **Port Reference**:
+> - **1883**: Standard MQTT over TCP (Python clients)
+> - **8883**: MQTT over SSL/TLS (secure Python clients)  
+> - **8083**: MQTT over WebSocket (web browsers)
+> - **8084**: MQTT over WebSocket SSL (secure web browsers)
 
 ## Data Format
 
