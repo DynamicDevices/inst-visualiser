@@ -430,8 +430,10 @@ class HighFrequencyPublisher:
             self.buffer = []
             self.last_publish = time.time()
 
-# Usage for high-frequency scenarios
-publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=5.0)
+# Usage for different scenarios
+battery_publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=0.1)  # Every 10s
+demo_publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=1.0)     # Every 1s  
+realtime_publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=5.0) # Every 0.2s
 
 # Add measurements as they arrive
 while True:

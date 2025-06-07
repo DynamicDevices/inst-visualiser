@@ -1,23 +1,13 @@
 #!/usr/bin/env python3
 """
-UWB Position Data MQTT Publisher
+UWB Position Data MQTT Publisher - FIXED for paho-mqtt v2.0+
 Dynamic Devices Ltd - Example code for inst-visualiser v3.0
 
-This script demonstrates how to publish UWB positioning data to the 
-UWB Position Visualiser via MQTT. It can generate both simulated data
-and publish real UWB measurements.
-
 Requirements:
-    # For paho-mqtt v1.x (recommended for compatibility):
-    pip install "paho-mqtt<2.0" numpy
-    
-    # OR for paho-mqtt v2.x:
     pip install paho-mqtt numpy
 
 Usage:
-    python mqtt-publisher.py --mode simulation
-    python mqtt-publisher.py --mode real --device /dev/ttyUSB0
-    python mqtt-publisher.py --broker mqtt.example.com --topic uwb/test
+    python mqtt-publisher.py --broker test.mosquitto.org --topic uwb/test
 """
 
 import json
@@ -39,7 +29,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class UWBPublisher:
-    """MQTT publisher for UWB positioning data"""
+    """MQTT publisher for UWB positioning data - Compatible with paho-mqtt v2.0+"""
     
     def __init__(self, broker: str, port: int, topic: str, client_id: str = None):
         self.broker = broker
@@ -50,8 +40,8 @@ class UWBPublisher:
         self.connected = False
         self.running = False
         
-    def on_connect(self, client, userdata, flags, rc):
-        """Callback for MQTT connection"""
+    def on_connect(self, client, userdata, flags, rc, properties=None):
+        """Callback for MQTT connection - v2.0+ compatible"""
         if rc == 0:
             self.connected = True
             logger.info(f"Connected to MQTT broker {self.broker}:{self.port}")
@@ -59,19 +49,24 @@ class UWBPublisher:
         else:
             logger.error(f"Failed to connect to MQTT broker, return code {rc}")
             
-    def on_disconnect(self, client, userdata, rc):
-        """Callback for MQTT disconnection"""
+    def on_disconnect(self, client, userdata, rc, properties=None):
+        """Callback for MQTT disconnection - v2.0+ compatible"""
         self.connected = False
         logger.info("Disconnected from MQTT broker")
         
-    def on_publish(self, client, userdata, mid):
-        """Callback for message publish"""
+    def on_publish(self, client, userdata, mid, properties=None):
+        """Callback for message publish - v2.0+ compatible"""
         logger.debug(f"Message {mid} published successfully")
         
     def connect(self) -> bool:
         """Connect to MQTT broker"""
         try:
-            self.client = mqtt.Client(self.client_id)
+            # Create client with explicit callback API version for v2.0+
+            self.client = mqtt.Client(
+                callback_api_version=mqtt.CallbackAPIVersion.VERSION1,
+                client_id=self.client_id
+            )
+            
             self.client.on_connect = self.on_connect
             self.client.on_disconnect = self.on_disconnect
             self.client.on_publish = self.on_publish
@@ -116,8 +111,8 @@ class UWBPublisher:
             result = self.client.publish(self.topic, message, qos=1)
             
             if result.rc == mqtt.MQTT_ERR_SUCCESS:
-                logger.info(f"Published {len(distances)} distance measurements")
-                logger.debug(f"Message: {message}")
+                logger.info(f"📤 Published {len(distances)} simulated distance measurements")
+                logger.debug(f"Sample: {message_data[0] if message_data else 'No data'}")
                 return True
             else:
                 logger.error(f"Failed to publish message, return code {result.rc}")
@@ -128,7 +123,19 @@ class UWBPublisher:
             return False
 
 class SimulationGenerator:
-    """Generate simulated UWB positioning data"""
+    """
+    Generate simulated UWB positioning data for testing
+    
+    This class simulates a realistic UWB network with:
+    - Gateway node B5A4 at origin (0,0)  
+    - Three fixed room anchors (R001, R002, R003)
+    - One mobile tag (T001) moving in circular pattern
+    - Gaussian measurement noise (σ=5cm) 
+    - Distance calculations between all node pairs
+    
+    The simulation provides realistic test data for demonstrating
+    the UWB Position Visualiser without requiring real hardware.
+    """
     
     def __init__(self):
         # Define node positions in a coordinate system (meters)
@@ -197,60 +204,6 @@ class SimulationGenerator:
                 
         return distances
 
-class RealUWBReader:
-    """Read real UWB data from hardware device"""
-    
-    def __init__(self, device_path: str):
-        self.device_path = device_path
-        self.serial_port = None
-        
-    def connect(self) -> bool:
-        """Connect to UWB device"""
-        try:
-            import serial
-            self.serial_port = serial.Serial(self.device_path, 115200, timeout=1)
-            logger.info(f"Connected to UWB device at {self.device_path}")
-            return True
-        except ImportError:
-            logger.error("pyserial not installed. Install with: pip install pyserial")
-            return False
-        except Exception as e:
-            logger.error(f"Failed to connect to UWB device: {e}")
-            return False
-            
-    def read_distances(self) -> Optional[List[Tuple[str, str, float]]]:
-        """Read distance measurements from UWB device"""
-        if not self.serial_port:
-            return None
-            
-        try:
-            # Read line from serial port
-            line = self.serial_port.readline().decode('utf-8').strip()
-            
-            if not line:
-                return None
-                
-            # Parse UWB data (example format: "A,B,1.234")
-            # Modify this section based on your actual UWB device output format
-            parts = line.split(',')
-            if len(parts) == 3:
-                node1, node2, distance_str = parts
-                distance = float(distance_str)
-                return [(node1, node2, distance)]
-            else:
-                logger.warning(f"Invalid data format: {line}")
-                return None
-                
-        except Exception as e:
-            logger.error(f"Error reading from UWB device: {e}")
-            return None
-            
-    def disconnect(self):
-        """Disconnect from UWB device"""
-        if self.serial_port:
-            self.serial_port.close()
-            logger.info("Disconnected from UWB device")
-
 def signal_handler(signum, frame):
     """Handle Ctrl+C gracefully"""
     logger.info("Received interrupt signal, shutting down...")
@@ -261,21 +214,20 @@ def signal_handler(signum, frame):
 def main():
     global publisher
     
-    parser = argparse.ArgumentParser(description='UWB Position Data MQTT Publisher')
+    parser = argparse.ArgumentParser(
+        description='UWB Position Data MQTT Publisher - Simulation Mode',
+        epilog='This tool simulates realistic UWB positioning data for testing the visualizer.'
+    )
     parser.add_argument('--broker', default='mqtt.dynamicdevices.co.uk', 
-                       help='MQTT broker hostname')
+                       help='MQTT broker hostname (default: mqtt.dynamicdevices.co.uk)')
     parser.add_argument('--port', type=int, default=1883,
-                       help='MQTT broker port')
+                       help='MQTT broker port (default: 1883)')
     parser.add_argument('--topic', default='uwb/positions',
-                       help='MQTT topic for publishing')
-    parser.add_argument('--mode', choices=['simulation', 'real'], default='simulation',
-                       help='Data source mode')
-    parser.add_argument('--device', default='/dev/ttyUSB0',
-                       help='Serial device path for real UWB data')
-    parser.add_argument('--rate', type=float, default=2.0,
-                       help='Publishing rate in Hz')
+                       help='MQTT topic for publishing (default: uwb/positions)')
+    parser.add_argument('--rate', type=float, default=0.1,
+                       help='Publishing rate in Hz (default: 0.1 = every 10 seconds)')
     parser.add_argument('--debug', action='store_true',
-                       help='Enable debug logging')
+                       help='Enable debug logging (default: False)')
     
     args = parser.parse_args()
     
@@ -293,32 +245,23 @@ def main():
         return 1
         
     # Set up data source
-    data_source = None
-    if args.mode == 'simulation':
-        data_source = SimulationGenerator()
-        logger.info("Using simulation mode - generating test data")
-    else:
-        data_source = RealUWBReader(args.device)
-        if not data_source.connect():
-            logger.error("Failed to connect to UWB device")
-            publisher.disconnect()
-            return 1
-        logger.info(f"Using real UWB device at {args.device}")
+    data_source = SimulationGenerator()
+    logger.info("🎭 SIMULATION MODE: Generating realistic UWB test data")
+    logger.info("📍 Simulated network: Gateway B5A4 + 3 rooms + 1 mobile tag")
+    logger.info("🔄 Mobile tag T001 moving in circular pattern with 5cm measurement noise")
         
     # Publishing loop
     publisher.running = True
     sleep_time = 1.0 / args.rate
     
-    logger.info(f"Starting to publish at {args.rate}Hz (every {sleep_time:.2f}s)")
-    logger.info("Press Ctrl+C to stop")
+    logger.info(f"📡 Publishing simulated data at {args.rate}Hz (every {sleep_time:.1f}s)")
+    logger.info("⏰ Default rate: 0.1Hz (every 10s) - use --rate 1.0 for faster updates")
+    logger.info("⛔ Press Ctrl+C to stop simulation")
     
     try:
         while publisher.running:
             # Get distance measurements
-            if args.mode == 'simulation':
-                distances = data_source.generate_distances()
-            else:
-                distances = data_source.read_distances()
+            distances = data_source.generate_distances()
                 
             if distances:
                 # Publish to MQTT
@@ -333,53 +276,9 @@ def main():
     finally:
         # Cleanup
         publisher.disconnect()
-        if hasattr(data_source, 'disconnect'):
-            data_source.disconnect()
-        logger.info("Publisher stopped")
+        logger.info("🛑 UWB simulation stopped")
         
     return 0
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-# Alternative simple version for compatibility issues:
-"""
-If you continue to have paho-mqtt version issues, use this simple version:
-
-#!/usr/bin/env python3
-import json
-import time
-import random
-import math
-
-try:
-    import paho.mqtt.client as mqtt
-except ImportError:
-    print("Please install paho-mqtt: pip install 'paho-mqtt<2.0'")
-    exit(1)
-
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        print("Connected to MQTT broker")
-    else:
-        print(f"Connection failed with code {rc}")
-
-# Simple publisher
-client = mqtt.Client("uwb_simple_pub")
-client.on_connect = on_connect
-client.connect("test.mosquitto.org", 1883, 60)
-client.loop_start()
-
-# Wait for connection
-time.sleep(2)
-
-# Publish test data
-test_data = [["A001", "A002", 2.5], ["A002", "A003", 3.1], ["A001", "A003", 4.2]]
-message = json.dumps(test_data)
-client.publish("uwb/positions", message)
-print(f"Published: {message}")
-
-time.sleep(1)
-client.disconnect()
-"""

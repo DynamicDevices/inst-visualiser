@@ -253,8 +253,10 @@ while True:
     # Publish to MQTT
     client.publish("uwb/positions", json.dumps(distances))
     
-    # Control update rate (recommended: 1-5Hz)
-    time.sleep(1.0)
+    # Control update rate (default: every 10s, demo: every 2s)
+    time.sleep(10.0)  # 0.1Hz - battery friendly
+    # time.sleep(2.0)  # 0.5Hz - good for demos
+    # time.sleep(0.2)  # 5Hz - real-time applications
 ```
 
 ### **Batch Processing**
@@ -281,9 +283,10 @@ client.subscribe("uwb/positions/status")
 ## Performance Considerations
 
 ### **Message Frequency**
-- **Recommended**: 1-5 Hz (1-5 messages per second)
-- **Maximum**: 10 Hz (physics can handle higher, but network overhead)
-- **Minimum**: 0.1 Hz (10 seconds between updates)
+- **Default**: 0.1 Hz (every 10 seconds) - suitable for battery-powered devices
+- **Demo/Testing**: 0.5-2 Hz (every 0.5-2 seconds) for demonstrations
+- **Real-time**: Up to 5 Hz (physics can handle higher rates)
+- **Maximum**: 10 Hz (network overhead becomes significant above this)
 
 ### **Message Size**
 - **Typical**: 50-200 bytes per message

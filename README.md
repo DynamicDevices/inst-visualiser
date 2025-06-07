@@ -2,7 +2,7 @@
 
 A real-time visualization tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation for ultra-fast and accurate node positioning.
 
-![UWB Position Visualiser Demo](resources/demo-pic.png)
+![UWB Position Visualiser Demo](demo-pic.png)
 
 **🚀 Try it now: [GitHub Pages Demo](https://dynamicdevices.github.io/inst-visualiser/)**
 
@@ -79,7 +79,7 @@ The visualizer creates an engaging real-time experience with **100x faster physi
 - **Physics monitoring**: Real-time energy calculations
 - **Performance metrics**: Frame rate and simulation statistics
 
-## 🚀 Quick Start
+## Quick Start
 
 ### **Immediate Demo**
 1. Visit the [live demo](https://dynamicdevices.github.io/inst-visualiser/)
@@ -87,9 +87,23 @@ The visualizer creates an engaging real-time experience with **100x faster physi
 3. Observe nodes appearing with smooth animations and instant positioning
 4. Toggle **"Show Console"** to see detailed physics logging
 
+### **Test with Python Simulation**
+```bash
+# Install dependencies
+pip install paho-mqtt numpy
+
+# Run UWB simulation publisher (generates realistic test data)
+python examples/mqtt-publisher.py
+
+# In the visualizer web interface:
+# - Broker: mqtt.dynamicdevices.co.uk (default)
+# - Topic: uwb/positions (default)  
+# - Click "Connect MQTT" to see simulated data
+```
+
 ### **Connect to Real UWB System**
 1. **Configure MQTT Settings:**
-   - Host: `your-mqtt-broker.com`
+   - Host: `mqtt.dynamicdevices.co.uk` (or your custom broker)
    - Port: `8083` (WebSocket SSL) or `8080` (WebSocket)
    - Topic: `uwb/positions` or your custom topic
 
@@ -219,7 +233,7 @@ inst-visualiser/
 
 ### **Performance Issues**
 - ✅ **Physics optimization**: System automatically optimizes for speed
-- ✅ **Message frequency**: Recommended <2Hz for best performance
+- ✅ **Message frequency**: Default 0.1Hz (10s), up to 5Hz for real-time use
 - ✅ **Browser acceleration**: Use modern browser with hardware acceleration
 - ✅ **Debug console**: Check for error messages
 
