@@ -1,182 +1,233 @@
-# MQTT Live Publisher Example
+# MQTT Live Publisher
 
-## Overview
-
-This example demonstrates how to publish simulated UWB positioning data to the INST Visualizer using MQTT. The publisher connects to the DynamicDevices MQTT broker and sends realistic distance measurements between UWB nodes for real-time visualization.
+A Python script for collecting UWB (Ultra-Wideband) positioning data from serial devices and publishing it to an MQTT broker with configurable logging modes.
 
 ## Features
 
-- ✅ **Official Broker Integration**: Uses `mqtt.dynamicdevices.co.uk` (matches web app defaults)
-- ✅ **Realistic UWB Simulation**: Generates authentic distance measurements with noise
-- ✅ **Command Line Options**: `--quiet` and `--verbose` modes for different use cases
-- ✅ **Node Movement**: Simulates realistic tag/anchor positioning changes
-- ✅ **Error Handling**: Robust connection management with helpful troubleshooting
-- ✅ **Compatible Data Format**: Works seamlessly with the web visualizer
+- **UWB Positioning Data Collection**: Reads and parses UWB positioning data from serial devices
+- **MQTT Publishing**: Publishes positioning data to configurable MQTT topics with SSL/TLS support
+- **Configurable Logging Modes**: 
+  - `--quiet`: Only display startup and shutdown messages
+  - `--verbose`: Display detailed received data and debug information
+  - Normal mode (default): Standard operational logging
+- **Rate Limiting**: Configurable minimum interval between MQTT publishes
+- **SSL/TLS Support**: Secure connections to MQTT brokers
+- **Graceful Shutdown**: Clean disconnect and resource cleanup on exit
 
-## What I Fixed
+## Requirements
 
-The original `mqtt-live-publisher.py` has been updated to match the **exact broker settings** used in the `index.html` file of the inst-visualiser project.
+- Python 3.x
+- `paho-mqtt` library
+- `pyserial` library
 
-### Key Changes Made:
-
-1. **Broker Settings**: Updated to use `mqtt.dynamicdevices.co.uk` (official demo broker)
-2. **Port Configuration**: Set to use port 8083 (WebSocket port used by the web application)
-3. **Topic Structure**: Changed to `uwb/positions` which matches the actual topic used by the visualizer
-4. **Data Format**: Ensures JSON format matches what the visualizer expects: `[["node1","node2",distance], ...]`
-5. **Client ID**: Added random client ID generation to avoid conflicts
-6. **Error Handling**: Improved connection handling and error reporting
-7. **Simulation**: Enhanced UWB node simulation with realistic movement and measurements
-
-## Official INST Visualizer Settings
-
-### Python Client Configuration (this example):
-```python
-BROKER_HOST = "mqtt.dynamicdevices.co.uk"  # Official DynamicDevices broker
-BROKER_PORT = 1883                         # Standard MQTT over TCP
-TOPIC = "uwb/positions"                    # UWB positioning topic
-USERNAME = None                            # No authentication required
-PASSWORD = None
+Install dependencies:
+```bash
+pip install paho-mqtt pyserial
 ```
 
-### Web Browser Client Configuration (index.html):
-- **Broker Host**: `mqtt.dynamicdevices.co.uk`
-- **Broker Port**: `8083` (MQTT over WebSocket)
-- **Topic**: `uwb/positions`
-- **SSL**: Enabled automatically for secure connections
+## Usage
 
-> **Note**: Python clients use port **1883** (standard MQTT over TCP), while web browsers use port **8083** (MQTT over WebSocket). Both connect to the same broker and can communicate with each other.
+### Basic Usage
 
-## Alternative Broker Options
+```bash
+# Default operation with standard logging
+python mqtt-live-publisher.py /dev/ttyUSB0
 
-### Option 1: Local Development
-```python
-BROKER_HOST = "localhost"       # Local Mosquitto broker
-BROKER_PORT = 1883              # Standard MQTT port
-TOPIC = "uwb/positions"         # Keep same topic
-USERNAME = None
-PASSWORD = None
+# With node list parameter (optional)
+python mqtt-live-publisher.py /dev/ttyUSB0 "[]"
 ```
 
-### Option 2: Free Public Broker (for testing)
-```python
-BROKER_HOST = "broker.emqx.io"
-BROKER_PORT = 1883              # Standard MQTT over TCP
-TOPIC = "uwb/positions"         # Keep same topic
-USERNAME = None
-PASSWORD = None
+### Logging Modes
+
+#### Quiet Mode
+Only displays startup and shutdown messages. All positioning data and normal operation logs are suppressed.
+
+```bash
+python mqtt-live-publisher.py /dev/ttyUSB0 --quiet
 ```
 
-### Option 3: EMQX Cloud Service
-```python
-BROKER_HOST = "your-deployment.emqxsl.com"
-BROKER_PORT = 8883              # MQTT over SSL/TLS
-TOPIC = "uwb/positions"         # Keep same topic
-USERNAME = "your_username"
-PASSWORD = "your_password"
+**Output example:**
+```
+[STARTUP] Starting MQTT Live Publisher
+[STARTUP] Initializing MQTT client for mqtt.dynamicdevices.co.uk:8883
+[STARTUP] Connected to MQTT broker mqtt.dynamicdevices.co.uk:8883
+[STARTUP] Connecting to serial port /dev/ttyUSB0
+[STARTUP] Serial connection established at 115200 baud
+[STARTUP] Initializing UWB positioning system
+[STARTUP] System initialized, starting data collection...
+[STARTUP] Running in quiet mode - only startup messages will be displayed
 ```
 
-> **Port Reference**:
-> - **1883**: Standard MQTT over TCP (Python clients)
-> - **8883**: MQTT over SSL/TLS (secure Python clients)  
-> - **8083**: MQTT over WebSocket (web browsers)
-> - **8084**: MQTT over WebSocket SSL (secure web browsers)
+#### Verbose Mode
+Displays detailed received data, debug information, and all internal operations.
+
+```bash
+python mqtt-live-publisher.py /dev/ttyUSB0 --verbose
+```
+
+**Additional output includes:**
+- MQTT SSL configuration details
+- Serial communication byte-level information
+- UWB packet parsing details
+- Positioning data with full context
+- Error traces and debugging information
+
+#### Normal Mode (Default)
+Standard operational logging showing connection status and positioning data without debug details.
+
+```bash
+python mqtt-live-publisher.py /dev/ttyUSB0
+```
+
+## Command Line Arguments
+
+### Required Arguments
+- `uart`: Serial port to use (e.g., `/dev/ttyUSB0`, `COM3`)
+- `nodes`: Node lists (optional, defaults to `"[]"`)
+
+### MQTT Configuration
+- `--mqtt-broker`: MQTT broker hostname (default: `mqtt.dynamicdevices.co.uk`)
+- `--mqtt-port`: MQTT broker port (default: `8883`)
+- `--mqtt-topic`: MQTT topic to publish to (default: `uwb/positions`)
+- `--mqtt-rate-limit`: Minimum seconds between MQTT publishes (default: `10.0`)
+- `--disable-mqtt`: Disable MQTT publishing entirely
+
+### Logging Options (Mutually Exclusive)
+- `--quiet`: Quiet mode - only display startup messages
+- `--verbose`: Verbose mode - display detailed received data and debug information
+
+### Examples with MQTT Configuration
+
+```bash
+# Custom MQTT broker with verbose logging
+python mqtt-live-publisher.py /dev/ttyUSB0 --verbose \
+  --mqtt-broker your-broker.example.com \
+  --mqtt-port 1883 \
+  --mqtt-topic sensors/uwb/positioning
+
+# Quiet mode with custom rate limiting
+python mqtt-live-publisher.py /dev/ttyUSB0 --quiet \
+  --mqtt-rate-limit 5.0
+
+# Disable MQTT publishing completely
+python mqtt-live-publisher.py /dev/ttyUSB0 --disable-mqtt --verbose
+```
 
 ## Data Format
 
-The visualizer expects JSON arrays with distance measurements:
+The script publishes UWB positioning data as JSON arrays containing distance measurements between nodes:
 
 ```json
 [
-  ["B5A4", "C7F2", 2.345],
-  ["B5A4", "A3E8", 3.678], 
-  ["C7F2", "A3E8", 1.234],
-  ["A3E8", "D9B1", 2.890]
+  ["0A1B", "0C2D", 1.234],
+  ["0A1B", "0E3F", 2.567],
+  ["0C2D", "0E3F", 3.890]
 ]
 ```
 
-### Format Rules:
-- Array of arrays, each containing `[node_id_1, node_id_2, distance_in_meters]`
-- String node IDs (4-digit alphanumeric identifiers)
-- Numeric distances in meters
-- Node "B5A4" is automatically styled as a gateway (red color)
+Each entry contains:
+- Source node ID (4-character hex)
+- Target node ID (4-character hex) 
+- Distance in meters (3 decimal places)
 
-## Installation & Usage
+## Logging Behavior
 
-1. **Install Dependencies**:
-   ```bash
-   pip install paho-mqtt
-   ```
+### Startup Messages (Always Displayed)
+These messages are shown regardless of logging mode:
+- MQTT Live Publisher initialization
+- MQTT broker connection status
+- Serial port connection status
+- System initialization completion
+- Current logging mode indicator
+- Shutdown and cleanup messages
 
-2. **Run the Publisher**:
-   ```bash
-   python mqtt-live-publisher.py
-   ```
+### Quiet Mode Behavior
+- ✅ Startup and shutdown messages
+- ❌ Positioning data output
+- ❌ MQTT publish confirmations
+- ❌ Normal operational logs
+- ✅ MQTT publishing still occurs (silently)
 
-3. **Open the Visualizer**:
-   - Go to https://dynamicdevices.github.io/inst-visualiser/
-   - Configure broker settings as shown above
-   - Click "Connect"
-   - Watch real-time positioning data!
+### Verbose Mode Behavior
+- ✅ All startup messages
+- ✅ Detailed MQTT connection info
+- ✅ Serial communication details
+- ✅ Raw packet data and parsing
+- ✅ Positioning data with context
+- ✅ Debug information and error traces
+- ✅ MQTT publish confirmations with message IDs
+
+### Normal Mode Behavior
+- ✅ Startup messages
+- ✅ Positioning data output
+- ✅ MQTT publish confirmations
+- ✅ Connection status updates
+- ❌ Debug details and verbose information
+
+## Configuration Notes
+
+### SSL/TLS
+The script uses SSL/TLS by default when connecting to MQTT brokers on port 8883. SSL certificate verification is disabled for compatibility with self-signed certificates.
+
+### Serial Communication
+- **Baud Rate**: 115200
+- **Data Bits**: 8
+- **Parity**: None
+- **Stop Bits**: 1
+- **Flow Control**: None
+
+### UWB Protocol
+The script communicates with UWB devices using a proprietary protocol that:
+- Uses packet headers `0xDC 0xAC`
+- Supports node assignment and time-of-flight measurements
+- Handles multiple node groups and measurement modes
+- Provides distance calculations with 0.004690384m resolution
+
+## Error Handling
+
+The script includes comprehensive error handling for:
+- Serial port connection failures
+- MQTT broker connection issues
+- SSL/TLS configuration problems
+- Data parsing errors
+- Graceful shutdown on Ctrl+C
 
 ## Troubleshooting
 
-### Connection Issues
-- ✅ Check broker URL and port
-- ✅ Verify internet connectivity
-- ✅ Try "Start Simulation" in visualizer to test without MQTT
-- ✅ Check firewall settings
+### Common Issues
 
-### Data Not Appearing
-- ✅ Verify topic names match between publisher and visualizer
-- ✅ Check JSON format in console logs
-- ✅ Ensure broker allows the topic structure
-- ✅ Try subscribing with an MQTT client (like MQTTX) to verify messages
-
-### Performance Issues
-- ✅ Reduce update frequency (increase `UPDATE_INTERVAL`)
-- ✅ Limit number of nodes in simulation
-- ✅ Use QoS 0 for higher throughput
-- ✅ Enable "Fast Message Mode" in visualizer
-
-## Security Notes
-
-⚠️ **Important**: The public broker `broker.emqx.io` is for testing only!
-- Messages are visible to all connected clients
-- No encryption for data in transit
-- Not suitable for production use
-
-For production deployments:
-- Use private MQTT brokers
-- Enable SSL/TLS encryption
-- Implement proper authentication
-- Use access control lists (ACLs)
-
-## Advanced Configuration
-
-### Custom Node Configuration
-```python
-# Modify the NODES list for your setup
-NODES = ["B5A4", "C7F2", "A3E8", "D9B1", "F4C6", "E2G9"]
-
-# Or load from configuration file
-import json
-with open('nodes.json', 'r') as f:
-    NODES = json.load(f)
+**Serial Port Access Denied**
+```bash
+sudo usermod -a -G dialout $USER
+# Then logout and login again
 ```
 
-### Multiple Publisher Setup
-```python
-# Run multiple publishers with different client IDs
-CLIENT_ID = f"uwb-publisher-zone-a-{random.randint(1000, 9999)}"
-TOPIC = "uwb/zone-a/distances"
+**MQTT Connection Failed**
+- Check broker hostname and port
+- Verify network connectivity
+- Use `--verbose` for detailed connection logs
+
+**No Data Received**
+- Verify correct serial port
+- Check UWB device is powered and configured
+- Use `--verbose` to see raw serial communication
+
+### Debug Information
+
+Use verbose mode to get detailed information about:
+```bash
+python mqtt-live-publisher.py /dev/ttyUSB0 --verbose
 ```
 
-### Quality of Service (QoS)
-```python
-# In the publish_measurements method:
-result = self.client.publish(self.topic, payload, qos=0)  # Fire and forget
-result = self.client.publish(self.topic, payload, qos=1)  # At least once
-result = self.client.publish(self.topic, payload, qos=2)  # Exactly once
-```
+This will show:
+- MQTT SSL handshake details
+- Serial data byte-by-byte
+- Packet parsing and validation
+- Node assignment updates
+- Distance calculation details
 
-Happy positioning! 🎯
+## License
+
+Copyright (c) SynchronicIT B.V. 2022. All rights reserved.
+
+This software is confidential and proprietary of SynchronicIT and is subject to the terms and conditions defined in file 'LICENSE.txt'.

@@ -41,7 +41,11 @@ parser.add_argument("--mqtt-port", help="MQTT broker port", type=int, default=88
 parser.add_argument("--mqtt-topic", help="MQTT topic to publish to", type=str, default="uwb/positions")
 parser.add_argument("--mqtt-rate-limit", help="Minimum seconds between MQTT publishes", type=float, default=10.0)
 parser.add_argument("--disable-mqtt", help="Disable MQTT publishing", action="store_true")
-parser.add_argument("--verbose", help="Enable verbose logging", action="store_true")
+
+# Logging mode options (mutually exclusive)
+logging_group = parser.add_mutually_exclusive_group()
+logging_group.add_argument("--quiet", help="Quiet mode: only display startup messages", action="store_true")
+logging_group.add_argument("--verbose", help="Verbose mode: display detailed received data and debug information", action="store_true")
 
 args = parser.parse_args()
 
@@ -49,14 +53,29 @@ args = parser.parse_args()
 mqtt_client = None
 last_publish_time = 0
 
+def log_startup(message):
+    """Always display startup messages regardless of mode"""
+    print(f"[STARTUP] {message}")
+
 def log_verbose(message):
+    """Display verbose messages only in verbose mode"""
     if args.verbose:
         print(f"[VERBOSE] {message}")
+
+def log_normal(message):
+    """Display normal messages unless in quiet mode"""
+    if not args.quiet:
+        print(message)
+
+def log_data(message):
+    """Display received data only in verbose mode"""
+    if args.verbose:
+        print(f"[DATA] {message}")
 
 def on_mqtt_connect(client, userdata, flags, rc):
     log_verbose(f"MQTT connect callback: flags={flags}, rc={rc}")
     if rc == 0:
-        print(f"Connected to MQTT broker {args.mqtt_broker}:{args.mqtt_port}")
+        log_startup(f"Connected to MQTT broker {args.mqtt_broker}:{args.mqtt_port}")
         log_verbose("MQTT connection successful")
     else:
         error_messages = {
@@ -67,16 +86,16 @@ def on_mqtt_connect(client, userdata, flags, rc):
             5: "Connection refused - not authorised"
         }
         error_msg = error_messages.get(rc, f"Unknown error code {rc}")
-        print(f"Failed to connect to MQTT broker: {error_msg}")
+        log_startup(f"Failed to connect to MQTT broker: {error_msg}")
         log_verbose(f"MQTT connection failed with detailed error: {error_msg}")
 
 def on_mqtt_disconnect(client, userdata, rc):
     log_verbose(f"MQTT disconnect callback: rc={rc}")
     if rc != 0:
-        print("Unexpected disconnection from MQTT broker")
+        log_normal("Unexpected disconnection from MQTT broker")
         log_verbose("MQTT unexpected disconnection")
     else:
-        print("Disconnected from MQTT broker")
+        log_normal("Disconnected from MQTT broker")
         log_verbose("MQTT clean disconnection")
 
 def on_mqtt_publish(client, userdata, mid):
@@ -90,10 +109,12 @@ def setup_mqtt():
     global mqtt_client
     
     if args.disable_mqtt:
+        log_startup("MQTT publishing disabled via command line argument")
         log_verbose("MQTT disabled via command line argument")
         return None
         
     try:
+        log_startup(f"Initializing MQTT client for {args.mqtt_broker}:{args.mqtt_port}")
         log_verbose("Creating MQTT client instance")
         mqtt_client = mqtt.Client()
         
@@ -131,11 +152,11 @@ def setup_mqtt():
         else:
             log_verbose("MQTT client reports disconnected status after 2 seconds")
         
-        print(f"MQTT client configured for {args.mqtt_broker}:{args.mqtt_port}")
+        log_startup(f"MQTT client configured for topic '{args.mqtt_topic}'")
         return mqtt_client
         
     except Exception as e:
-        print(f"Failed to setup MQTT: {e}")
+        log_startup(f"Failed to setup MQTT: {e}")
         log_verbose(f"MQTT setup exception details: {type(e).__name__}: {str(e)}")
         import traceback
         if args.verbose:
@@ -170,7 +191,7 @@ def publish_to_mqtt(data):
         
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
             last_publish_time = current_time
-            print(f"Published to MQTT topic '{args.mqtt_topic}': {json_data}")
+            log_normal(f"Published to MQTT topic '{args.mqtt_topic}': {json_data}")
         else:
             error_messages = {
                 mqtt.MQTT_ERR_NO_CONN: "No connection to broker",
@@ -178,11 +199,11 @@ def publish_to_mqtt(data):
                 mqtt.MQTT_ERR_PAYLOAD_SIZE: "Payload too large"
             }
             error_msg = error_messages.get(result.rc, f"Unknown error {result.rc}")
-            print(f"Failed to publish to MQTT: {error_msg}")
+            log_normal(f"Failed to publish to MQTT: {error_msg}")
             log_verbose(f"MQTT publish failed with detailed error: {error_msg}")
             
     except Exception as e:
-        print(f"Error publishing to MQTT: {e}")
+        log_normal(f"Error publishing to MQTT: {e}")
         log_verbose(f"MQTT publish exception: {type(e).__name__}: {str(e)}")
         if args.verbose:
             import traceback
@@ -190,6 +211,7 @@ def publish_to_mqtt(data):
 
 def connect(uart):
     try:
+        log_startup(f"Connecting to serial port {uart}")
         ser = serial.serial_for_url(uart, do_not_open=True)
         ser.baudrate = 115200
         ser.bytesize = 8
@@ -200,12 +222,16 @@ def connect(uart):
         ser.open()
         ser.dtr = False
         
+        log_startup(f"Serial connection established at 115200 baud")
+        log_verbose(f"Serial port configured: baudrate={ser.baudrate}, bytesize={ser.bytesize}, parity={ser.parity}")
+        
     except serial.SerialException as e:
-        print(e)
+        log_startup(f"Failed to connect to serial port: {e}")
         return 0
     
     time.sleep(0.5)
-    print(ser.read(ser.in_waiting))
+    initial_data = ser.read(ser.in_waiting)
+    log_verbose(f"Initial serial data: {initial_data}")
 
     return ser
 
@@ -213,19 +239,22 @@ def disconnect(ser):
     ser.rts = False  
     ser.close()
     ser.is_open = False
+    log_verbose("Serial port disconnected")
 
 def flush_rx(ser):
     try:
         n = ser.in_waiting
         msg = ser.read(n)
+        log_verbose(f"Flushed {n} bytes from RX buffer")
         return msg
         
     except serial.SerialException as e:
-        print(e)
+        log_normal(f"Serial exception during flush: {e}")
         disconnect(ser)
         return b''
 
 def reset(ser):
+    log_verbose("Resetting device via DTR signal")
     ser.dtr = True
     time.sleep(0.1)
     ser.dtr = False
@@ -309,7 +338,10 @@ def print_list(results):
         
     row = row[:-2]
     row += " ]"
-    print(row)
+    
+    # Log the received data appropriately based on mode
+    log_data(f"Received UWB positioning data: {row}")
+    log_normal(row)
     
     # Publish to MQTT
     publish_to_mqtt(formatted_data)
@@ -340,7 +372,7 @@ def print_matrix(assignments, results):
     row = "        "
     for node in nodes:
         row += "{:04X}    ".format( node )
-    print(row)
+    log_verbose(f"Matrix header: {row}")
 
     rowIdx = 0  
     for lst in result_matrix:
@@ -351,15 +383,15 @@ def print_matrix(assignments, results):
                 row += "        "
             else:
                 row += "{: <8.3f}".format( item )
-        print(row)
+        log_verbose(f"Matrix row: {row}")
 
 # Initialize MQTT
-log_verbose("Initializing MQTT client...")
+log_startup("Starting MQTT Live Publisher")
 mqtt_client = setup_mqtt()
 
-log_verbose(f"Connecting to serial port {args.uart}")
 ser = connect(args.uart)
 
+log_startup("Initializing UWB positioning system")
 reset(ser)
 #time.sleep(0.1)
 time.sleep(0.5)
@@ -368,13 +400,19 @@ ser.reset_input_buffer()
 if False:
     ser.write([0xdc, 0xac, 1, 0, ord('w')])
     time.sleep(0.5)
-    print(flush_rx(ser))
+    log_verbose(f"Command response: {flush_rx(ser)}")
 
 ser.write([0xdc, 0xac, 1, 0, ord('s')])
 
 if False:
     time.sleep(0.5)
-    print(flush_rx(ser))
+    log_verbose(f"Start response: {flush_rx(ser)}")
+
+log_startup("System initialized, starting data collection...")
+if args.quiet:
+    log_startup("Running in quiet mode - only startup messages will be displayed")
+elif args.verbose:
+    log_startup("Running in verbose mode - detailed debug information will be displayed")
 
 s = []
 
@@ -394,30 +432,30 @@ try:
         if cnt > 0:
             newS = read(ser, 1)
             
-            # print(' '.join('{:02x}'.format(x) for x in s))
+            log_verbose(f"Received {cnt} bytes from serial")
             
             s = s + newS
             
             while len(s) >= 4:
                 if s[0] == 0xDC and  s[1] == 0xAC:
-                    # print(' '.join('{:02x}'.format(x) for x in s))
+                    log_verbose(f"Packet header found: {' '.join('{:02x}'.format(x) for x in s[:4])}")
                     l = struct.unpack('<H', bytes(s[2:4]))[0]
 
-                    # print(str(l) + ' bytes:')
+                    log_verbose(f"Expecting {l} bytes payload")
 
                     payload = read(ser, l)
-                    # print(' '.join('{:02x}'.format(x) for x in payload))
+                    log_verbose(f"Payload received: {' '.join('{:02x}'.format(x) for x in payload)}")
                     s = []
                     idx = 0
                     [act_type, act_slot, timeframe] = struct.unpack('<BbH', bytes(payload[idx:(idx+4)]))
-                    # print("  act_type: " + hex(act_type) + ": " + str(act_slot) + "/" + str(timeframe) )
+                    log_verbose(f"Action type: {hex(act_type)}, slot: {act_slot}, timeframe: {timeframe}")
                     idx = idx + 4
 
                     if (payload[0] == 2):
                         assignments = []
                         [tx_pwr, mode, g1, g2, g3] = struct.unpack('<BBBBB', bytes(payload[idx:(idx+5)]))
 
-                        # print("      mode: " + hex(mode) + ": " + str(g1) + "/" + str(g2) + "/" + str(g3) )
+                        log_verbose(f"Assignment packet - mode: {hex(mode)}, groups: {g1}/{g2}/{g3}")
 
                         idx = idx + 5
                         group1 = []
@@ -439,8 +477,7 @@ try:
                             idx = idx + 2
                         assignments = [group1, group2, group3]
 
-                        
-                        # print(assignments)
+                        log_verbose(f"Node assignments: {assignments}")
 
                     if (payload[0] == 4):
                         tof_list = []
@@ -453,13 +490,9 @@ try:
 
                         tof_count = int(tof_count)
 
-                        # print("tof_count = " + str(tof_count))
-                        # print("unassigned_count = " + str(unassigned_count))
+                        log_verbose(f"TOF packet - expected count: {tof_count}, unassigned: {unassigned_count}")
 
                         ii = (idx+tof_count*2)
-                        # new_assignments = bytes(payload[ii:(ii + unassigned_count * 2)])
-
-                        # print(new_assignments)
 
                         new_assignments = []
 
@@ -470,11 +503,11 @@ try:
 
                             assignments[2][g3-unassigned_count+i] = id
 
-                        # print(assignments)
+                        log_verbose(f"Updated assignments: {assignments}")
 
                         results = parse_final(assignments, bytes(payload[idx:]), mode)
 
-                        # print(results)
+                        log_verbose(f"Parsed {len(results)} positioning results")
 
     #                    print_matrix(assignments, results)
                         print_list(results)
@@ -490,11 +523,11 @@ try:
                 else:
                     # if hidePackets == False or (hidePackets == True and chr((s[0])) != '!'):
                     # not a start of packet, needs re-aligning
-                    print('thrash ' + str(hex(s[0])) + ": " + chr((s[0])))
+                    log_verbose(f"Packet misalignment - discarding byte: {hex(s[0])} ({chr(s[0]) if s[0] >= 32 and s[0] <= 126 else '?'})")
                     s = s[1:]
 
 except KeyboardInterrupt:
-    print("\nShutting down...")
+    log_startup("\nShutting down...")
     log_verbose("Keyboard interrupt received, cleaning up...")
     if mqtt_client:
         log_verbose("Stopping MQTT client loop...")
@@ -503,5 +536,5 @@ except KeyboardInterrupt:
         mqtt_client.disconnect()
     log_verbose("Disconnecting from serial port...")
     disconnect(ser)
-    log_verbose("Cleanup complete, exiting...")
+    log_startup("Cleanup complete, exiting...")
     sys.exit(0)
