@@ -1,139 +1,187 @@
 # MQTT API Documentation
 
-## Overview
+This document describes the MQTT API for the UWB Position Visualiser v3.0.
 
-The INST Tag Visualizer receives positioning data via MQTT using a simple JSON array format. This document describes the API specification, data validation, and integration examples.
+## Connection Configuration
 
-## Message Format
+### **Broker Settings**
+- **Host**: Your MQTT broker hostname or IP address
+- **Port**: WebSocket port (typically 8083 for SSL, 8080 for plain)
+- **Protocol**: WebSocket (WS) or WebSocket Secure (WSS)
+- **Client ID**: Automatically generated: `uwb_visualiser_[random]`
 
-### Basic Structure
+### **Auto-Detection Strategy**
+The visualizer attempts connections in this order:
+1. WSS with `/mqtt` path
+2. WSS with root path
+3. WS with `/mqtt` path (fallback)
+4. WS with root path (fallback)
+
+## Data Topics
+
+### **Position Data Topic**
+**Default**: `uwb/positions`
+
+**Message Format**:
 ```json
 [
-  ["node_id_1", "node_id_2", distance_meters],
-  ["node_id_3", "node_id_4", distance_meters],
-  ...
+  ["node_id_1", "node_id_2", distance_in_meters],
+  ["node_id_1", "node_id_3", distance_in_meters],
+  ["node_id_2", "node_id_3", distance_in_meters]
 ]
 ```
 
-### Example Message
+**Example**:
 ```json
 [
-  ["B5A4", "Room1", 2.34],
-  ["B5A4", "Room2", 3.67],
-  ["Room1", "Room2", 1.89],
-  ["Room1", "Room3", 4.12]
+  ["B5A4", "R001", 2.34],
+  ["R001", "R002", 1.78],
+  ["R002", "R003", 3.12],
+  ["B5A4", "R003", 2.95]
 ]
 ```
+
+### **Command Topic**
+**Format**: `{base_topic}/cmd`
+**Example**: `uwb/positions/cmd`
+
+**Supported Commands**:
+```bash
+# Set device update rate (seconds)
+set rate_limit 5
+
+# Future commands (not yet implemented)
+set power_level 10
+get device_status
+reset_calibration
+```
+
+## Message Properties
+
+### **QoS Levels**
+- **Subscription**: QoS 0 (default)
+- **Commands**: QoS 1 (ensure delivery)
+
+### **Retained Messages**
+- Supported for persistent device state
+- Last known positions retained on broker
+
+### **Keep Alive**
+- **Interval**: 30 seconds
+- **Timeout**: 10 seconds
+- **Auto-reconnect**: Enabled
 
 ## Data Validation
 
-### Required Fields
-- **Array Structure**: Top-level must be JSON array
-- **Sub-arrays**: Each element must be array with exactly 3 elements
-- **Node IDs**: First two elements must be non-empty strings/numbers
-- **Distance**: Third element must be positive number (meters)
+### **Node ID Format**
+- **Type**: String
+- **Length**: Any (displayed truncated if >4 characters)
+- **Special**: "B5A4" automatically detected as gateway
+- **Examples**: "A001", "R001", "A1B2", "B5A4"
 
-### Validation Rules
-1. **Node ID Validation**:
-   - Cannot be null, undefined, or empty string
-   - Converted to strings for internal processing
-   - Must be different from each other in same measurement
+### **Distance Format**
+- **Type**: Number (float/integer)
+- **Range**: 0.1 to 50.0 meters (recommended)
+- **Precision**: Displayed to 1 decimal place
+- **Units**: Meters only
 
-2. **Distance Validation**:
-   - Must be valid number (not NaN)
-   - Must be positive (> 0)
-   - Precision: Supports decimal places (e.g., 2.34)
+### **Accuracy Classification**
+- **Accurate** (✓): 0.5m ≤ distance ≤ 8.0m
+- **Approximate** (⚠): distance > 8.0m or < 0.5m
+- **Invalid** (❌): distance ≤ 0 or non-numeric
 
-3. **Array Validation**:
-   - Minimum 1 connection required
-   - Maximum: No limit (performance may degrade >100 connections)
-   - Duplicate connections: Later measurement overwrites earlier
+## Error Handling
 
-### Error Handling
-Invalid connections are logged but don't stop processing of valid ones:
-
+### **Connection Errors**
 ```javascript
-// Valid + Invalid example
-[
-  ["A", "B", 1.5],     // ✓ Valid
-  ["A", "A", 2.0],     // ✗ Same node IDs
-  ["C", "D", -1.0],    // ✗ Negative distance  
-  ["E", "F", "invalid"] // ✗ Non-numeric distance
-]
-// Result: Only A↔B connection displayed
+// Connection lost
+{
+  errorCode: 8,
+  errorMessage: "Connection lost"
+}
+
+// Authentication failed
+{
+  errorCode: 4,
+  errorMessage: "Bad username or password"
+}
+
+// Connection refused
+{
+  errorCode: 3,
+  errorMessage: "Connection refused"
+}
 ```
 
-## MQTT Configuration
+### **Message Errors**
+```javascript
+// Invalid JSON
+{
+  error: "Failed to parse message",
+  payload: "invalid json string"
+}
 
-### Connection Settings
-- **Protocol**: MQTT over WebSocket (WSS for SSL)
-- **QoS**: 0 (fire and forget) recommended for real-time data
-- **Retained**: Optional (visualizer handles both retained and non-retained)
-- **Clean Session**: True (recommended)
+// Invalid format
+{
+  error: "Invalid message format - expected array",
+  payload: {"not": "array"}
+}
+```
 
-### Broker Requirements
-- **WebSocket Support**: Must support MQTT over WebSocket
-- **SSL/TLS**: Recommended for production
-- **CORS**: Must allow browser connections from your domain
+## Security
 
-### Common Ports
-- **8083**: MQTT over WebSocket with SSL
-- **8080**: MQTT over WebSocket without SSL  
-- **8084**: Alternative SSL WebSocket port
-- **9001**: Mosquitto default WebSocket port
+### **SSL/TLS Support**
+- **WSS**: Preferred for production
+- **Certificate validation**: Browser-based
+- **Ports**: 8083 (common), 8084, 443, 9001
 
-## Integration Examples
+### **Authentication**
+- **Username/Password**: Supported
+- **Client certificates**: Browser-dependent
+- **API keys**: Can be embedded in client ID
 
-### Python Publisher
+## Publishing Examples
+
+### **Python Example**
 ```python
 import paho.mqtt.client as mqtt
 import json
 import time
 
-def publish_uwb_data():
-    client = mqtt.Client()
-    client.connect("your-broker.com", 1883, 60)
-    
-    # Sample UWB measurements
-    measurements = [
-        ["Anchor1", "Tag1", 2.34],
-        ["Anchor1", "Tag2", 4.56],
-        ["Anchor2", "Tag1", 1.78],
-        ["Anchor2", "Tag2", 3.21]
-    ]
-    
-    payload = json.dumps(measurements)
-    client.publish("uwb/positioning", payload, qos=0, retain=False)
-    client.disconnect()
+# UWB distance measurements
+distances = [
+    ["A001", "T001", 2.34],
+    ["A001", "T002", 4.56],
+    ["A002", "T001", 1.78],
+    ["A002", "T002", 3.21]
+]
 
-# Publish every 2 seconds
-while True:
-    publish_uwb_data()
-    time.sleep(2)
+# Connect and publish
+client = mqtt.Client()
+client.connect("your-broker.com", 1883)
+client.publish("uwb/positions", json.dumps(distances))
+client.disconnect()
 ```
 
-### Node.js Publisher
+### **Node.js Example**
 ```javascript
 const mqtt = require('mqtt');
-const client = mqtt.connect('mqtt://your-broker.com');
 
-function publishPositionData() {
-    const measurements = [
-        ["GW001", "TAG001", Math.random() * 5 + 1],
-        ["GW001", "TAG002", Math.random() * 5 + 1],
-        ["TAG001", "TAG002", Math.random() * 3 + 0.5]
-    ];
-    
-    client.publish('indoor/positioning', JSON.stringify(measurements));
-}
+const client = mqtt.connect('mqtt://your-broker.com:1883');
 
 client.on('connect', () => {
-    console.log('Connected to MQTT broker');
-    setInterval(publishPositionData, 1000); // 1 Hz
+  const distances = [
+    ["B5A4", "R001", 2.0],
+    ["R001", "R002", 1.5],
+    ["R002", "R003", 3.2]
+  ];
+  
+  client.publish('uwb/positions', JSON.stringify(distances));
+  client.end();
 });
 ```
 
-### Arduino/ESP32 Example
+### **Arduino/ESP32 Example**
 ```cpp
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -143,178 +191,107 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 void publishUWBData() {
-    DynamicJsonDocument doc(1024);
-    JsonArray measurements = doc.to<JsonArray>();
-    
-    // Add measurements from your UWB system
-    JsonArray measurement1 = measurements.createNestedArray();
-    measurement1.add("ESP32_001");
-    measurement1.add("TAG_001"); 
-    measurement1.add(getUWBDistance()); // Your UWB distance function
-    
-    String payload;
-    serializeJson(doc, payload);
-    
-    client.publish("uwb/esp32/data", payload.c_str());
-}
-
-void loop() {
-    if (client.connected()) {
-        publishUWBData();
-        delay(2000); // 0.5 Hz
-    }
-    client.loop();
+  StaticJsonDocument<200> doc;
+  JsonArray distances = doc.to<JsonArray>();
+  
+  JsonArray measurement1 = distances.createNestedArray();
+  measurement1.add("E001");
+  measurement1.add("A001");
+  measurement1.add(2.34);
+  
+  JsonArray measurement2 = distances.createNestedArray();
+  measurement2.add("E001");
+  measurement2.add("A002");
+  measurement2.add(1.78);
+  
+  String payload;
+  serializeJson(doc, payload);
+  
+  client.publish("uwb/positions", payload.c_str());
 }
 ```
 
-## Special Node Types
+## Testing & Debugging
 
-### Gateway Nodes
-Node ID `"B5A4"` receives special styling:
-- Red color scheme instead of blue
-- "GW" text instead of full node ID
-- Enhanced pulse animation
-- Larger hover effects
+### **MQTT Test Tools**
+- **MQTT.fx**: GUI client for testing
+- **mosquitto_pub**: Command line publishing
+- **MQTT Explorer**: Real-time message monitoring
 
-### Custom Gateway Detection
-To add more gateway nodes, modify the JavaScript:
+### **Browser Console**
+Enable debug mode in visualizer to see:
 ```javascript
-// In nodeManager.create() function
-const gatewayNodes = ['B5A4', 'GATEWAY_01', 'ANCHOR_MAIN'];
-const isGateway = gatewayNodes.includes(nodeId);
+// Connection events
+📡 Connected to MQTT broker successfully
+📡 Subscribed to topic: uwb/positions
+
+// Message processing
+📨 MQTT message received: [["A","B",1.5]]
+🔄 Processing message #1 with 1 distance measurements
+
+// Physics events (debug mode)
+📏 Spring connection A-B: 1.50m (ultra-fast physics)
+⚡ Nodes move ~100x faster - near-instant equilibrium!
+```
+
+### **Common Issues**
+1. **WebSocket not enabled**: Ensure broker supports WebSocket
+2. **CORS errors**: Configure broker to allow web client origins
+3. **SSL certificate issues**: Use valid certificates or plain WS for testing
+4. **Topic permissions**: Verify client can subscribe to data topic
+5. **Message format**: Ensure JSON array format is correct
+
+## Integration Patterns
+
+### **Real-time Streaming**
+```python
+# Continuous data streaming
+while True:
+    # Get UWB measurements from hardware
+    distances = get_uwb_distances()  # Returns [["A001","T001",2.3],...]
+    
+    # Publish to MQTT
+    client.publish("uwb/positions", json.dumps(distances))
+    
+    # Control update rate (recommended: 1-5Hz)
+    time.sleep(1.0)
+```
+
+### **Batch Processing**
+```python
+# Collect multiple measurements
+batch = []
+for i in range(10):
+    distances = get_uwb_distances()
+    batch.extend(distances)
+
+# Send as single message
+client.publish("uwb/positions", json.dumps(batch))
+```
+
+### **Device Management**
+```python
+# Send rate limit command
+client.publish("uwb/positions/cmd", "set rate_limit 2")
+
+# Subscribe to device responses (future feature)
+client.subscribe("uwb/positions/status")
 ```
 
 ## Performance Considerations
 
-### Message Frequency
-- **Optimal**: 0.5-1 Hz (every 1-2 seconds)
-- **Maximum**: 2 Hz (fast message mode auto-enables)
-- **Burst handling**: Visualizer buffers and processes sequentially
+### **Message Frequency**
+- **Recommended**: 1-5 Hz (1-5 messages per second)
+- **Maximum**: 10 Hz (physics can handle higher, but network overhead)
+- **Minimum**: 0.1 Hz (10 seconds between updates)
 
-### Payload Size
-- **Recommended**: <50 connections per message
-- **Maximum tested**: 200 connections  
-- **Large payloads**: May cause temporary UI lag during processing
+### **Message Size**
+- **Typical**: 50-200 bytes per message
+- **Maximum**: 1MB (MQTT limit)
+- **Optimal**: <1KB for best performance
 
-### Browser Limits
-- **WebSocket connections**: 1 per visualizer instance
-- **DOM elements**: Tested up to 100 nodes + 500 connections
-- **Memory usage**: ~10MB for typical usage
-
-## Debugging
-
-### Console Logging
-Enable console to see detailed processing:
-```
-[14:32:15] 📨 Received message on topic "uwb/test"
-[14:32:15] 📦 Payload (45 bytes): [["A","B",1.5],["B","C",2.1]]
-[14:32:15] ✅ JSON parsed successfully
-[14:32:15] 📊 Found 2 connection(s) to process
-[14:32:15] ✅ Connection 1: "A" ↔ "B" (1.50m)
-[14:32:15] ✅ Connection 2: "B" ↔ "C" (2.10m)
-```
-
-### Common Error Messages
-```
-❌ Invalid JSON format: Unexpected token...
-💡 Expected: [["node1","node2",1.5], ["node2","node3",2.1]]
-
-❌ Connection 1: distance "invalid" is not a valid number
-💡 Distances must be positive numbers
-
-⚠️ Distance change: A-B = 1.5m → 2.1m  
-📏 New distance measurement: C-D = 3.2m
-```
-
-### Testing Tools
-```bash
-# Test with mosquitto_pub
-mosquitto_pub -h broker.com -p 1883 -t "test/positioning" \
-  -m '[["A","B",1.5],["B","C",2.1],["A","C",2.8]]'
-
-# Test with curl (if broker has HTTP bridge)
-curl -X POST http://broker.com/api/publish \
-  -H "Content-Type: application/json" \
-  -d '{"topic":"test/pos","payload":"[[\"A\",\"B\",1.5]]"}'
-```
-
-## Data Flow
-
-```
-UWB Hardware → Your Code → MQTT Broker → WebSocket → Visualizer
-     ↓              ↓           ↓            ↓          ↓
-  Distance      JSON Array   Publish    Subscribe   Display
- Measurement    Formatting   Message    & Parse     Nodes
-```
-
-### Processing Pipeline
-1. **MQTT Message** received via WebSocket
-2. **JSON Parsing** with error handling
-3. **Data Validation** per connection
-4. **Node Creation** for new IDs
-5. **Distance Storage** in internal map
-6. **Layout Calculation** (triangle/force-directed)
-7. **Animation Trigger** with connection updates
-8. **DOM Rendering** of nodes and connections
-
-## Rate Limiting
-
-The visualizer automatically adapts to message frequency:
-
-- **< 0.5 Hz**: Full animations enabled
-- **0.5-2 Hz**: Normal operation  
-- **> 2 Hz**: Fast message mode (animations disabled)
-- **> 5 Hz**: Warning logged, may drop messages
-
-## Security Considerations
-
-### MQTT Security
-- Use SSL/TLS for production deployments
-- Implement proper authentication/authorization
-- Consider VPN for sensitive positioning data
-- Validate data server-side before publishing
-
-### Browser Security
-- HTTPS required for SSL MQTT connections
-- Cross-origin restrictions apply to MQTT brokers
-- No sensitive data stored in browser
-- All processing happens client-side
-
-## Troubleshooting API Issues
-
-### Connection Problems
-```javascript
-// Check broker WebSocket endpoint
-const testWS = new WebSocket('wss://your-broker.com:8083/mqtt');
-testWS.onopen = () => console.log('WebSocket OK');
-testWS.onerror = (e) => console.error('WebSocket failed:', e);
-```
-
-### Data Format Issues
-```javascript
-// Validate your payload locally
-function validatePayload(payload) {
-    try {
-        const data = JSON.parse(payload);
-        if (!Array.isArray(data)) throw new Error('Must be array');
-        
-        data.forEach((conn, i) => {
-            if (!Array.isArray(conn) || conn.length !== 3) {
-                throw new Error(`Connection ${i+1}: invalid format`);
-            }
-            if (typeof conn[2] !== 'number' || conn[2] <= 0) {
-                throw new Error(`Connection ${i+1}: invalid distance`);
-            }
-        });
-        
-        console.log('✅ Payload valid');
-        return true;
-    } catch (e) {
-        console.error('❌ Payload invalid:', e.message);
-        return false;
-    }
-}
-
-// Test your data
-validatePayload('[["A","B",1.5],["B","C",2.1]]');
-```
+### **Network Optimization**
+- Use retained messages for device state
+- Implement QoS 1 for critical commands
+- Consider message compression for large datasets
+- Use WebSocket compression if supported by broker

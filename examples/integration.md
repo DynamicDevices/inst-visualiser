@@ -1,743 +1,523 @@
-# Integration Examples
+# Integration Guide - UWB Position Visualiser v3.0
 
-This document provides practical examples for integrating the INST Tag Visualizer with various UWB systems, IoT platforms, and data sources.
+This guide explains how to integrate the UWB Position Visualiser with various systems and data sources.
 
-## 🏭 Hardware Integration Examples
+## Quick Start Integration
 
-### DWM1001 Development Board
+### **1. Test with Sample Data**
+
+```bash
+# Clone repository
+git clone https://github.com/DynamicDevices/inst-visualiser.git
+cd inst-visualiser
+
+# Start local web server
+python3 -m http.server 8080
+
+# Open browser to http://localhost:8080
+# Click "Start Simulation" to see built-in test data
+```
+
+### **2. Test with Python Publisher**
+
+```bash
+# Install dependencies
+pip install paho-mqtt numpy
+
+# Run simulation publisher
+python examples/mqtt-publisher.py --broker test.mosquitto.org --topic uwb/test
+
+# In visualiser:
+# - Set broker to: test.mosquitto.org
+# - Set topic to: uwb/test  
+# - Click Connect
+```
+
+## Integration Patterns
+
+### **Pattern 1: Direct Hardware Integration**
+
 ```python
-"""
-Integration with Decawave DWM1001 UWB modules
-Reads UART data and publishes to MQTT
-"""
+# Real-time UWB device integration
 import serial
 import json
-import time
 import paho.mqtt.client as mqtt
 
-class DWM1001Reader:
-    def __init__(self, port='/dev/ttyACM0', baudrate=115200):
-        self.serial = serial.Serial(port, baudrate, timeout=1)
-        self.mqtt_client = mqtt.Client()
-        
-    def parse_dwm_data(self, line):
-        """Parse DWM1001 positioning data"""
-        try:
-            # Example DWM1001 format: "POS,1.23,2.45,0.12,95"
-            if line.startswith('POS,'):
-                parts = line.strip().split(',')
-                x, y, z, quality = map(float, parts[1:5])
-                return {'x': x, 'y': y, 'z': z, 'quality': quality}
-        except:
-            pass
-        return None
-    
-    def distances_from_positions(self, positions):
-        """Calculate distances from position data"""
-        measurements = []
-        node_ids = list(positions.keys())
-        
-        for i, node1 in enumerate(node_ids):
-            for node2 in node_ids[i+1:]:
-                pos1, pos2 = positions[node1], positions[node2]
-                distance = ((pos1['x'] - pos2['x'])**2 + 
-                           (pos1['y'] - pos2['y'])**2)**0.5
-                measurements.append([node1, node2, round(distance, 2)])
-        
-        return measurements
-    
-    def run(self):
-        """Main reading loop"""
-        positions = {}
-        
-        while True:
-            line = self.serial.readline().decode('utf-8', errors='ignore')
-            if line:
-                pos_data = self.parse_dwm_data(line)
-                if pos_data:
-                    node_id = f"DWM_{int(time.time()) % 1000}"  # Simple ID
-                    positions[node_id] = pos_data
-                    
-                    if len(positions) >= 2:
-                        measurements = self.distances_from_positions(positions)
-                        payload = json.dumps(measurements)
-                        self.mqtt_client.publish('uwb/dwm1001', payload)
-                        positions.clear()  # Reset for next batch
+# Connect to UWB device
+uwb_device = serial.Serial('/dev/ttyUSB0', 115200)
+mqtt_client = mqtt.Client()
+mqtt_client.connect('your-broker.com', 1883)
 
-# Usage
-reader = DWM1001Reader('/dev/ttyUSB0')
-reader.run()
+while True:
+    # Read UWB measurement
+    line = uwb_device.readline().decode().strip()
+    
+    # Parse device-specific format
+    # Example: "A001,A002,2.34" -> [["A001", "A002", 2.34]]
+    parts = line.split(',')
+    if len(parts) == 3:
+        node1, node2, distance = parts[0], parts[1], float(parts[2])
+        data = [[node1, node2, distance]]
+        
+        # Publish to visualiser
+        mqtt_client.publish('uwb/positions', json.dumps(data))
 ```
 
-### Pozyx UWB System
+### **Pattern 2: Data Processing Pipeline**
+
 ```python
-"""
-Integration with Pozyx Creator UWB system
-Uses Pozyx Python library to get ranging data
-"""
-import pypozyx
+# Batch processing with filtering and validation
 import json
-import time
-import paho.mqtt.client as mqtt
+from typing import List, Tuple
 
-class PozyxMQTTBridge:
-    def __init__(self, port='/dev/ttyACM0'):
-        self.pozyx = pypozyx.PozyxSerial(port)
-        self.mqtt_client = mqtt.Client()
-        self.mqtt_client.connect('localhost', 1883)
+class UWBDataProcessor:
+    def __init__(self, min_distance=0.1, max_distance=50.0):
+        self.min_distance = min_distance
+        self.max_distance = max_distance
         
-        # Get list of discovered devices
-        self.device_list = pypozyx.DeviceList()
-        self.pozyx.doDiscovery(self.device_list)
+    def validate_measurement(self, distance: float) -> bool:
+        """Validate distance measurement"""
+        return self.min_distance <= distance <= self.max_distance
         
-    def get_distance_measurements(self):
-        """Get ranging measurements from all device pairs"""
-        measurements = []
-        devices = [0x0000]  # Local device ID
+    def filter_data(self, raw_data: List[Tuple[str, str, float]]) -> List[Tuple[str, str, float]]:
+        """Filter and clean measurement data"""
+        filtered = []
+        for node1, node2, distance in raw_data:
+            if self.validate_measurement(distance):
+                # Round to reasonable precision
+                distance = round(distance, 2)
+                filtered.append((node1, node2, distance))
+        return filtered
         
-        # Add discovered remote devices  
-        for i in range(self.device_list.size()):
-            device_id = self.device_list[i]
-            devices.append(device_id)
-        
-        # Get ranges between all pairs
-        for i, device1 in enumerate(devices):
-            for device2 in devices[i+1:]:
-                try:
-                    distance = pypozyx.Distance()
-                    status = self.pozyx.doRanging(device2, distance, device1)
-                    
-                    if status == pypozyx.POZYX_SUCCESS:
-                        dist_mm = distance.distance
-                        dist_m = dist_mm / 1000.0  # Convert to meters
-                        
-                        # Create readable node IDs
-                        node1 = f"PZX_{device1:04X}"
-                        node2 = f"PZX_{device2:04X}"
-                        
-                        measurements.append([node1, node2, round(dist_m, 2)])
-                        
-                except Exception as e:
-                    print(f"Ranging error {device1}->{device2}: {e}")
-        
-        return measurements
-    
-    def publish_loop(self, interval=1.0):
-        """Continuously publish ranging data"""
-        while True:
-            measurements = self.get_distance_measurements()
-            if measurements:
-                payload = json.dumps(measurements)
-                self.mqtt_client.publish('uwb/pozyx', payload)
-                print(f"Published {len(measurements)} measurements")
-            
-            time.sleep(interval)
+    def process_batch(self, measurements: List[Tuple[str, str, float]]) -> str:
+        """Process batch of measurements for MQTT"""
+        filtered = self.filter_data(measurements)
+        # Convert to visualiser format
+        data = [[node1, node2, dist] for node1, node2, dist in filtered]
+        return json.dumps(data)
 
 # Usage
-bridge = PozyxMQTTBridge()
-bridge.publish_loop(interval=2.0)
+processor = UWBDataProcessor()
+raw_measurements = [("A001", "A002", 2.34), ("A002", "A003", 1.78), ("A001", "A003", 3.12)]
+mqtt_message = processor.process_batch(raw_measurements)
 ```
 
-### Custom UWB Module (Arduino/ESP32)
-```cpp
-// Arduino/ESP32 integration example
-// Reads UWB distance data and publishes via WiFi/MQTT
+### **Pattern 3: Multi-Source Aggregation**
 
+```python
+# Combine data from multiple UWB systems
+import asyncio
+import json
+from concurrent.futures import ThreadPoolExecutor
+
+class MultiSourceAggregator:
+    def __init__(self, mqtt_client):
+        self.mqtt_client = mqtt_client
+        self.sources = []
+        self.aggregated_data = {}
+        
+    def add_source(self, source_id: str, reader_func):
+        """Add a data source"""
+        self.sources.append((source_id, reader_func))
+        
+    async def collect_data(self):
+        """Collect data from all sources"""
+        with ThreadPoolExecutor() as executor:
+            tasks = []
+            for source_id, reader_func in self.sources:
+                task = asyncio.get_event_loop().run_in_executor(
+                    executor, reader_func
+                )
+                tasks.append((source_id, task))
+                
+            # Wait for all sources
+            for source_id, task in tasks:
+                try:
+                    data = await task
+                    if data:
+                        self.aggregated_data[source_id] = data
+                except Exception as e:
+                    print(f"Error from source {source_id}: {e}")
+                    
+    def publish_aggregated(self):
+        """Publish combined data"""
+        all_measurements = []
+        for source_data in self.aggregated_data.values():
+            all_measurements.extend(source_data)
+            
+        if all_measurements:
+            message = json.dumps(all_measurements)
+            self.mqtt_client.publish('uwb/positions', message)
+            
+# Usage
+aggregator = MultiSourceAggregator(mqtt_client)
+aggregator.add_source("building1", read_building1_uwb)
+aggregator.add_source("building2", read_building2_uwb)
+
+# Run collection loop
+while True:
+    await aggregator.collect_data()
+    aggregator.publish_aggregated()
+    await asyncio.sleep(1.0)
+```
+
+## Platform-Specific Integration
+
+### **Arduino/ESP32 Integration**
+
+```cpp
+// Arduino UWB Publisher Example
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
-#include <SPI.h>
-
-// UWB module communication (example for DW1000)
-#include "DW1000Ranging.h"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-struct DistanceMeasurement {
+// UWB measurement structure
+struct UWBMeasurement {
     String node1;
     String node2;
     float distance;
-    unsigned long timestamp;
 };
 
-std::vector<DistanceMeasurement> measurements;
-const int MAX_MEASUREMENTS = 20;
-const unsigned long PUBLISH_INTERVAL = 2000; // 2 seconds
-
-void setup() {
-    Serial.begin(115200);
-    
-    // Initialize WiFi
-    WiFi.begin("YOUR_WIFI_SSID", "YOUR_WIFI_PASSWORD");
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-    
-    // Initialize MQTT
-    client.setServer("mqtt.example.com", 1883);
-    
-    // Initialize UWB ranging
-    DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ);
-    DW1000Ranging.attachNewRange(newRange);
-    DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_RANGE_LOWPOWER);
-}
-
-void newRange() {
-    // Callback when new range measurement is available
-    float distance = DW1000Ranging.getDistantDevice()->getRange();
-    String remoteAddress = DW1000Ranging.getDistantDevice()->getShortAddress();
-    String localAddress = "ESP32_" + String(ESP.getChipId(), HEX);
-    
-    // Store measurement
-    DistanceMeasurement measurement;
-    measurement.node1 = localAddress;
-    measurement.node2 = "UWB_" + remoteAddress;
-    measurement.distance = distance;
-    measurement.timestamp = millis();
-    
-    measurements.push_back(measurement);
-    
-    // Limit buffer size
-    if (measurements.size() > MAX_MEASUREMENTS) {
-        measurements.erase(measurements.begin());
-    }
-}
-
-void publishMeasurements() {
-    if (measurements.empty()) return;
-    
-    DynamicJsonDocument doc(2048);
+void publishUWBData(UWBMeasurement measurements[], int count) {
+    // Create JSON array
+    DynamicJsonDocument doc(1024);
     JsonArray array = doc.to<JsonArray>();
     
-    // Add all measurements to JSON array
-    for (const auto& measurement : measurements) {
-        JsonArray entry = array.createNestedArray();
-        entry.add(measurement.node1);
-        entry.add(measurement.node2);
-        entry.add(measurement.distance);
+    for (int i = 0; i < count; i++) {
+        JsonArray measurement = array.createNestedArray();
+        measurement.add(measurements[i].node1);
+        measurement.add(measurements[i].node2);
+        measurement.add(measurements[i].distance);
     }
     
+    // Serialize and publish
     String payload;
     serializeJson(doc, payload);
-    
-    if (client.publish("uwb/esp32/ranging", payload.c_str())) {
-        Serial.println("Published " + String(measurements.size()) + " measurements");
-        measurements.clear(); // Clear after successful publish
-    } else {
-        Serial.println("Failed to publish measurements");
-    }
+    client.publish("uwb/positions", payload.c_str());
 }
 
 void loop() {
-    static unsigned long lastPublish = 0;
+    // Read UWB measurements (device-specific)
+    UWBMeasurement measurements[10];
+    int count = readUWBDevice(measurements);
     
-    if (!client.connected()) {
-        reconnectMQTT();
+    if (count > 0) {
+        publishUWBData(measurements, count);
     }
     
-    client.loop();
-    DW1000Ranging.loop();
-    
-    // Publish measurements periodically
-    if (millis() - lastPublish > PUBLISH_INTERVAL) {
-        publishMeasurements();
-        lastPublish = millis();
-    }
-}
-
-void reconnectMQTT() {
-    while (!client.connected()) {
-        if (client.connect("ESP32_UWB_" + String(ESP.getChipId(), HEX))) {
-            Serial.println("MQTT connected");
-        } else {
-            delay(5000);
-        }
-    }
+    delay(500); // 2Hz update rate
 }
 ```
 
-## 🌐 IoT Platform Integration
+### **ROS Integration**
 
-### AWS IoT Core Integration
 ```python
-"""
-AWS IoT Core integration with device shadows and rules
-"""
-import json
-import boto3
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
-
-class AWSIoTUWBBridge:
-    def __init__(self, endpoint, cert_path, key_path, ca_path):
-        self.mqtt_client = AWSIoTMQTTClient("UWB_Visualizer_Bridge")
-        self.mqtt_client.configureEndpoint(endpoint, 8883)
-        self.mqtt_client.configureCredentials(ca_path, key_path, cert_path)
-        
-        # Configure connection
-        self.mqtt_client.configureAutoReconnectBackoffTime(1, 32, 20)
-        self.mqtt_client.configureOfflinePublishQueueing(-1)
-        self.mqtt_client.configureDrainingFrequency(2)
-        self.mqtt_client.configureConnectDisconnectTimeout(10)
-        self.mqtt_client.configureMQTTOperationTimeout(5)
-        
-        # Connect
-        self.mqtt_client.connect()
-        
-        # Subscribe to UWB device updates
-        self.mqtt_client.subscribe("uwb/+/position", 1, self.on_position_update)
-        
-        self.device_positions = {}
-        
-    def on_position_update(self, client, userdata, message):
-        """Handle position updates from UWB devices"""
-        try:
-            topic_parts = message.topic.split('/')
-            device_id = topic_parts[1]
-            
-            payload = json.loads(message.payload.decode())
-            self.device_positions[device_id] = {
-                'x': payload['x'],
-                'y': payload['y'],
-                'timestamp': payload.get('timestamp', time.time())
-            }
-            
-            # Calculate distances and publish to visualizer
-            measurements = self.calculate_distances()
-            if measurements:
-                visualizer_payload = json.dumps(measurements)
-                self.mqtt_client.publish("visualizer/uwb/data", visualizer_payload, 1)
-                
-        except Exception as e:
-            print(f"Error processing position update: {e}")
-    
-    def calculate_distances(self):
-        """Calculate distances between all device pairs"""
-        if len(self.device_positions) < 2:
-            return []
-            
-        measurements = []
-        devices = list(self.device_positions.keys())
-        
-        for i, device1 in enumerate(devices):
-            for device2 in devices[i+1:]:
-                pos1 = self.device_positions[device1]
-                pos2 = self.device_positions[device2]
-                
-                distance = ((pos1['x'] - pos2['x'])**2 + 
-                           (pos1['y'] - pos2['y'])**2)**0.5
-                
-                measurements.append([device1, device2, round(distance, 2)])
-        
-        return measurements
-    
-    def update_device_shadow(self, device_id, position_data):
-        """Update AWS IoT device shadow with position"""
-        shadow_client = boto3.client('iot-data')
-        
-        shadow_payload = {
-            "state": {
-                "reported": {
-                    "position": position_data,
-                    "lastUpdate": int(time.time())
-                }
-            }
-        }
-        
-        try:
-            shadow_client.update_thing_shadow(
-                thingName=device_id,
-                payload=json.dumps(shadow_payload)
-            )
-        except Exception as e:
-            print(f"Failed to update shadow for {device_id}: {e}")
-
-# Usage
-bridge = AWSIoTUWBBridge(
-    endpoint="your-endpoint.iot.region.amazonaws.com",
-    cert_path="certificates/device.pem.crt",
-    key_path="certificates/private.pem.key", 
-    ca_path="certificates/Amazon-root-CA-1.pem"
-)
-```
-
-### Azure IoT Hub Integration
-```python
-"""
-Azure IoT Hub integration with device twins and telemetry
-"""
-import json
-import asyncio
-from azure.iot.device.aio import IoTHubDeviceClient
-from azure.iot.device import Message
-
-class AzureIoTUWBBridge:
-    def __init__(self, connection_string):
-        self.device_client = IoTHubDeviceClient.create_from_connection_string(connection_string)
-        self.device_positions = {}
-        
-    async def connect(self):
-        """Connect to Azure IoT Hub"""
-        await self.device_client.connect()
-        
-        # Set up message handler for C2D messages
-        self.device_client.on_message_received = self.message_handler
-        
-    async def message_handler(self, message):
-        """Handle cloud-to-device messages"""
-        try:
-            payload = json.loads(message.data.decode())
-            
-            if payload.get('type') == 'position_update':
-                device_id = payload['device_id']
-                position = payload['position']
-                
-                self.device_positions[device_id] = position
-                
-                # Calculate and send distance measurements
-                measurements = self.calculate_distances()
-                if measurements:
-                    await self.send_distance_telemetry(measurements)
-                    
-        except Exception as e:
-            print(f"Error handling message: {e}")
-    
-    async def send_distance_telemetry(self, measurements):
-        """Send distance measurements as telemetry"""
-        telemetry_data = {
-            "measurements": measurements,
-            "timestamp": time.time(),
-            "device_count": len(self.device_positions)
-        }
-        
-        message = Message(json.dumps(telemetry_data))
-        message.content_encoding = "utf-8"
-        message.content_type = "application/json"
-        message.custom_properties["messageType"] = "distanceTelemetry"
-        
-        await self.device_client.send_message(message)
-        print(f"Sent {len(measurements)} distance measurements to Azure")
-    
-    async def update_device_twin(self, position_data):
-        """Update device twin with current positions"""
-        twin_patch = {
-            "positions": self.device_positions,
-            "lastUpdate": time.time()
-        }
-        
-        await self.device_client.patch_twin_reported_properties(twin_patch)
-    
-    def calculate_distances(self):
-        """Calculate distances between devices"""
-        if len(self.device_positions) < 2:
-            return []
-            
-        measurements = []
-        devices = list(self.device_positions.keys())
-        
-        for i, device1 in enumerate(devices):
-            for device2 in devices[i+1:]:
-                pos1 = self.device_positions[device1]
-                pos2 = self.device_positions[device2]
-                
-                distance = ((pos1['x'] - pos2['x'])**2 + 
-                           (pos1['y'] - pos2['y'])**2)**0.5
-                
-                measurements.append([device1, device2, round(distance, 2)])
-        
-        return measurements
-
-# Usage
-async def main():
-    connection_string = "HostName=your-hub.azure-devices.net;DeviceId=uwb-bridge;SharedAccessKey=..."
-    bridge = AzureIoTUWBBridge(connection_string)
-    await bridge.connect()
-    
-    # Keep running
-    while True:
-        await asyncio.sleep(1)
-
-asyncio.run(main())
-```
-
-## 📊 Database Integration
-
-### InfluxDB Time Series Storage
-```python
-"""
-Store UWB measurements in InfluxDB for historical analysis
-"""
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
+#!/usr/bin/env python3
+# ROS node for UWB visualization
+import rospy
 import json
 import paho.mqtt.client as mqtt
+from geometry_msgs.msg import PoseArray, Pose
+from std_msgs.msg import String
 
-class InfluxDBLogger:
-    def __init__(self, url, token, org, bucket):
-        self.client = InfluxDBClient(url=url, token=token, org=org)
-        self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
+class UWBVisualizerBridge:
+    def __init__(self):
+        rospy.init_node('uwb_visualizer_bridge')
+        
+        # ROS subscribers
+        self.pose_sub = rospy.Subscriber('/uwb/poses', PoseArray, self.pose_callback)
+        self.distance_sub = rospy.Subscriber('/uwb/distances', String, self.distance_callback)
+        
+        # MQTT client
+        broker = rospy.get_param('~mqtt_broker', 'localhost')
+        topic = rospy.get_param('~mqtt_topic', 'uwb/positions')
+        
+        self.mqtt_client = mqtt.Client()
+        self.mqtt_client.connect(broker, 1883)
+        self.topic = topic
+        
+    def pose_callback(self, msg):
+        """Convert ROS poses to distance measurements"""
+        # Calculate distances between all pose pairs
+        distances = []
+        for i, pose1 in enumerate(msg.poses):
+            for j, pose2 in enumerate(msg.poses[i+1:], i+1):
+                dist = self.calculate_distance(pose1, pose2)
+                distances.append([f"R{i:03d}", f"R{j:03d}", dist])
+        
+        # Publish to visualizer
+        if distances:
+            self.mqtt_client.publish(self.topic, json.dumps(distances))
+            
+    def distance_callback(self, msg):
+        """Forward distance data directly"""
+        try:
+            data = json.loads(msg.data)
+            self.mqtt_client.publish(self.topic, msg.data)
+        except json.JSONDecodeError:
+            rospy.logwarn(f"Invalid JSON: {msg.data}")
+            
+    def calculate_distance(self, pose1, pose2):
+        """Calculate distance between two poses"""
+        dx = pose1.position.x - pose2.position.x
+        dy = pose1.position.y - pose2.position.y
+        dz = pose1.position.z - pose2.position.z
+        return (dx*dx + dy*dy + dz*dz) ** 0.5
+
+if __name__ == '__main__':
+    bridge = UWBVisualizerBridge()
+    rospy.spin()
+```
+
+### **InfluxDB Integration**
+
+```python
+# Store and replay UWB data from InfluxDB
+from influxdb_client import InfluxDBClient
+import json
+import paho.mqtt.client as mqtt
+from datetime import datetime, timedelta
+
+class InfluxUWBReplay:
+    def __init__(self, influx_url, token, org, bucket):
+        self.client = InfluxDBClient(url=influx_url, token=token, org=org)
         self.query_api = self.client.query_api()
         self.bucket = bucket
         self.org = org
         
-    def store_measurements(self, measurements):
-        """Store distance measurements in InfluxDB"""
-        points = []
-        
-        for measurement in measurements:
-            node1, node2, distance = measurement
-            
-            point = Point("uwb_distance") \
-                .tag("node1", node1) \
-                .tag("node2", node2) \
-                .tag("pair", f"{min(node1, node2)}-{max(node1, node2)}") \
-                .field("distance", float(distance)) \
-                .time(time.time_ns())
-            
-            points.append(point)
-        
-        self.write_api.write(bucket=self.bucket, org=self.org, record=points)
-        
-    def get_recent_measurements(self, minutes=5):
-        """Get recent measurements for visualization"""
+    def query_historical_data(self, start_time, end_time):
+        """Query historical UWB data"""
         query = f'''
         from(bucket: "{self.bucket}")
-        |> range(start: -{minutes}m)
+        |> range(start: {start_time}, stop: {end_time})
         |> filter(fn: (r) => r._measurement == "uwb_distance")
-        |> last()
+        |> group(columns: ["_time"])
         '''
         
-        result = self.query_api.query(query)
-        measurements = []
+        result = self.query_api.query(query=query)
         
+        # Group measurements by timestamp
+        time_groups = {}
         for table in result:
             for record in table.records:
-                measurements.append([
-                    record.values["node1"],
-                    record.values["node2"], 
-                    record.values["_value"]
+                timestamp = record.get_time()
+                if timestamp not in time_groups:
+                    time_groups[timestamp] = []
+                    
+                time_groups[timestamp].append([
+                    record.values.get('node1'),
+                    record.values.get('node2'),
+                    record.values.get('_value')
                 ])
+                
+        return time_groups
         
-        return measurements
-
-class MQTTInfluxBridge:
-    def __init__(self, mqtt_broker, influx_config):
-        self.mqtt_client = mqtt.Client()
-        self.mqtt_client.on_message = self.on_mqtt_message
-        self.mqtt_client.connect(mqtt_broker, 1883)
-        self.mqtt_client.subscribe("uwb/+")
+    def replay_data(self, mqtt_client, topic, speed_factor=1.0):
+        """Replay historical data at specified speed"""
+        # Get last hour of data
+        end_time = datetime.utcnow()
+        start_time = end_time - timedelta(hours=1)
         
-        self.influx = InfluxDBLogger(**influx_config)
+        data = self.query_historical_data(start_time, end_time)
         
-    def on_mqtt_message(self, client, userdata, message):
-        """Handle incoming MQTT messages"""
-        try:
-            payload = json.loads(message.payload.decode())
+        # Replay in chronological order
+        timestamps = sorted(data.keys())
+        for i, timestamp in enumerate(timestamps):
+            measurements = data[timestamp]
             
-            # Store in InfluxDB
-            self.influx.store_measurements(payload)
+            # Publish to visualizer
+            mqtt_client.publish(topic, json.dumps(measurements))
             
-            # Forward to visualizer (could add filtering/processing here)
-            client.publish("visualizer/uwb/data", message.payload)
-            
-        except Exception as e:
-            print(f"Error processing MQTT message: {e}")
-    
-    def run(self):
-        """Start the bridge"""
-        self.mqtt_client.loop_forever()
+            # Calculate delay to next measurement
+            if i < len(timestamps) - 1:
+                next_timestamp = timestamps[i + 1]
+                delay = (next_timestamp - timestamp).total_seconds()
+                time.sleep(delay / speed_factor)
 
 # Usage
-influx_config = {
-    "url": "http://localhost:8086",
-    "token": "your-influx-token", 
-    "org": "your-org",
-    "bucket": "uwb-data"
-}
-
-bridge = MQTTInfluxBridge("localhost", influx_config)
-bridge.run()
+replayer = InfluxUWBReplay(
+    "http://localhost:8086", 
+    "your-token", 
+    "your-org", 
+    "uwb-data"
+)
+mqtt_client = mqtt.Client()
+mqtt_client.connect("localhost", 1883)
+replayer.replay_data(mqtt_client, "uwb/positions", speed_factor=2.0)
 ```
 
-### PostgreSQL Integration
-```python
-"""
-Store UWB data in PostgreSQL with spatial extensions (PostGIS)
-"""
-import psycopg2
-import json
-import time
-from psycopg2.extras import execute_values
+## Advanced Configuration
 
-class PostgreSQLUWBStorage:
-    def __init__(self, connection_params):
-        self.conn = psycopg2.connect(**connection_params)
-        self.setup_database()
-        
-    def setup_database(self):
-        """Create tables for UWB data storage"""
-        with self.conn.cursor() as cur:
-            # Create measurements table
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS uwb_measurements (
-                    id SERIAL PRIMARY KEY,
-                    node1 VARCHAR(50) NOT NULL,
-                    node2 VARCHAR(50) NOT NULL,
-                    distance FLOAT NOT NULL,
-                    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    session_id VARCHAR(50),
-                    INDEX (node1, node2, timestamp)
-                )
-            """)
-            
-            # Create nodes table for position tracking
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS uwb_nodes (
-                    id SERIAL PRIMARY KEY,
-                    node_id VARCHAR(50) UNIQUE NOT NULL,
-                    x_position FLOAT,
-                    y_position FLOAT,
-                    z_position FLOAT,
-                    last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    node_type VARCHAR(20) DEFAULT 'tag'
-                )
-            """)
-            
-            self.conn.commit()
-    
-    def store_measurements(self, measurements, session_id=None):
-        """Store distance measurements"""
-        with self.conn.cursor() as cur:
-            data = [(m[0], m[1], m[2], session_id) for m in measurements]
-            
-            execute_values(
-                cur,
-                "INSERT INTO uwb_measurements (node1, node2, distance, session_id) VALUES %s",
-                data
-            )
-            
-            self.conn.commit()
-    
-    def update_node_position(self, node_id, x, y, z=None):
-        """Update calculated node position"""
-        with self.conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO uwb_nodes (node_id, x_position, y_position, z_position)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (node_id) 
-                DO UPDATE SET 
-                    x_position = EXCLUDED.x_position,
-                    y_position = EXCLUDED.y_position,
-                    z_position = EXCLUDED.z_position,
-                    last_seen = NOW()
-            """, (node_id, x, y, z))
-            
-            self.conn.commit()
-    
-    def get_recent_measurements(self, minutes=5):
-        """Get recent measurements for visualization"""
-        with self.conn.cursor() as cur:
-            cur.execute("""
-                SELECT DISTINCT ON (LEAST(node1, node2), GREATEST(node1, node2))
-                    node1, node2, distance
-                FROM uwb_measurements 
-                WHERE timestamp > NOW() - INTERVAL '%s minutes'
-                ORDER BY LEAST(node1, node2), GREATEST(node1, node2), timestamp DESC
-            """, (minutes,))
-            
-            return cur.fetchall()
-    
-    def get_node_positions(self):
-        """Get current node positions"""
-        with self.conn.cursor() as cur:
-            cur.execute("""
-                SELECT node_id, x_position, y_position, z_position
-                FROM uwb_nodes 
-                WHERE last_seen > NOW() - INTERVAL '1 hour'
-            """)
-            
-            return {row[0]: {'x': row[1], 'y': row[2], 'z': row[3]} 
-                    for row in cur.fetchall()}
+### **Custom Physics Parameters**
 
-# Usage
-db_config = {
-    "host": "localhost",
-    "database": "uwb_tracking", 
-    "user": "uwb_user",
-    "password": "password"
+```javascript
+// Configure visualizer physics via URL parameters
+// https://your-site.com/inst-visualiser/?spring=1.5&damping=0.7&mass=0.3
+
+// Or programmatically via browser console:
+if (window.visualizer) {
+    // Ultra-fast mode (default v3.0)
+    visualizer.physics.springConstant = 2.0;
+    visualizer.physics.damping = 0.6;
+    visualizer.physics.mass = 0.2;
+    
+    // Smooth mode for presentations
+    visualizer.physics.springConstant = 0.5;
+    visualizer.physics.damping = 0.8;
+    visualizer.physics.mass = 0.5;
+    
+    // High-precision mode
+    visualizer.physics.springConstant = 1.0;
+    visualizer.physics.damping = 0.9;
+    visualizer.physics.mass = 0.1;
 }
-
-storage = PostgreSQLUWBStorage(db_config)
-
-# Store sample measurements
-measurements = [["A", "B", 1.5], ["B", "C", 2.1]]
-storage.store_measurements(measurements, session_id="test_session_1")
 ```
 
-## 🔄 Real-time Processing Examples
+### **Custom Node Styling**
 
-### Apache Kafka Integration
-```python
-"""
-Use Kafka for high-throughput UWB data streaming
-"""
-from kafka import KafkaProducer, KafkaConsumer
-import json
-import time
-
-class KafkaUWBProducer:
-    def __init__(self, bootstrap_servers):
-        self.producer = KafkaProducer(
-            bootstrap_servers=bootstrap_servers,
-            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-            key_serializer=lambda k: k.encode('utf-8') if k else None
-        )
+```javascript
+// Add custom node detection and styling
+if (window.visualizer) {
+    // Override node creation
+    const originalEnsureNode = visualizer.ensureNodeExists;
+    visualizer.ensureNodeExists = function(nodeId) {
+        originalEnsureNode.call(this, nodeId);
         
-    def send_measurements(self, measurements, source_id="unknown"):
-        """Send measurements to Kafka topic"""
-        message = {
-            "timestamp": time.time(),
-            "source": source_id,
-            "measurements": measurements
+        const node = this.nodes.get(nodeId);
+        
+        // Custom gateway detection
+        if (nodeId.startsWith('GW_') || nodeId.includes('GATEWAY')) {
+            node.type = 'gateway';
         }
         
-        # Send to partitioned topic for scaling
-        self.producer.send('uwb-measurements', value=message, key=source_id)
-        self.producer.flush()
-
-class KafkaUWBConsumer:
-    def __init__(self, bootstrap_servers, group_id):
-        self.consumer = KafkaConsumer(
-            'uwb-measurements',
-            bootstrap_servers=bootstrap_servers,
-            group_id=group_id,
-            value_deserializer=lambda m: json.loads(m.decode('utf-8'))
-        )
-        
-    def process_stream(self, callback):
-        """Process UWB measurement stream"""
-        for message in self.consumer:
-            try:
-                data = message.value
-                measurements = data['measurements']
-                source = data['source']
-                
-                # Process measurements
-                callback(measurements, source)
-                
-            except Exception as e:
-                print(f"Error processing message: {e}")
-
-# Usage
-producer = KafkaUWBProducer(['localhost:9092'])
-consumer = KafkaUWBConsumer(['localhost:9092'], 'visualizer-group')
-
-def forward_to_visualizer(measurements, source):
-    """Forward processed measurements to visualizer MQTT"""
-    mqtt_client.publish('visualizer/uwb/data', json.dumps(measurements))
-
-consumer.process_stream(forward_to_visualizer)
+        // Custom mobile device detection
+        if (nodeId.startsWith('MOBILE_') || nodeId.includes('TAG')) {
+            node.type = 'mobile';
+            // Add custom styling in CSS
+        }
+    };
+}
 ```
 
-These integration examples provide starting points for connecting the INST Tag Visualizer to various UWB hardware, IoT platforms, and data systems. Each example can be adapted to your specific requirements and infrastructure.
+### **Performance Optimization**
+
+```python
+# High-frequency data optimization
+class HighFrequencyPublisher:
+    def __init__(self, mqtt_client, topic, max_rate=10.0):
+        self.mqtt_client = mqtt_client
+        self.topic = topic
+        self.max_rate = max_rate
+        self.last_publish = 0.0
+        self.buffer = []
+        
+    def add_measurement(self, node1, node2, distance):
+        """Add measurement to buffer"""
+        self.buffer.append([node1, node2, distance])
+        
+        # Publish if rate limit allows
+        now = time.time()
+        if now - self.last_publish >= (1.0 / self.max_rate):
+            self.flush_buffer()
+            
+    def flush_buffer(self):
+        """Publish buffered measurements"""
+        if self.buffer:
+            self.mqtt_client.publish(self.topic, json.dumps(self.buffer))
+            self.buffer = []
+            self.last_publish = time.time()
+
+# Usage for high-frequency scenarios
+publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=5.0)
+
+# Add measurements as they arrive
+while True:
+    measurement = read_uwb_device()
+    publisher.add_measurement(*measurement)
+```
+
+## Troubleshooting Integration
+
+### **Common Issues**
+
+1. **MQTT Connection Fails**
+   ```bash
+   # Test broker connectivity
+   mosquitto_pub -h your-broker.com -p 1883 -t test -m "hello"
+   
+   # Check WebSocket support
+   # Most brokers need WebSocket enabled on different port (8083/8084)
+   ```
+
+2. **Data Not Appearing**
+   ```python
+   # Verify message format
+   import json
+   data = [["A001", "A002", 1.5]]
+   message = json.dumps(data)
+   print(f"Message: {message}")  # Should be: [["A001","A002",1.5]]
+   ```
+
+3. **Performance Issues**
+   ```python
+   # Reduce message frequency
+   time.sleep(0.5)  # 2Hz maximum recommended
+   
+   # Batch measurements
+   measurements = collect_multiple_measurements()
+   mqtt_client.publish(topic, json.dumps(measurements))
+   ```
+
+4. **Physics Not Working**
+   - Check browser console for errors
+   - Verify nodes have valid positions
+   - Try "Reset Physics" button in visualizer
+   - Ensure distance measurements are reasonable (0.1-50m)
+
+### **Debug Tools**
+
+```bash
+# Monitor MQTT traffic
+mosquitto_sub -h your-broker.com -v -t "uwb/#"
+
+# Test visualizer with curl (if HTTP bridge available)
+curl -X POST -H "Content-Type: application/json" \
+  -d '[["A001","A002",1.5],["A002","A003",2.0]]' \
+  http://your-broker.com/mqtt/publish/uwb/positions
+
+# Browser console debugging
+# Open visualizer, press F12, run:
+window.debugVisualizer();  // Shows debug info
+visualizer.logInfo("Custom debug message");
+```
+
+## Best Practices
+
+1. **Data Quality**
+   - Filter invalid distances (< 0.1m or > 50m)
+   - Add realistic measurement noise for simulation
+   - Handle missing or stale data gracefully
+
+2. **Performance**
+   - Limit update rate to 1-5Hz for best experience
+   - Batch multiple measurements when possible
+   - Use QoS 1 for critical commands
+
+3. **Reliability**
+   - Implement auto-reconnection for MQTT
+   - Handle network interruptions gracefully
+   - Validate data before publishing
+
+4. **Security**
+   - Use SSL/TLS for production deployments
+   - Implement proper authentication
+   - Validate all input data
+
+5. **User Experience**
+   - Provide clear error messages
+   - Show connection status
+   - Allow physics parameter adjustment
+   - Include simulation mode for testing
