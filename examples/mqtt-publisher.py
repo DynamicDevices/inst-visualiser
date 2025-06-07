@@ -8,6 +8,10 @@ UWB Position Visualiser via MQTT. It can generate both simulated data
 and publish real UWB measurements.
 
 Requirements:
+    # For paho-mqtt v1.x (recommended for compatibility):
+    pip install "paho-mqtt<2.0" numpy
+    
+    # OR for paho-mqtt v2.x:
     pip install paho-mqtt numpy
 
 Usage:
@@ -337,3 +341,45 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+# Alternative simple version for compatibility issues:
+"""
+If you continue to have paho-mqtt version issues, use this simple version:
+
+#!/usr/bin/env python3
+import json
+import time
+import random
+import math
+
+try:
+    import paho.mqtt.client as mqtt
+except ImportError:
+    print("Please install paho-mqtt: pip install 'paho-mqtt<2.0'")
+    exit(1)
+
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("Connected to MQTT broker")
+    else:
+        print(f"Connection failed with code {rc}")
+
+# Simple publisher
+client = mqtt.Client("uwb_simple_pub")
+client.on_connect = on_connect
+client.connect("test.mosquitto.org", 1883, 60)
+client.loop_start()
+
+# Wait for connection
+time.sleep(2)
+
+# Publish test data
+test_data = [["A001", "A002", 2.5], ["A002", "A003", 3.1], ["A001", "A003", 4.2]]
+message = json.dumps(test_data)
+client.publish("uwb/positions", message)
+print(f"Published: {message}")
+
+time.sleep(1)
+client.disconnect()
+"""
