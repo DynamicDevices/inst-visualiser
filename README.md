@@ -2,7 +2,7 @@
 
 A real-time visualization tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation for ultra-fast and accurate node positioning.
 
-![UWB Position Visualiser Demo](demo-pic.png)
+![UWB Position Visualiser Demo](resources/demo-pic.png)
 
 **🚀 Try it now: [GitHub Pages Demo](https://dynamicdevices.github.io/inst-visualiser/)**
 
