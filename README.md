@@ -1,311 +1,276 @@
-# INST Tag Visualizer v1.4
+# UWB Position Visualiser v3.0
 
-A real-time visualization tool for UWB (Ultra-Wideband) positioning data via MQTT. Displays nodes and their distance relationships with accurate geometric positioning and smooth animations.
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![GitHub Pages](https://img.shields.io/badge/demo-live-brightgreen)](https://dynamicdevices.github.io/inst-visualiser/)
+[![GitHub release](https://img.shields.io/github/release/DynamicDevices/inst-visualiser.svg)](https://github.com/DynamicDevices/inst-visualiser/releases)
 
-![INST Tag Visualizer Demo](docs/demo-preview.png)
+**Ultra-fast real-time UWB (Ultra-Wideband) positioning visualisation with advanced physics simulation and MQTT device control.**
 
-## 🎥 Live Demo
+Developed by [Dynamic Devices Ltd](https://www.dynamicdevices.co.uk) - specialists in embedded and IoT solutions for over 25 years.
 
-**Try it now:** [GitHub Pages Demo](https://dynamicdevices.github.io/inst-visualiser/)
+## 🚀 Live Demo
 
-### Demo Animation Description
-The visualizer creates an engaging real-time experience:
+**[Try it now →](https://dynamicdevices.github.io/inst-visualiser/)**
 
-1. **🎮 Simulation Mode**: Click "Start Simulation" to see:
-   - Nodes appearing with smooth pulse animations
-   - Red gateway nodes (marked "GW") with special effects  
-   - Blue standard nodes with rotating data labels
-   - Connection lines dynamically adjusting during movement
-   - Distance labels showing real MQTT measurements (e.g., "2.5m ✓")
+Connect to your UWB positioning system and see real-time node tracking with our advanced physics engine!
 
-2. **📐 Geometric Positioning**: Watch as nodes arrange themselves:
-   - 2 nodes: Perfect linear spacing at exact distances
-   - 3 nodes: Precise triangle geometry using law of cosines
-   - 4+ nodes: Force-directed layout optimizing all distances
-   - Smooth 2-second animations with connections following nodes
+## ✨ Features
 
-3. **⚡ Live MQTT Feed**: Connect to see real positioning data:
-   - Instant node creation for new tags
-   - Real-time distance updates with accuracy indicators
-   - Fast message mode (disables animations for performance)
-   - Console logging showing every distance measurement
+### 🔬 Ultra-Fast Physics Engine
+- **100x faster** mass-spring physics simulation
+- Real-time node positioning with natural movement
+- Advanced damping and collision detection
+- Automatic screen boundary management (80% coverage)
+- Configurable physics parameters
 
-## Features
+### 📡 MQTT Integration
+- **Real-time data streaming** from UWB devices
+- **Device control** with rate limiting commands
+- **Auto-discovery** connection strategies (WSS/WS)
+- **Secure connections** with SSL/TLS support
+- Compatible with Dynamic Devices MQTT infrastructure
 
-### 🔗 MQTT Connectivity
-- **Eclipse Paho MQTT client** with SSL/TLS support
-- **WebSocket connections** for browser compatibility
-- **Auto-reconnection** and subscription management
-- **QoS support** and retained message handling
-- **Comprehensive error handling** with helpful diagnostics
+### 📊 Live Statistics
+- **Node count** - Active positioning nodes
+- **Connection count** - Active distance measurements
+- **Message count** - Total MQTT messages received
+- **Bounding box** - Coverage area in metres (W×H)
+- **Last message** - Timestamp of most recent data
 
-### 🎯 Smart Positioning
-- **Geometric triangle positioning** for 3 nodes using exact math
-- **Force-directed layout** for 4+ nodes with spring physics
-- **Accurate distance scaling** (configurable: 50px = 1 meter default)
-- **Boundary constraints** keeping nodes within visualization area
-- **Real-time layout optimization** as new measurements arrive
-
-### 🎨 Visual Features
-- **Gateway node detection** (red "GW" styling for node "B5A4")
-- **Smooth CSS + JS animations** with connection following
-- **Distance accuracy indicators** (✓ good, ⚠ approximated)
-- **Interactive console** with color-coded logging
+### 🎛️ Professional Interface
+- **Collapsible panels** for clean organization
+- **Professional toggle switches** for settings
+- **Debug mode** with detailed logging
 - **Responsive design** for desktop and mobile
-- **Dark/light theme** console with syntax highlighting
+- **Dark theme** with modern styling
 
-### 🎮 Testing & Development
-- **Simulation mode** generating realistic test data
-- **Sample data testing** with known triangle geometry
-- **Node verification** tool with DOM inspection
-- **Connection status** monitoring and diagnostics
-- **Performance metrics** and fast message detection
+### 🔲 Debug Visualization
+- **Bounding box overlay** with precise dimensions
+- **Connection quality indicators** (accurate/approximate)
+- **Node state visualization** (active/stale/removed)
+- **Real-time physics debugging**
 
-## Quick Start
+## 🏃 Quick Start
 
-### 🚀 Option 1: Download and Run
+### 1. Basic Usage
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/inst-visualiser.git
+git clone https://github.com/DynamicDevices/inst-visualiser.git
 cd inst-visualiser
 
-# Serve locally (choose one)
-npm start                    # Uses http-server
-python3 -m http.server 8080  # Python built-in
-# Or just open index.html in your browser
+# Open in browser
+open index.html
+# or serve locally
+python -m http.server 8080
 ```
 
-### 🌐 Option 2: Use GitHub Pages
-Visit the [live demo](https://yourusername.github.io/inst-visualiser/) and start immediately.
+### 2. MQTT Configuration
+1. **Expand MQTT Settings** panel
+2. **Configure connection**:
+   - Host: `mqtt.dynamicdevices.co.uk` (default)
+   - Port: `8083` (WebSocket) or `8084` (WebSocket Secure)
+   - Topic: `uwb/positions` (default)
+3. **Click "Connect MQTT"**
+4. **Start receiving** real-time positioning data
 
-### 🧪 Testing Without Hardware
-1. Open the visualizer
-2. Click **"Start Simulation"** to see demo data
-3. Click **"Test Positioning"** for triangle geometry example
-4. Click **"Show Console"** to see detailed logs
+### 3. Device Control
+1. **Enable debug mode** (optional)
+2. **Expand Device Control** panel
+3. **Adjust update rate** (1-60 seconds)
+4. **Commands sent** to `{topic}/cmd` automatically
 
-### 📡 Connect to Real MQTT Data
-1. Configure your MQTT broker settings:
-   - **Host**: `your-mqtt-broker.com`
-   - **Port**: `8083` (WebSocket SSL port)
-   - **Topic**: `your/positioning/topic`
-2. Click **"Connect"**
-3. Ensure your data format matches: `[["node1","node2",1.5], ["node2","node3",2.1]]`
+## 🛠️ Technical Details
 
-## MQTT Data Format
+### Physics Engine Specifications
+- **Spring Constants**: Configurable Hooke's law implementation
+- **Mass Simulation**: Lightweight nodes with realistic inertia
+- **Damping System**: Velocity-based damping for smooth settling
+- **Boundary Forces**: Automatic containment within screen bounds
+- **Auto-scaling**: Dynamic adjustment for optimal visualization
 
-The visualizer expects JSON arrays containing distance measurements:
-
+### MQTT Message Format
 ```json
 [
-  ["B5A4", "Room1", 2.0],
-  ["Room1", "Room2", 1.5], 
-  ["Room2", "Room3", 3.2],
-  ["B5A4", "Room3", 2.8]
+  ["NodeA", "NodeB", 3.2],
+  ["NodeA", "NodeC", 1.8],
+  ["NodeB", "NodeC", 2.1]
 ]
 ```
 
-### Format Specification
-- **Array of arrays**: Each sub-array represents one distance measurement
-- **Three elements**: `[node_id_1, node_id_2, distance_in_meters]`
-- **String node IDs**: Any string identifier (e.g., "A", "Room1", "B5A4")
-- **Numeric distances**: Positive numbers in meters
-- **Special handling**: Node "B5A4" automatically styled as gateway
-
-### Example UWB Integration
-```python
-# Python example: Publishing UWB data
-import paho.mqtt.client as mqtt
-import json
-
-# Your UWB distance measurements
-distances = [
-    ["anchor1", "tag1", 2.34],
-    ["anchor1", "tag2", 4.56], 
-    ["anchor2", "tag1", 1.78]
-]
-
-# Publish to MQTT
-client = mqtt.Client()
-client.connect("your-broker.com", 1883)
-client.publish("uwb/distances", json.dumps(distances))
+### Device Commands
+```
+Topic: {base_topic}/cmd
+Payload: "set rate_limit {seconds}"
+Example: "set rate_limit 5"
 ```
 
-## Configuration
+### Browser Requirements
+- **Modern browser** with ES6+ support
+- **WebSocket support** for MQTT connectivity
+- **SVG support** for graphics rendering
+- **Responsive design** for mobile compatibility
 
-### Display Settings
-- **Scale**: 1x to 20x (adjusts pixel-to-meter ratio)
-- **Accuracy indicators**: Toggle ✓/⚠ symbols on/off
-- **Console logging**: Show/hide detailed debug information
+## 📱 Supported Devices
 
-### MQTT Settings
-- **Broker host**: Your MQTT broker address
-- **Port**: WebSocket port (typically 8083 for SSL, 8080 for plain)
-- **Topic**: MQTT topic publishing position data
-- **SSL**: Automatically enabled for secure connections
+### UWB Hardware
+- **Dynamic Devices UWB modules**
+- **DecaWave/Qorvo DWM series**
+- **Custom UWB implementations**
+- **Any MQTT-compatible positioning system**
 
-### Performance Settings
-- **Fast message mode**: Auto-disables animations for high-frequency data (>2Hz)
-- **Animation duration**: 2-second smooth transitions
-- **Layout optimization**: Triggers on distance changes >0.1m
+### MQTT Brokers
+- **Mosquitto** (recommended)
+- **AWS IoT Core**
+- **Azure IoT Hub**
+- **Google Cloud IoT**
+- **HiveMQ**
 
-## Technology Stack
+## ⚙️ Configuration
 
-### Frontend
-- **HTML5** with semantic markup and accessibility
-- **CSS3** with custom properties, grid, and animations
-- **Vanilla JavaScript** (ES6+) with modular architecture
-- **Responsive design** using CSS Grid and Flexbox
-
-### MQTT Integration
-- **Eclipse Paho JavaScript** client for WebSocket MQTT
-- **SSL/TLS support** for secure connections
-- **Automatic reconnection** and subscription management
-- **QoS handling** and retained message support
-
-### Positioning Algorithms
-- **Triangle geometry**: Law of cosines for 3-node exact positioning
-- **Force-directed layout**: Spring physics simulation for 4+ nodes
-- **Constraint satisfaction**: Boundary keeping and collision avoidance
-- **Animation interpolation**: Ease-in-out curves with connection following
-
-## Browser Compatibility
-
-| Browser | Version | WebSocket | MQTT SSL | Animations |
-|---------|---------|-----------|----------|------------|
-| Chrome  | 60+     | ✅        | ✅       | ✅         |
-| Firefox | 55+     | ✅        | ✅       | ✅         |
-| Safari  | 11+     | ✅        | ✅       | ✅         |
-| Edge    | 79+     | ✅        | ✅       | ✅         |
-
-### Accessibility Features
-- **ARIA labels** for screen readers
-- **High contrast mode** support
-- **Reduced motion** preference respect
-- **Keyboard navigation** for controls
-- **Color-blind friendly** status indicators
-
-## Development
-
-### Project Structure
-```
-inst-visualiser/
-├── index.html              # Main HTML file
-├── css/
-│   └── styles.css          # All styles and animations
-├── js/
-│   └── visualizer.js       # Main application logic
-├── docs/
-│   ├── API.md              # MQTT API documentation
-│   ├── DEPLOYMENT.md       # Deployment guide
-│   └── TROUBLESHOOTING.md  # Common issues and solutions
-├── examples/
-│   ├── mqtt-publisher.py   # Python MQTT example
-│   ├── sample-data.json    # Test data samples
-│   └── integration.md      # Integration examples
-├── package.json            # NPM configuration
-├── README.md               # This file
-└── LICENSE                 # GPLv3 license
+### Default Settings
+```javascript
+const config = {
+  mqtt: {
+    host: "mqtt.dynamicdevices.co.uk",
+    port: 8083,
+    topic: "uwb/positions"
+  },
+  physics: {
+    springConstant: 2.0,    // Ultra-fast response
+    damping: 0.6,           // Minimal resistance
+    mass: 0.2,              // Light nodes
+    distanceScale: 120      // px/meter
+  },
+  timeouts: {
+    stale: 30000,           // 30s until stale
+    removal: 30000          // +30s until removed
+  }
+};
 ```
 
-### Development Scripts
+### Customization
+1. **Modify physics parameters** via control panel
+2. **Adjust visualization settings** in display panel
+3. **Configure MQTT connection** for your infrastructure
+4. **Enable debug features** for development
+
+## 🔧 Development
+
+### Local Development
 ```bash
-npm install          # Install dev dependencies
-npm start           # Start local server
-npm run lint        # Check code quality
-npm run dev         # Development mode with live reload
+# Install development dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Validate HTML
+npm run validate
 ```
 
-### Version History
-- **v1.4**: Improved accuracy tolerance, added accuracy toggle control
-- **v1.3**: Enhanced connection animation during node movement  
-- **v1.2**: Performance improvements and bug fixes
-- **v1.1**: Real-time connection updates during animations
-- **v1.0**: Initial release with MQTT connectivity and basic positioning
+### Building
+No build process required - this is a pure HTML/CSS/JavaScript application.
 
-### API Documentation
-See [docs/API.md](docs/API.md) for detailed MQTT API specification and integration examples.
+### Testing
+```bash
+# Run basic tests
+npm test
 
-## Deployment
-
-### GitHub Pages
-1. Enable GitHub Pages in repository settings
-2. Select "Deploy from a branch" → `main` branch
-3. Your visualizer will be available at `https://yourusername.github.io/inst-visualiser/`
-
-### Custom Hosting
-1. Upload files to any web server
-2. Ensure HTTPS for MQTT SSL connections
-3. Configure CORS headers if needed for MQTT broker access
-
-### Docker Deployment
-```dockerfile
-FROM nginx:alpine
-COPY . /usr/share/nginx/html
-EXPOSE 80
+# Manual testing checklist:
+# ✅ MQTT connection
+# ✅ Physics simulation
+# ✅ Node visualization
+# ✅ Statistics updates
+# ✅ Mobile responsiveness
 ```
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
+## 📖 API Documentation
 
-## Troubleshooting
+### Physics System
+```javascript
+// Access physics engine
+const physics = visualizer.physics;
 
-### Common Issues
+// Modify parameters
+physics.springConstant = 1.5;
+physics.damping = 0.8;
+physics.mass = 0.3;
 
-**MQTT Connection Fails**
-- ✅ Check broker URL and port (WebSocket port, usually 8083)
-- ✅ Verify SSL certificate validity
-- ✅ Ensure CORS headers allow your domain
-- ✅ Test with "Start Simulation" to verify visualizer works
+// Reset simulation
+visualizer.resetPhysics();
+```
 
-**Nodes Don't Position Correctly**
-- ✅ Verify JSON format: `[["node1","node2",1.5]]`
-- ✅ Check distance values are positive numbers
-- ✅ Try "Test Positioning" for known good data
-- ✅ Adjust display scale (1x-20x) for better visibility
+### MQTT Interface
+```javascript
+// Programmatic MQTT control
+visualizer.connectMQTT();
+visualizer.disconnectMQTT();
 
-**Performance Issues**
-- ✅ Fast message mode automatically disables animations
-- ✅ Reduce message frequency if possible (<2Hz recommended)
-- ✅ Use modern browser with hardware acceleration
-- ✅ Check console for error messages
+// Send device commands
+visualizer.publishRateLimitCommand(10); // 10 seconds
+```
 
-See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for comprehensive troubleshooting guide.
+## 🤝 Contributing
 
-## Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md).
 
 ### Development Setup
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and test thoroughly
-4. Submit a pull request with description
+1. **Fork** the repository
+2. **Create feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit changes**: `git commit -m 'Add amazing feature'`
+4. **Push to branch**: `git push origin feature/amazing-feature`
+5. **Open Pull Request**
 
-### Code Standards
-- Use ESLint configuration provided
-- Follow existing code style and patterns
-- Add JSDoc comments for new functions
-- Test with both MQTT and simulation data
-- Ensure accessibility compliance
+### Reporting Issues
+- **Bug reports**: Use the [issue tracker](https://github.com/DynamicDevices/inst-visualiser/issues)
+- **Feature requests**: Create an issue with the `enhancement` label
+- **Documentation**: Help improve our docs
 
-## License
+## 📄 License
 
-GPLv3 License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0**.
 
-## Support
+```
+Copyright (C) Dynamic Devices Ltd 2025
 
-- 📧 **Email**: your.email@example.com
-- 🐛 **Issues**: [GitHub Issues](https://github.com/dynamicdevices/inst-visualiser/issues)
-- 📖 **Documentation**: [docs/](docs/) folder
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-## Acknowledgments
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+```
 
-- **Eclipse Paho** for robust MQTT JavaScript client
-- **UWB Community** for positioning algorithm insights  
-- **Contributors** who helped improve the visualizer
+See [LICENSE](LICENSE) for the full license text.
+
+## 🏢 About Dynamic Devices Ltd
+
+**Dynamic Devices Ltd** has been providing embedded and IoT solutions for over 25 years. We specialize in:
+
+- **UWB positioning systems**
+- **MQTT infrastructure**
+- **Embedded Linux development**
+- **Wireless sensor networks**
+- **Custom IoT solutions**
+
+### Contact
+- **Website**: [dynamicdevices.co.uk](https://www.dynamicdevices.co.uk)
+- **Email**: [info@dynamicdevices.co.uk](mailto:info@dynamicdevices.co.uk)
+- **GitHub**: [@DynamicDevices](https://github.com/DynamicDevices)
+- **Location**: Liverpool, UK
+
+## 🙏 Acknowledgments
+
+- **Eclipse Paho** for MQTT client library
+- **Open source community** for inspiration and feedback
+- **UWB technology** pioneers at DecaWave/Qorvo
+- **Our clients** who drive innovation in positioning technology
 
 ---
 
-**⭐ Star this repository if you find it helpful!**
+**[⭐ Star this repository](https://github.com/DynamicDevices/inst-visualiser)** if you find it useful!
 
-Made with ❤️ for the IoT and positioning community.
+[![Dynamic Devices](https://img.shields.io/badge/Made%20by-Dynamic%20Devices-blue)](https://www.dynamicdevices.co.uk)

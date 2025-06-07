@@ -1,64 +1,81 @@
 {
-  "name": "inst-visualiser",
-  "version": "1.4.0",
-  "description": "Real-time UWB positioning visualization tool with MQTT connectivity and geometric node placement",
+  "name": "inst-visualiser-uwb",
+  "version": "3.0.0",
+  "description": "Ultra-fast UWB (Ultra-Wideband) position visualiser with real-time physics simulation and MQTT device control",
   "main": "index.html",
   "scripts": {
-    "start": "npx http-server . -p 8080 -o",
+    "start": "python -m http.server 8080",
+    "serve": "python3 -m http.server 8080",
     "dev": "npx live-server --port=8080 --open=/",
-    "build": "echo 'Static HTML project - no build required'",
-    "test": "echo 'Integration tests via simulation mode'",
-    "lint": "npx htmlhint index.html && npx eslint js/visualizer.js",
-    "serve": "python3 -m http.server 8080"
+    "test": "echo \"Open index.html in browser or use npm run serve\"",
+    "validate": "html5validator index.html"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/inst-visualiser.git"
+    "url": "git+https://github.com/DynamicDevices/inst-visualiser.git"
   },
   "keywords": [
-    "mqtt",
     "uwb",
     "ultra-wideband",
     "positioning",
     "visualization",
-    "realtime",
+    "mqtt",
+    "real-time",
+    "physics",
+    "simulation",
+    "mass-spring",
     "iot",
+    "embedded",
+    "wireless",
     "tracking",
-    "indoor-positioning",
-    "websocket",
-    "eclipse-paho",
-    "geometric-layout",
-    "distance-measurement"
+    "location",
+    "dynamic-devices"
   ],
-  "author": "Alex J Lennon <ajlennon@dynamicdevices.co.uk>",
-  "license": "GPLv3",
+  "author": {
+    "name": "Dynamic Devices Ltd",
+    "email": "info@dynamicdevices.co.uk",
+    "url": "https://www.dynamicdevices.co.uk"
+  },
+  "license": "GPL-3.0",
+  "licenses": [
+    {
+      "type": "GPL-3.0",
+      "url": "https://www.gnu.org/licenses/gpl-3.0.html"
+    }
+  ],
   "bugs": {
-    "url": "https://github.com/dynamicdevices/inst-visualiser/issues"
+    "url": "https://github.com/DynamicDevices/inst-visualiser/issues"
   },
-  "homepage": "https://github.com/dynamicdevices/inst-visualiser#readme",
-  "devDependencies": {
-    "eslint": "^8.0.0",
-    "htmlhint": "^1.1.4",
-    "http-server": "^14.1.1",
-    "live-server": "^1.2.2"
-  },
-  "dependencies": {},
+  "homepage": "https://dynamicdevices.github.io/inst-visualiser/",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=12.0.0"
   },
   "browserslist": [
-    "> 1%",
     "last 2 versions",
-    "not dead",
-    "not ie 11"
+    "> 1%",
+    "not dead"
   ],
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "html5validator": "^0.4.2"
+  },
   "files": [
     "index.html",
-    "css/",
-    "js/",
-    "docs/",
-    "examples/",
     "README.md",
-    "LICENSE"
-  ]
+    "LICENSE",
+    "resources/"
+  ],
+  "config": {
+    "default_mqtt_host": "mqtt.dynamicdevices.co.uk",
+    "default_mqtt_port": 8083,
+    "default_topic": "uwb/positions"
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://www.dynamicdevices.co.uk"
+  },
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  }
 }
