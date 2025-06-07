@@ -241,9 +241,9 @@ def create_sample_scenarios() -> Dict[str, List[List]]:
 def main():
     """Main function"""
     parser = argparse.ArgumentParser(description='MQTT Publisher for INST Tag Visualizer (Simulation)')
-    parser.add_argument('--broker', default='localhost', help='MQTT broker host')
+    parser.add_argument('--broker', default='broker.hivemq.com', help='MQTT broker host')
     parser.add_argument('--port', type=int, default=1883, help='MQTT broker port')
-    parser.add_argument('--topic', default='uwb/positioning', help='MQTT topic')
+    parser.add_argument('--topic', default='uwb/positions', help='MQTT topic')
     parser.add_argument('--username', help='MQTT username')
     parser.add_argument('--password', help='MQTT password')
     parser.add_argument('--interval', type=float, default=2.0, help='Publish interval in seconds')

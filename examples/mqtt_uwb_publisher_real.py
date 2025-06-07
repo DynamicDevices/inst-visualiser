@@ -45,7 +45,7 @@ parser.add_argument("uart", help="uart port to use", type=str, default="/dev/tty
 parser.add_argument("nodes", help="node lists",type=str, default="[]", nargs='?')
 parser.add_argument("--mqtt-broker", help="MQTT broker hostname", type=str, default="mqtt.dynamicdevices.co.uk")
 parser.add_argument("--mqtt-port", help="MQTT broker port", type=int, default=8883)
-parser.add_argument("--mqtt-topic", help="MQTT topic to publish to", type=str, default="inst/uwbtest1")
+parser.add_argument("--mqtt-topic", help="MQTT topic to publish to", type=str, default="uwb/positions")
 parser.add_argument("--mqtt-client-id", help="MQTT client identifier", type=str, default=generate_default_client_id())
 parser.add_argument("--mqtt-rate-limit", help="Minimum seconds between MQTT publishes", type=float, default=10.0)
 parser.add_argument("--disable-mqtt", help="Disable MQTT publishing", action="store_true")
