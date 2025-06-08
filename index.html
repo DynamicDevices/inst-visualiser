@@ -27,8 +27,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://dynamicdevices.github.io/inst-visualiser/resources/dd.svg" alt="Dynamic Devices Logo" style="height: 40px; margin-right: 15px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-            <svg style="height: 40px; margin-right: 15px; display: none;" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">
+            <svg style="height: 40px; margin-right: 15px;" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">
                 <rect width="60" height="40" rx="6" fill="#3498db"/>
                 <text x="30" y="26" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">DD</text>
             </svg>
@@ -45,6 +44,29 @@
                 <button class="controls-toggle" id="toggleControls">Hide</button>
             </div>
             <div class="controls-content" id="controlsContent">
+                <div class="control-group">
+                    <div class="control-group-header" data-section="mqtt">
+                        <h3>📡 MQTT Settings</h3>
+                        <button class="collapse-toggle">▼</button>
+                    </div>
+                    <div class="control-group-content">
+                        <div class="input-group">
+                            <label>Broker Host:</label>
+                            <input type="text" id="mqttHost" value="mqtt.dynamicdevices.co.uk" placeholder="mqtt.broker.com">
+                        </div>
+                        <div class="input-group">
+                            <label>Port (WebSocket):</label>
+                            <input type="number" id="mqttPort" value="8083" placeholder="8080 (ws) or 8084 (wss)">
+                        </div>
+                        <div class="input-group">
+                            <label>Topic:</label>
+                            <input type="text" id="mqttTopic" value="uwb/positions" placeholder="uwb/distances">
+                        </div>
+                        <button class="btn" id="connectMqtt">Connect MQTT</button>
+                        <button class="btn secondary" id="disconnectMqtt" disabled>Disconnect</button>
+                    </div>
+                </div>
+
                 <div class="control-group">
                     <div class="control-group-header" data-section="stats">
                         <h3>📊 Statistics</h3>
@@ -78,55 +100,6 @@
                 </div>
 
                 <div class="control-group">
-                    <div class="control-group-header" data-section="mqtt">
-                        <h3>📡 MQTT Settings</h3>
-                        <button class="collapse-toggle">▼</button>
-                    </div>
-                    <div class="control-group-content">
-                        <div class="input-group">
-                            <label>Broker Host:</label>
-                            <input type="text" id="mqttHost" value="mqtt.dynamicdevices.co.uk" placeholder="mqtt.broker.com">
-                        </div>
-                        <div class="input-group">
-                            <label>Port (WebSocket):</label>
-                            <input type="number" id="mqttPort" value="8083" placeholder="8080 (ws) or 8084 (wss)">
-                        </div>
-                        <div class="input-group">
-                            <label>Topic:</label>
-                            <input type="text" id="mqttTopic" value="uwb/positions" placeholder="uwb/distances">
-                        </div>
-                        <button class="btn" id="connectMqtt">Connect MQTT</button>
-                        <button class="btn secondary" id="disconnectMqtt" disabled>Disconnect</button>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <div class="control-group-header" data-section="physics">
-                        <h3>🔬 Physics Settings</h3>
-                        <button class="collapse-toggle collapsed">▶</button>
-                    </div>
-                    <div class="control-group-content collapsed">
-                        <div class="input-group">
-                            <label>Spring Strength: <span id="springStrengthValue">2.0</span></label>
-                            <input type="range" id="springStrengthSlider" min="0.5" max="10.0" value="2.0" step="0.5" style="width: 100%; margin-top: 5px;">
-                        </div>
-                        <div class="input-group">
-                            <label>Damping: <span id="dampingValue">0.6</span></label>
-                            <input type="range" id="dampingSlider" min="0.3" max="0.9" value="0.6" step="0.01" style="width: 100%; margin-top: 5px;">
-                        </div>
-                        <div class="input-group">
-                            <label>Node Mass: <span id="massValue">0.2</span></label>
-                            <input type="range" id="massSlider" min="0.05" max="1.0" value="0.2" step="0.05" style="width: 100%; margin-top: 5px;">
-                        </div>
-                        <div class="input-group">
-                            <label>Distance Scale: <span id="scaleValue">120</span>px/m</label>
-                            <input type="range" id="scaleSlider" min="50" max="250" value="120" step="10" style="width: 100%; margin-top: 5px;">
-                        </div>
-                        <button class="btn success" id="resetPhysics">Reset Physics</button>
-                    </div>
-                </div>
-
-                <div class="control-group">
                     <div class="control-group-header" data-section="display">
                         <h3>⚙️ Display Settings</h3>
                         <button class="collapse-toggle collapsed">▶</button>
@@ -155,6 +128,32 @@
                         </div>
                         <button class="btn" id="clearNodes">Clear Nodes</button>
                         <button class="btn success" id="centerNodes">Center Nodes</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-group-header" data-section="physics">
+                        <h3>🔬 Physics Settings</h3>
+                        <button class="collapse-toggle collapsed">▶</button>
+                    </div>
+                    <div class="control-group-content collapsed">
+                        <div class="input-group">
+                            <label>Spring Strength: <span id="springStrengthValue">2.0</span></label>
+                            <input type="range" id="springStrengthSlider" min="0.5" max="10.0" value="2.0" step="0.5" style="width: 100%; margin-top: 5px;">
+                        </div>
+                        <div class="input-group">
+                            <label>Damping: <span id="dampingValue">0.6</span></label>
+                            <input type="range" id="dampingSlider" min="0.3" max="0.9" value="0.6" step="0.01" style="width: 100%; margin-top: 5px;">
+                        </div>
+                        <div class="input-group">
+                            <label>Node Mass: <span id="massValue">0.2</span></label>
+                            <input type="range" id="massSlider" min="0.05" max="1.0" value="0.2" step="0.05" style="width: 100%; margin-top: 5px;">
+                        </div>
+                        <div class="input-group">
+                            <label>Distance Scale: <span id="scaleValue">120</span>px/m</label>
+                            <input type="range" id="scaleSlider" min="50" max="250" value="120" step="10" style="width: 100%; margin-top: 5px;">
+                        </div>
+                        <button class="btn success" id="resetPhysics">Reset Physics</button>
                     </div>
                 </div>
 
@@ -228,6 +227,10 @@
         </div>
 
         <div class="visualization">
+            <div class="visualization-header">
+                <h3>🎯 Node Visualization</h3>
+                <button class="maximize-toggle" id="maximizeVisualization">⛶</button>
+            </div>
             <div class="canvas-container" id="canvas"></div>
         </div>
 

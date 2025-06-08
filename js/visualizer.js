@@ -22,6 +22,7 @@ class UWBVisualizer {
         this.staleTimeoutMs = 30000;
         this.removalTimeoutMs = 30000;
         this.lastUpdateTime = null;
+        this.visualizationMaximized = false;
         
         // Spring-mass physics system with FAST parameters
         this.physics = new SpringMassSystem();
@@ -144,6 +145,7 @@ class UWBVisualizer {
         document.getElementById('clearConsole').addEventListener('click', () => this.clearConsole());
         document.getElementById('toggleConsole').addEventListener('click', () => this.toggleConsole());
         document.getElementById('toggleControls').addEventListener('click', () => this.toggleControls());
+        document.getElementById('maximizeVisualization').addEventListener('click', () => this.toggleMaximizeVisualization());
     }
 
     toggleSection(header) {
@@ -1067,6 +1069,25 @@ class UWBVisualizer {
         
         if (this.controlsVisible) {
             this.logInfo('⚙️ Controls panel expanded');
+        }
+    }
+
+    toggleMaximizeVisualization() {
+        const container = document.querySelector('.container');
+        const maximizeButton = document.getElementById('maximizeVisualization');
+        
+        this.visualizationMaximized = !this.visualizationMaximized;
+        
+        container.classList.toggle('visualization-maximized', this.visualizationMaximized);
+        
+        if (this.visualizationMaximized) {
+            maximizeButton.textContent = '⛷'; // Minimize icon
+            maximizeButton.title = 'Minimize Visualization';
+            this.logInfo('🔍 Visualization maximized - full screen mode enabled');
+        } else {
+            maximizeButton.textContent = '⛶'; // Maximize icon  
+            maximizeButton.title = 'Maximize Visualization';
+            this.logInfo('🔍 Visualization restored to normal view');
         }
     }
 }
