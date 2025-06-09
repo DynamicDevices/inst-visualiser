@@ -23,11 +23,11 @@ class SpringMassSystem {
         this.repulsionStrength = 80000; // 100x increase: instant node separation
         this.minDistance = 80;         // Keep minimum distance same
         
-        // Centering force - 100x stronger
-        this.centeringForce = 0.05;    // 100x increase: powerful center attraction
+        // Centering force - 200x stronger for better centralization
+        this.centeringForce = 0.1;     // 200x increase: powerful center attraction
         
-        // Auto-scaling parameters - ultra responsive
-        this.targetScreenUsage = 0.8;
+        // Auto-scaling parameters - ultra responsive with better centering
+        this.targetScreenUsage = 0.7;   // Target 70% usage for better centering
         this.scaleAdjustmentRate = 0.1; // Ultra-fast scale adjustments
     }
     
@@ -126,8 +126,8 @@ class SpringMassSystem {
     }
     
     applyBoundaryForces(nodes, canvasWidth, canvasHeight) {
-        // Keep masses within the usable screen area (80% of total) - 10x stronger
-        const margin = Math.min(canvasWidth, canvasHeight) * this.screenMargin;
+        // Keep masses within the usable screen area (70% of total) - stronger containment
+        const margin = Math.min(canvasWidth, canvasHeight) * 0.15; // Increased margin for better centering
         const minX = margin;
         const maxX = canvasWidth - margin;
         const minY = margin;
@@ -152,7 +152,7 @@ class SpringMassSystem {
     }
     
     applyCenteringForce(nodes, canvasWidth, canvasHeight) {
-        // Stronger force towards centre to prevent drift - 10x stronger
+        // Stronger force towards centre to prevent drift - 200x stronger
         const centerX = canvasWidth / 2;
         const centerY = canvasHeight / 2;
         
@@ -161,14 +161,26 @@ class SpringMassSystem {
             
             const dx = centerX - node.x;
             const dy = centerY - node.y;
+            const distanceFromCenter = Math.sqrt(dx*dx + dy*dy);
             
+            // Base centering force
             node.fx += dx * this.centeringForce;
             node.fy += dy * this.centeringForce;
+            
+            // Additional strong centering force when nodes drift too far from center
+            const maxCenterDistance = Math.min(canvasWidth, canvasHeight) * 0.25;
+            if (distanceFromCenter > maxCenterDistance) {
+                const extraForce = (distanceFromCenter - maxCenterDistance) * 0.5;
+                const ux = dx / distanceFromCenter;
+                const uy = dy / distanceFromCenter;
+                node.fx += ux * extraForce;
+                node.fy += uy * extraForce;
+            }
         });
     }
     
     autoScale(nodes, canvasWidth, canvasHeight) {
-        // Automatically adjust distance scale to maintain 80% screen usage - faster adjustments
+        // Automatically adjust distance scale to maintain 70% screen usage - faster adjustments
         const activeNodes = Array.from(nodes.values()).filter(node => !node.isRemoved);
         if (activeNodes.length < 2) return;
         
@@ -187,13 +199,13 @@ class SpringMassSystem {
         const currentHeight = maxY - minY;
         const currentSize = Math.max(currentWidth, currentHeight);
         
-        // Target size (80% of smaller screen dimension)
-        const targetSize = Math.min(canvasWidth, canvasHeight) * this.targetScreenUsage;
+        // Target size (70% of smaller screen dimension for better centering)
+        const targetSize = Math.min(canvasWidth, canvasHeight) * 0.7;
         
         // Adjust scale if needed - faster adjustment rate
         if (currentSize > 0) {
             const sizeRatio = targetSize / currentSize;
-            if (sizeRatio < 0.9 || sizeRatio > 1.1) {
+            if (sizeRatio < 0.85 || sizeRatio > 1.15) {
                 // More aggressive scale adjustment for faster response
                 const adjustment = (sizeRatio - 1) * this.scaleAdjustmentRate;
                 this.distanceScale *= (1 + adjustment);

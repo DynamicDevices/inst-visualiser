@@ -751,25 +751,44 @@ body {
     .container {
         grid-template-columns: 280px 1fr;
     }
+    
+    /* Update console for very small screens */
+    .console {
+        padding: 1px;
+        font-size: 7px;
+    }
+    
+    .console-header h3 {
+        font-size: 7px;
+    }
+    
+    .console-toggle {
+        font-size: 5px;
+    }
+    
+    .console-content {
+        max-height: 40px;
+    }
 }
 
 @media (max-width: 968px) {
-    /* Mobile layout - horizontal controls, console collapsed by default */
+    /* Mobile layout - responsive heights that fit content */
     .container {
         grid-template-columns: 1fr !important;
-        grid-template-rows: 45px 75px 1fr 40px;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 2px;
     }
     
     .container:not(.console-collapsed) {
-        grid-template-rows: 45px 75px 1fr 150px;
+        grid-template-rows: auto auto 1fr 80px;
     }
     
     .container.controls-collapsed {
-        grid-template-rows: 45px 35px 1fr 40px;
+        grid-template-rows: auto auto 1fr auto;
     }
     
     .container.controls-collapsed:not(.console-collapsed) {
-        grid-template-rows: 45px 35px 1fr 150px;
+        grid-template-rows: auto auto 1fr 80px;
     }
     
     .container.visualization-maximized {
@@ -777,50 +796,66 @@ body {
         grid-template-columns: 1fr !important;
     }
     
-    /* Mobile header optimization */
+    /* Compact mobile header - height matches text */
     .header {
-        padding: 0 12px;
-        min-height: 45px;
+        padding: 2px 4px;
+        min-height: auto;
+        height: auto;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
     }
     
     .header h1 {
-        font-size: 0.9em;
+        font-size: 12px;
         font-weight: 500;
+        line-height: 1;
+        margin: 0;
     }
     
     .header .logo {
-        width: 20px !important;
-        height: 20px !important;
-        margin-right: 8px !important;
-        font-size: 10px !important;
+        width: 12px !important;
+        height: 12px !important;
+        margin-right: 3px !important;
+        font-size: 6px !important;
+        flex-shrink: 0;
     }
     
     .status {
-        gap: 6px;
+        gap: 2px;
+        align-items: center;
     }
     
     .status-indicator {
-        width: 8px;
-        height: 8px;
+        width: 5px;
+        height: 5px;
     }
     
     #statusText {
-        font-size: 12px;
+        font-size: 8px;
+        line-height: 1;
     }
     
-    /* Mobile controls styling */
+    /* Mobile controls with content-based sizing */
     .controls {
-        padding: 10px;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        min-height: auto;
+        height: auto;
     }
     
     .controls.collapsed {
-        padding: 6px 10px;
+        padding: 2px 4px;
         overflow: hidden;
+        height: auto;
     }
     
     .controls-header {
-        margin-bottom: 8px;
-        padding-bottom: 6px;
+        margin-bottom: 2px;
+        padding-bottom: 2px;
+        min-height: auto;
+        height: auto;
     }
     
     .controls.collapsed .controls-header {
@@ -828,93 +863,165 @@ body {
         padding-bottom: 0;
         border-bottom: none;
         flex-direction: row;
-        gap: 8px;
+        gap: 4px;
+        align-items: center;
+        height: auto;
     }
     
     .controls-header h2 {
-        font-size: 14px;
+        font-size: 11px;
+        margin: 0;
+        line-height: 1.2;
     }
     
     .controls.collapsed .controls-header h2 {
-        font-size: 12px;
+        font-size: 9px;
         writing-mode: horizontal-tb;
         text-orientation: mixed;
+        white-space: nowrap;
+        line-height: 1;
     }
     
     .controls.collapsed .controls-toggle {
-        padding: 3px 6px;
-        font-size: 10px;
+        padding: 2px 4px;
+        font-size: 8px;
+        min-width: 24px;
+        height: auto;
+        line-height: 1;
     }
     
     .controls-toggle {
-        padding: 3px 6px;
-        font-size: 10px;
+        padding: 2px 4px;
+        font-size: 8px;
+        min-width: 24px;
+        height: auto;
+        line-height: 1;
     }
     
-    /* Mobile horizontal grid for controls */
+    /* Mobile control groups with better sizing */
     .controls-content {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 8px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 2px;
+    }
+    
+    /* Ensure controls content is truly hidden when collapsed */
+    .controls.collapsed .controls-content {
+        display: none !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
     .control-group {
-        margin-bottom: 0;
+        margin-bottom: 2px;
     }
     
     .control-group-header {
-        padding: 8px 10px;
+        padding: 3px 6px;
+        min-height: auto;
+        height: auto;
     }
     
     .control-group-header h3 {
         font-size: 10px;
+        margin: 0;
+        line-height: 1.2;
+        font-weight: 600;
     }
     
     .control-group-content {
-        padding: 10px;
+        padding: 4px;
+        min-height: auto;
+        height: auto;
     }
     
     .collapse-toggle {
-        font-size: 14px;
+        font-size: 10px;
+        line-height: 1;
     }
     
     /* Mobile input styling */
     .input-group {
-        margin-bottom: 8px;
-    }
-    
-    .input-group label {
-        font-size: 11px;
         margin-bottom: 3px;
     }
     
+    .input-group label {
+        font-size: 8px;
+        margin-bottom: 1px;
+        line-height: 1.2;
+    }
+    
     .input-group input, .input-group select {
-        padding: 6px;
-        font-size: 12px;
+        padding: 2px;
+        font-size: 9px;
     }
     
     .btn {
-        padding: 8px;
-        font-size: 12px;
-        margin-bottom: 6px;
+        padding: 3px;
+        font-size: 8px;
+        margin-bottom: 2px;
+        line-height: 1.2;
     }
     
     .stats-grid {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: auto auto auto auto;
-        gap: 6px;
+        gap: 2px;
     }
     
     .stat-item {
-        padding: 6px;
+        padding: 2px;
     }
     
     .stat-label {
-        font-size: 9px;
+        font-size: 6px;
+        line-height: 1.2;
     }
     
     .stat-value {
-        font-size: 14px;
+        font-size: 9px;
+        line-height: 1.2;
+    }
+    
+    /* Ultra-compact mobile input styling */
+    .input-group {
+        margin-bottom: 2px;
+    }
+    
+    .input-group label {
+        font-size: 8px;
+        margin-bottom: 1px;
+    }
+    
+    .input-group input, .input-group select {
+        padding: 2px;
+        font-size: 9px;
+    }
+    
+    .btn {
+        padding: 2px;
+        font-size: 8px;
+        margin-bottom: 1px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto auto;
+        gap: 2px;
+    }
+    
+    .stat-item {
+        padding: 2px;
+    }
+    
+    .stat-label {
+        font-size: 7px;
+    }
+    
+    .stat-value {
+        font-size: 9px;
     }
     
     /* Mobile visualization */
@@ -922,14 +1029,17 @@ body {
         display: flex;
         flex-direction: column;
         background: rgba(255, 255, 255, 0.95);
-        border-radius: 10px;
+        border-radius: 4px;
         overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        min-height: auto;
+        height: auto;
     }
     
     .visualization-header {
-        padding: 6px 10px;
-        min-height: 32px;
+        padding: 2px 6px;
+        min-height: auto;
+        height: auto;
         background: rgba(52, 152, 219, 0.1);
         border-bottom: 1px solid var(--border-color);
         display: flex;
@@ -938,25 +1048,28 @@ body {
     }
     
     .visualization-header h3 {
-        font-size: 11px;
+        font-size: 9px;
         margin: 0;
         color: var(--dark-bg);
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.2px;
+        line-height: 1.2;
     }
     
     .maximize-toggle {
-        padding: 3px 6px;
-        font-size: 9px;
-        min-width: 24px;
+        padding: 2px 4px;
+        font-size: 7px;
+        min-width: 16px;
+        height: auto;
         background: var(--primary-color);
         border: none;
         color: white;
-        border-radius: 4px;
+        border-radius: 2px;
         cursor: pointer;
         font-weight: bold;
         transition: all 0.3s ease;
+        line-height: 1;
     }
     
     .canvas-container {
@@ -970,26 +1083,33 @@ body {
     /* Mobile console */
     .console {
         grid-column: 1 / -1;
-        padding: 10px;
-        font-size: 11px;
+        padding: 3px;
+        font-size: 8px;
+        border-radius: 4px;
+        min-height: auto;
+        height: auto;
     }
     
     .console-header {
-        margin-bottom: 6px;
-        padding-bottom: 6px;
+        margin-bottom: 2px;
+        padding-bottom: 2px;
+        min-height: auto;
+        height: auto;
     }
     
     .console-header h3 {
-        font-size: 12px;
+        font-size: 9px;
+        line-height: 1.2;
     }
     
     .console-toggle {
-        padding: 3px 6px;
-        font-size: 10px;
+        padding: 2px 4px;
+        font-size: 7px;
+        line-height: 1;
     }
     
     .console-content {
-        max-height: 100px;
+        max-height: 60px;
     }
     
     .console.collapsed .console-header {
@@ -1000,29 +1120,114 @@ body {
     
     /* Mobile debug toggles */
     .debug-toggle-button {
-        width: 45px;
-        height: 24px;
-        margin-right: 8px;
+        width: 28px;
+        height: 14px;
+        margin-right: 4px;
     }
     
     .debug-toggle-button::after {
-        width: 18px;
-        height: 18px;
-        top: 3px;
-        left: 3px;
+        width: 10px;
+        height: 10px;
+        top: 2px;
+        left: 2px;
     }
     
     .debug-toggle input[type="checkbox"]:checked + .debug-toggle-button::after {
-        left: 24px;
+        left: 16px;
     }
     
     .debug-toggle-label {
-        font-size: 12px;
+        font-size: 8px;
+        line-height: 1.2;
     }
 }
 
 @media (max-width: 600px) {
     .controls-content {
         grid-template-columns: 1fr;
+    }
+    
+    /* Extra compact for very small screens */
+    .container {
+        grid-template-rows: 20px 25px 1fr 20px;
+    }
+    
+    .container:not(.console-collapsed) {
+        grid-template-rows: 20px 25px 1fr 60px;
+    }
+    
+    .container.controls-collapsed {
+        grid-template-rows: 20px 12px 1fr 20px;
+    }
+    
+    .container.controls-collapsed:not(.console-collapsed) {
+        grid-template-rows: 20px 12px 1fr 60px;
+    }
+    
+    .header {
+        padding: 0 2px;
+        min-height: 20px;
+    }
+    
+    .header h1 {
+        font-size: 0.4em;
+    }
+    
+    .header .logo {
+        width: 10px !important;
+        height: 10px !important;
+        margin-right: 2px !important;
+        font-size: 5px !important;
+    }
+    
+    .status-indicator {
+        width: 4px;
+        height: 4px;
+    }
+    
+    #statusText {
+        font-size: 7px;
+    }
+    
+    .controls {
+        padding: 1px;
+    }
+    
+    .controls.collapsed {
+        max-height: 12px;
+        padding: 0px 1px;
+    }
+    
+    .controls-header h2 {
+        font-size: 6px;
+    }
+    
+    .controls.collapsed .controls-header h2 {
+        font-size: 5px;
+    }
+    
+    .controls-toggle {
+        font-size: 5px;
+        min-width: 15px;
+        height: 8px;
+    }
+    
+    .visualization-header {
+        min-height: 12px;
+        padding: 0px 2px;
+    }
+    
+    .visualization-header h3 {
+        font-size: 6px;
+    }
+    
+    .maximize-toggle {
+        font-size: 5px;
+        min-width: 10px;
+        height: 10px;
+    }
+    
+    .canvas-container {
+        min-height: 120px;
     }
 }

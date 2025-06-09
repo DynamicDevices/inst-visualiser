@@ -13,11 +13,11 @@ class UWBVisualizer {
         this.canvas = document.getElementById('canvas');
         this.mqttClient = null;
         this.mqttConnected = false;
-        this.consoleVisible = true;
+        this.consoleVisible = false;
         this.controlsVisible = true;
         this.debugMode = false;
         this.showBoundingBox = false;
-        this.version = "3.0";
+        this.version = "3.1";
         this.messageCount = 0;
         this.staleTimeoutMs = 30000;
         this.removalTimeoutMs = 30000;
@@ -32,15 +32,21 @@ class UWBVisualizer {
         
         this.initialiseEventListeners();
         this.startStaleNodeChecker();
+        this.startNodeCenteringChecker(); // Add periodic centering check
         this.updateTotalTimeout();
         this.logVersionInfo();
         this.updateStats();
         this.startPhysicsSimulation();
+        
+        // Initialize with console collapsed
+        document.querySelector('.container').classList.add('console-collapsed');
     }
 
     logVersionInfo() {
-        this.logSuccess(`🎯 UWB Position Visualiser v${this.version} initialised - ULTRA FAST PHYSICS MODE`);
-        this.logInfo('🚀 v3.0 ULTRA FAST: Mass-Spring physics system optimised for 100x faster movement');
+        this.logSuccess(`🎯 UWB Position Visualiser v${this.version} initialised - Mobile Optimised ULTRA FAST PHYSICS MODE`);
+        this.logInfo('📱 v3.1 MOBILE: Ultra-compact controls pane optimised for mobile devices');
+        this.logInfo('🎯 v3.1 CENTERING: Enhanced node centering with 200x force + auto-drift correction');
+        this.logInfo('🚀 v3.1 ULTRA FAST: Mass-Spring physics system optimised for 100x faster movement');
         this.logInfo('⚡ Spring constant: 2.0 (100x stronger) for lightning-fast force response');
         this.logInfo('🏃 Minimal damping: 0.6 (from 0.92) allows maximum sustained motion');
         this.logInfo('🪶 Ultra-light mass: 0.2 (from 2.0) enables instant acceleration');
@@ -289,6 +295,41 @@ class UWBVisualizer {
         setInterval(() => {
             this.checkStaleNodes();
         }, 1000);
+    }
+
+    startNodeCenteringChecker() {
+        // Check every 5 seconds if nodes need re-centering
+        setInterval(() => {
+            this.checkAndCenterNodes();
+        }, 5000);
+    }
+
+    checkAndCenterNodes() {
+        const activeNodes = Array.from(this.nodes.values()).filter(node => !node.isRemoved);
+        if (activeNodes.length === 0) return;
+        
+        // Calculate center of mass
+        let centerX = 0, centerY = 0;
+        activeNodes.forEach(node => {
+            centerX += node.x;
+            centerY += node.y;
+        });
+        centerX /= activeNodes.length;
+        centerY /= activeNodes.length;
+        
+        // Check if center of mass has drifted too far from canvas center
+        const canvasCenterX = this.canvas.offsetWidth / 2;
+        const canvasCenterY = this.canvas.offsetHeight / 2;
+        const driftX = Math.abs(centerX - canvasCenterX);
+        const driftY = Math.abs(centerY - canvasCenterY);
+        const maxDrift = Math.min(this.canvas.offsetWidth, this.canvas.offsetHeight) * 0.15;
+        
+        if (driftX > maxDrift || driftY > maxDrift) {
+            this.centerNodes();
+            if (this.debugMode) {
+                this.logInfo(`🎯 Auto-centered nodes - drift detected: ${driftX.toFixed(1)}px, ${driftY.toFixed(1)}px`);
+            }
+        }
     }
 
     updateTotalTimeout() {
@@ -1061,13 +1102,17 @@ class UWBVisualizer {
         this.controlsVisible = !this.controlsVisible;
         const isHidden = !this.controlsVisible;
         
-        controlsContent.classList.toggle('hidden', isHidden);
-        controlsPanel.classList.toggle('collapsed', isHidden);
-        container.classList.toggle('controls-collapsed', isHidden);
-        
-        toggleButton.textContent = isHidden ? 'Show' : 'Hide';
-        
-        if (this.controlsVisible) {
+        // Ensure proper collapsing on mobile
+        if (isHidden) {
+            controlsContent.classList.add('hidden');
+            controlsPanel.classList.add('collapsed');
+            container.classList.add('controls-collapsed');
+            toggleButton.textContent = 'Show';
+        } else {
+            controlsContent.classList.remove('hidden');
+            controlsPanel.classList.remove('collapsed');
+            container.classList.remove('controls-collapsed');
+            toggleButton.textContent = 'Hide';
             this.logInfo('⚙️ Controls panel expanded');
         }
     }
@@ -1082,11 +1127,11 @@ class UWBVisualizer {
         
         if (this.visualizationMaximized) {
             maximizeButton.textContent = '⛷'; // Minimize icon
-            maximizeButton.title = 'Minimize Visualization';
-            this.logInfo('🔍 Visualization maximized - full screen mode enabled');
+            maximizeButton.title = 'Exit Full Screen';
+            this.logInfo('🔍 Visualization full screen - header, controls and console hidden');
         } else {
             maximizeButton.textContent = '⛶'; // Maximize icon  
-            maximizeButton.title = 'Maximize Visualization';
+            maximizeButton.title = 'Enter Full Screen';
             this.logInfo('🔍 Visualization restored to normal view');
         }
     }
