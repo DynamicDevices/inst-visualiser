@@ -1,26 +1,54 @@
 # UWB Position Visualiser v3.2 - Mobile Optimised
 
+**Part of the INST Project - Indoor Positioning System Technology**
+
 A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation and mobile-optimised UX design for optimal touch interaction.
 
 ![UWB Position Visualiser Demo](resources/demo-pic.png)
 
 **🚀 Try it now: [GitHub Pages Demo](https://dynamicdevices.github.io/inst-visualiser/)**
 
+## 🏢 About the INST Project
+
+The **INST Project** (Indoor Positioning System Technology) by Dynamic Devices Ltd is a comprehensive solution for ultra-accurate indoor positioning using UWB technology. The visualiser is a key component providing real-time monitoring and analysis capabilities for:
+
+🏭 **Industrial IoT Applications:**
+- **Manufacturing**: Asset tracking, robot navigation, safety zones
+- **Logistics**: Warehouse management, pallet tracking, inventory control  
+- **Healthcare**: Patient flow, equipment location, staff tracking
+- **Smart Buildings**: Occupancy monitoring, space optimisation, security
+
+⚡ **Key INST Project Benefits:**
+- **Centimetre Accuracy**: UWB technology provides 10-30cm positioning precision
+- **Real-Time Performance**: Sub-millisecond latency for critical applications
+- **Scalable Infrastructure**: From single room to enterprise-wide deployments
+- **Secure Communications**: FiRa-certified secure ranging protocols
+- **Battery Efficient**: Months of operation on single battery charge
+
+🎯 **INST Technology Stack:**
+- **UWB Hardware**: DecaWave DW1000/3000, NXP Trimension, Qorvo modules
+- **Communication**: MQTT over WiFi/Ethernet for real-time data streaming  
+- **Visualisation**: This mobile-optimised real-time positioning display
+- **Analytics**: Machine learning for NLoS detection and accuracy improvement
+- **Integration**: REST APIs, webhooks, and enterprise system connectors
+
 ## 📱 Mobile-First Design (v3.2)
 
 The visualiser is now optimised for mobile devices with a **touch-friendly, responsive interface**:
 
 🎯 **Mobile-Optimised UX:**
-- **Compact Controls**: Space-efficient control panels designed for mobile screens
+- **Compact Controls**: Greatly reduced control panel size, prioritising node display  
+- **Small Title Bar**: Minimal header preserving screen real estate
 - **Touch-Friendly**: Larger tap targets, touch gestures, and haptic feedback
-- **Prioritised Visualisation**: Node display takes precedence with maximise mode
-- **Collapsible Sections**: Organised, space-efficient controls that expand on demand
+- **Prioritised Visualisation**: Node display takes 80%+ of screen space
+- **Collapsible Sections**: Organised, ultra-compact controls that expand on demand
 - **Responsive Layout**: Seamlessly adapts from mobile to desktop
 - **Quick Actions**: Essential functions easily accessible on small screens
 
 📱 **Mobile Features:**
 - **Maximise Mode**: Full-screen visualisation for optimal node viewing (⛶ button)
 - **Auto-Collapse**: Advanced settings collapse automatically on mobile to save space
+- **Improved Logo**: Professional SVG logo with gradient design
 - **Touch Gestures**: Pinch, zoom, and tap interactions for intuitive control
 - **Orientation Support**: Adapts layout for portrait and landscape modes
 - **Battery Optimisation**: Efficient rendering for extended mobile use
@@ -120,13 +148,14 @@ The visualiser expects JSON arrays containing distance measurements:
 ## 📱 Mobile Usage Tips
 
 ### **Portrait Mode (Phones)**
-- Controls appear at top, visualisation below
+- Compact title bar (same height as text) preserves screen space
+- Controls panel limited to ~120px height, visualisation gets majority of screen
 - Use maximise button (⛶) for full-screen node viewing
-- Swipe down to access collapsed control sections
+- Swipe up in controls to access collapsed sections
 - Statistics remain visible for quick monitoring
 
 ### **Landscape Mode (Phones & Tablets)**
-- Controls appear on left, visualisation takes majority of screen
+- Controls appear on left (~220px), visualisation takes majority of screen
 - Better for detailed node manipulation and settings
 - All sections accessible without scrolling
 - Ideal for demo presentations
@@ -262,17 +291,43 @@ inst-visualiser/
 
 ## 🎯 Version History
 
-- **v3.2**: Mobile-Optimised UX with touch-friendly controls and prioritised visualisation
+- **v3.2**: Mobile-Optimised UX with compact controls, small title bar, prioritised visualisation
 - **v3.1**: Ultra-Fast Physics Mode with 100x speed optimisation  
 - **v3.0**: Advanced spring-mass physics system
 - **v2.x**: Basic physics simulation
 - **v1.x**: Simple positioning algorithms
 
+## 📄 Licence & Copyright
+
+**Copyright (C) Dynamic Devices Ltd 2025**
+
+This program is free software: you can redistribute it and/or modify it under the terms of the **GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.**
+
+This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see **<https://www.gnu.org/licenses/>**.
+
+### **Commercial Licensing**
+For commercial use cases requiring proprietary licensing or enterprise support, contact Dynamic Devices Ltd:
+- 📧 **Enterprise Sales**: [enterprise@dynamicdevices.co.uk](mailto:enterprise@dynamicdevices.co.uk)
+- 🌐 **Website**: [https://www.dynamicdevices.co.uk](https://www.dynamicdevices.co.uk)
+
+### **Open Source Contributions**
+We welcome contributions to the INST Project! All contributions must be licensed under GPLv3 to maintain project compatibility.
+
 ## 📞 Support & Contact
 
-- 📧 **Email**: [ajlennon@dynamicdevices.co.uk](mailto:ajlennon@dynamicdevices.co.uk)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/DynamicDevices/inst-visualiser/issues)
-- 🌐 **Website**: [Dynamic Devices](https://www.dynamicdevices.co.uk)
+### **INST Project Support**
+- 📧 **Technical Support**: [inst-support@dynamicdevices.co.uk](mailto:inst-support@dynamicdevices.co.uk)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/DynamicDevices/inst-visualiser/issues)
+- 📖 **Documentation**: [INST Project Wiki](https://github.com/DynamicDevices/inst-visualiser/wiki)
+- 🌐 **Company Website**: [Dynamic Devices Ltd](https://www.dynamicdevices.co.uk)
+
+### **Professional Services**
+- **Custom Development**: Bespoke UWB positioning solutions
+- **Integration Services**: Enterprise system integration and deployment
+- **Training & Consulting**: UWB technology training and implementation guidance  
+- **Hardware Supply**: Complete UWB hardware kits and development boards
 
 ## 📄 Licence
 
@@ -280,16 +335,36 @@ GNU General Public License v3.0 - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **Eclipse Paho** for robust MQTT JavaScript client
-- **Mobile UX Community** for touch interaction design insights
-- **UWB Positioning Community** for algorithm development  
-- **Physics simulation** inspired by force-directed graph layouts
-- **Dynamic Devices** team for mobile optimisation techniques
+### **INST Project Team**
+- **Dynamic Devices Ltd** for INST Project vision and UWB expertise
+- **Engineering Team** for ultra-fast physics optimisation and mobile UX design
+- **Research Partners** for advancing UWB positioning algorithm development
+
+### **Technology Partners**
+- **Eclipse Paho** for robust MQTT JavaScript client implementation
+- **UWB Industry Consortium** for standardisation and interoperability efforts
+- **FiRa Consortium** for secure ranging protocol development and certification
+- **DecaWave/Qorvo** for pioneering UWB semiconductor technology
+
+### **Open Source Community**
+- **Mobile UX Community** for touch interaction design insights and best practices
+- **UWB Positioning Researchers** for algorithm development and validation methodologies  
+- **Physics Simulation Community** for force-directed graph layout inspiration
+- **Indoor Positioning Research Groups** for advancing location technology
+
+### **Standards & Protocols**
+- **IEEE 802.15.4z** for UWB PHY and MAC layer standardisation
+- **FiRa Technical Working Groups** for secure ranging protocol specifications
+- **MQTT Protocol** for reliable IoT communication and real-time data streaming
+- **Web Standards** for responsive design and accessibility compliance
 
 ---
 
 ⭐ **Star this repository if you find it helpful!**
 
-*Made with ❤️ for the IoT and positioning community by Dynamic Devices Ltd.*
+*Made with ❤️ for the IoT and indoor positioning community by **Dynamic Devices Ltd***
 
-📱 *Now optimised for mobile devices - position anywhere, anytime!*
+📱 *Now optimised for mobile devices - position anywhere, anytime!*  
+🏢 *Part of the INST Project - advancing indoor positioning technology*
+
+**Copyright (C) Dynamic Devices Ltd 2025 - Licensed under GPLv3**
