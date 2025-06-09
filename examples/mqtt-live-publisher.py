@@ -57,6 +57,11 @@ last_publish_time = 0
 parsing_error_count = 0
 MAX_PARSING_ERRORS = 3
 
+# Rate limiting globals - thread-safe access
+import threading
+rate_limit_lock = threading.Lock()
+current_rate_limit = 10.0  # Will be set from args.mqtt_rate_limit
+
 def log_info(message):
     """Always print important info unless in quiet mode"""
     if not args.quiet:
@@ -85,6 +90,14 @@ def on_mqtt_connect(client, userdata, flags, rc):
     if rc == 0:
         log_info(f"Connected to MQTT broker {args.mqtt_broker}:{args.mqtt_port}")
         log_verbose("MQTT connection successful")
+        
+        # Subscribe to command topic for rate limit updates
+        command_topic = f"{args.mqtt_topic}/cmd"
+        try:
+            client.subscribe(command_topic, qos=1)
+            log_info(f"Subscribed to command topic: {command_topic}")
+        except Exception as e:
+            log_error(f"Failed to subscribe to command topic: {e}")
     else:
         error_messages = {
             1: "Connection refused - incorrect protocol version",
@@ -113,8 +126,43 @@ def on_mqtt_log(client, userdata, level, buf):
     if args.verbose:
         print(f"[MQTT LOG] {buf}")
 
+def on_mqtt_message(client, userdata, message):
+    """Handle incoming MQTT command messages"""
+    try:
+        topic = message.topic
+        payload = message.payload.decode('utf-8').strip()
+        
+        log_verbose(f"Received command on {topic}: {payload}")
+        
+        # Parse rate limit commands
+        if payload.startswith('set rate_limit '):
+            try:
+                new_rate = float(payload.split(' ')[2])
+                if new_rate > 0:
+                    global current_rate_limit
+                    with rate_limit_lock:
+                        old_rate = current_rate_limit
+                        current_rate_limit = new_rate
+                    log_info(f"Updated rate limit: {old_rate}s → {new_rate}s")
+                else:
+                    log_warning(f"Invalid rate limit value: {new_rate} (must be > 0)")
+            except (IndexError, ValueError) as e:
+                log_warning(f"Failed to parse rate limit command: {payload}")
+        else:
+            log_verbose(f"Unknown command: {payload}")
+            
+    except Exception as e:
+        log_error(f"Error processing MQTT command: {e}")
+
 def setup_mqtt():
-    global mqtt_client
+    global mqtt_client, current_rate_limit
+    
+    if args.disable_mqtt:
+        log_verbose("MQTT disabled via command line argument")
+        return None
+        
+    # Initialize current rate limit from command line argument
+    current_rate_limit = args.mqtt_rate_limit
     
     if args.disable_mqtt:
         log_verbose("MQTT disabled via command line argument")
@@ -129,6 +177,7 @@ def setup_mqtt():
         mqtt_client.on_disconnect = on_mqtt_disconnect
         mqtt_client.on_publish = on_mqtt_publish
         mqtt_client.on_log = on_mqtt_log
+        mqtt_client.on_message = on_mqtt_message
         
         log_verbose(f"Configuring SSL for broker {args.mqtt_broker}:{args.mqtt_port}")
         
@@ -179,8 +228,12 @@ def publish_to_mqtt(data):
     current_time = time.time()
     time_since_last = current_time - last_publish_time
     
-    if time_since_last < args.mqtt_rate_limit:
-        log_verbose(f"MQTT publish rate limited - {time_since_last:.1f}s < {args.mqtt_rate_limit}s")
+    # Get current rate limit in thread-safe manner
+    with rate_limit_lock:
+        rate_limit = current_rate_limit
+    
+    if time_since_last < rate_limit:
+        log_verbose(f"MQTT publish rate limited - {time_since_last:.1f}s < {rate_limit}s")
         return
         
     if not mqtt_client.is_connected():
@@ -414,6 +467,8 @@ log_start("UWB MQTT Publisher Starting...")
 log_start(f"Serial port: {args.uart}")
 log_start(f"MQTT broker: {args.mqtt_broker}:{args.mqtt_port}")
 log_start(f"MQTT topic: {args.mqtt_topic}")
+log_start(f"MQTT command topic: {args.mqtt_topic}/cmd")
+log_start(f"Initial rate limit: {args.mqtt_rate_limit}s")
 if args.quiet:
     log_start("Quiet mode enabled - minimal logging")
 elif args.verbose:

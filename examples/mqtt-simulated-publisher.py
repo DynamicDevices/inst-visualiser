@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 UWB Position Data MQTT Publisher - FIXED for paho-mqtt v2.0+
-Dynamic Devices Ltd - Example code for inst-visualiser v3.4
+Dynamic Devices Ltd - Example code for inst-visualiser v3.6
 
 Requirements:
     pip install paho-mqtt numpy
@@ -18,6 +18,7 @@ import argparse
 import logging
 import signal
 import sys
+import threading
 from typing import List, Tuple, Optional
 import paho.mqtt.client as mqtt
 
@@ -35,10 +36,13 @@ class UWBPublisher:
         self.broker = broker
         self.port = port
         self.topic = topic
+        self.command_topic = f"{topic}/cmd"
         self.client_id = client_id or f"uwb_publisher_{random.randint(1000, 9999)}"
         self.client = None
         self.connected = False
         self.running = False
+        self.rate_limit_lock = threading.Lock()
+        self.current_publish_rate = 0.1  # Default 0.1 Hz (every 10 seconds)
         
     def on_connect(self, client, userdata, flags, rc, properties=None):
         """Callback for MQTT connection - v2.0+ compatible"""
@@ -46,6 +50,13 @@ class UWBPublisher:
             self.connected = True
             logger.info(f"Connected to MQTT broker {self.broker}:{self.port}")
             logger.info(f"Publishing to topic: {self.topic}")
+            
+            # Subscribe to command topic for rate limit updates
+            try:
+                client.subscribe(self.command_topic, qos=1)
+                logger.info(f"Subscribed to command topic: {self.command_topic}")
+            except Exception as e:
+                logger.error(f"Failed to subscribe to command topic: {e}")
         else:
             logger.error(f"Failed to connect to MQTT broker, return code {rc}")
             
@@ -58,9 +69,42 @@ class UWBPublisher:
         """Callback for message publish - v2.0+ compatible"""
         logger.debug(f"Message {mid} published successfully")
         
-    def connect(self) -> bool:
+    def on_message(self, client, userdata, message):
+        """Handle incoming MQTT command messages"""
+        try:
+            topic = message.topic
+            payload = message.payload.decode('utf-8').strip()
+            
+            logger.debug(f"Received command on {topic}: {payload}")
+            
+            # Parse rate limit commands - convert seconds to Hz
+            if payload.startswith('set rate_limit '):
+                try:
+                    rate_limit_seconds = float(payload.split(' ')[2])
+                    if rate_limit_seconds > 0:
+                        # Convert from "publish every X seconds" to "X Hz"
+                        new_rate_hz = 1.0 / rate_limit_seconds
+                        with self.rate_limit_lock:
+                            old_rate = self.current_publish_rate
+                            self.current_publish_rate = new_rate_hz
+                        logger.info(f"Updated publish rate: {old_rate:.3f}Hz → {new_rate_hz:.3f}Hz (every {rate_limit_seconds}s)")
+                    else:
+                        logger.warning(f"Invalid rate limit value: {rate_limit_seconds} (must be > 0)")
+                except (IndexError, ValueError) as e:
+                    logger.warning(f"Failed to parse rate limit command: {payload}")
+            else:
+                logger.debug(f"Unknown command: {payload}")
+                
+        except Exception as e:
+            logger.error(f"Error processing MQTT command: {e}")
+        
+    def connect(self, initial_rate_hz: float = 0.1) -> bool:
         """Connect to MQTT broker"""
         try:
+            # Initialize publish rate
+            with self.rate_limit_lock:
+                self.current_publish_rate = initial_rate_hz
+                
             # Create client with explicit callback API version for v2.0+
             self.client = mqtt.Client(
                 callback_api_version=mqtt.CallbackAPIVersion.VERSION1,
@@ -70,6 +114,7 @@ class UWBPublisher:
             self.client.on_connect = self.on_connect
             self.client.on_disconnect = self.on_disconnect
             self.client.on_publish = self.on_publish
+            self.client.on_message = self.on_message
             
             logger.info(f"Connecting to MQTT broker {self.broker}:{self.port}...")
             self.client.connect(self.broker, self.port, 60)
@@ -96,6 +141,11 @@ class UWBPublisher:
         if self.client:
             self.client.loop_stop()
             self.client.disconnect()
+            
+    def get_current_sleep_time(self) -> float:
+        """Get current sleep time between publishes in seconds (thread-safe)"""
+        with self.rate_limit_lock:
+            return 1.0 / self.current_publish_rate if self.current_publish_rate > 0 else 10.0
             
     def publish_distances(self, distances: List[Tuple[str, str, float]]) -> bool:
         """Publish distance measurements to MQTT topic"""
@@ -216,7 +266,7 @@ def main():
     
     parser = argparse.ArgumentParser(
         description='UWB Position Data MQTT Publisher - Simulation Mode',
-        epilog='This tool simulates realistic UWB positioning data for testing the visualizer.'
+        epilog='This tool simulates realistic UWB positioning data for testing the visualiser.'
     )
     parser.add_argument('--broker', default='mqtt.dynamicdevices.co.uk', 
                        help='MQTT broker hostname (default: mqtt.dynamicdevices.co.uk)')
@@ -240,7 +290,7 @@ def main():
     # Create MQTT publisher
     publisher = UWBPublisher(args.broker, args.port, args.topic)
     
-    if not publisher.connect():
+    if not publisher.connect(args.rate):
         logger.error("Failed to connect to MQTT broker")
         return 1
         
@@ -249,13 +299,15 @@ def main():
     logger.info("🎭 SIMULATION MODE: Generating realistic UWB test data")
     logger.info("📍 Simulated network: Gateway B5A4 + 3 rooms + 1 mobile tag")
     logger.info("🔄 Mobile tag T001 moving in circular pattern with 5cm measurement noise")
+    logger.info(f"📡 Command topic: {args.topic}/cmd (for remote rate control)")
         
     # Publishing loop
     publisher.running = True
-    sleep_time = 1.0 / args.rate
+    initial_sleep_time = 1.0 / args.rate
     
-    logger.info(f"📡 Publishing simulated data at {args.rate}Hz (every {sleep_time:.1f}s)")
+    logger.info(f"📡 Publishing simulated data at {args.rate}Hz (every {initial_sleep_time:.1f}s)")
     logger.info("⏰ Default rate: 0.1Hz (every 10s) - use --rate 1.0 for faster updates")
+    logger.info("📡 Rate can be changed remotely via MQTT commands")
     logger.info("⛔ Press Ctrl+C to stop simulation")
     
     try:
@@ -267,7 +319,9 @@ def main():
                 # Publish to MQTT
                 if not publisher.publish_distances(distances):
                     logger.warning("Failed to publish data")
-                    
+            
+            # Use dynamic sleep time that can be updated via MQTT commands
+            sleep_time = publisher.get_current_sleep_time()
             time.sleep(sleep_time)
             
     except Exception as e:
