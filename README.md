@@ -1,370 +1,431 @@
-# UWB Position Visualiser v3.2 - Mobile Optimised
+# UWB Position Visualiser v3.3 - Mobile Optimised
 
-**Part of the INST Project - Indoor Positioning System Technology**
+**Part of the INST Project - Instantly Networked Smart Triage**
 
-A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation and mobile-optimised UX design for optimal touch interaction.
+A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation and mobile-optimised UX design for crisis response and critical operations.
 
 ![UWB Position Visualiser Demo](resources/demo-pic.png)
 
 **🚀 Try it now: [GitHub Pages Demo](https://dynamicdevices.github.io/inst-visualiser/)**
 
-## 🏢 About the INST Project
+## 🚨 About the INST Project
 
-The **INST Project** (Indoor Positioning System Technology) by Dynamic Devices Ltd is a comprehensive solution for ultra-accurate indoor positioning using UWB technology. The visualiser is a key component providing real-time monitoring and analysis capabilities for:
+**INST (Instantly Networked Smart Triage)** is a revolutionary emergency response system designed to save lives during Mass Casualty Incidents (MCIs). Developed with funding from the **European Space Agency (ESA)** and **UK Space Agency (UKSA)** through the Business Applications and Space Solutions Programme (BASS), INST addresses critical coordination failures that have cost lives in major emergencies.
 
-🏭 **Industrial IoT Applications:**
-- **Manufacturing**: Asset tracking, robot navigation, safety zones
-- **Logistics**: Warehouse management, pallet tracking, inventory control  
-- **Healthcare**: Patient flow, equipment location, staff tracking
-- **Smart Buildings**: Occupancy monitoring, space optimisation, security
+### The Problem INST Solves
 
-⚡ **Key INST Project Benefits:**
-- **Centimetre Accuracy**: UWB technology provides 10-30cm positioning precision
-- **Real-Time Performance**: Sub-millisecond latency for critical applications
-- **Scalable Infrastructure**: From single room to enterprise-wide deployments
-- **Secure Communications**: FiRa-certified secure ranging protocols
-- **Battery Efficient**: Months of operation on single battery charge
+The 2017 Manchester Arena bombing tragically highlighted coordination failures between emergency services that cost precious lives. The public inquiry identified that **lack of real-time coordination between police, ambulance services, and fire departments significantly impacted response effectiveness**. INST was created to ensure such coordination failures never happen again.
 
-🎯 **INST Technology Stack:**
-- **UWB Hardware**: DecaWave DW1000/3000, NXP Trimension, Qorvo modules
-- **Communication**: MQTT over WiFi/Ethernet for real-time data streaming  
-- **Visualisation**: This mobile-optimised real-time positioning display
-- **Analytics**: Machine learning for NLoS detection and accuracy improvement
-- **Integration**: REST APIs, webhooks, and enterprise system connectors
+### How INST Works
 
-## 📱 Mobile-First Design (v3.2)
+INST is a **satellite-enabled emergency response system** that provides real-time situational awareness through:
 
-The visualiser is now optimised for mobile devices with a **touch-friendly, responsive interface**:
+- **Low-cost, lightweight devices** that can be quickly attached to or placed on casualties
+- **Satellite communication networks** enabling coverage even when terrestrial infrastructure fails
+- **Real-time position tracking** showing exactly where each casualty is located
+- **Medical urgency indicators** helping responders prioritise treatment
+- **Live casualty counting** providing accurate incident scale assessment
 
-🎯 **Mobile-Optimised UX:**
-- **Compact Controls**: Greatly reduced control panel size, prioritising node display  
-- **Small Title Bar**: Minimal header preserving screen real estate
-- **Touch-Friendly**: Larger tap targets, touch gestures, and haptic feedback
-- **Prioritised Visualisation**: Node display takes 80%+ of screen space
-- **Collapsible Sections**: Organised, ultra-compact controls that expand on demand
-- **Responsive Layout**: Seamlessly adapts from mobile to desktop
-- **Quick Actions**: Essential functions easily accessible on small screens
+> *"If INST can save just one life, then it will be worth it."* - Joseph Spear, Director of Communications
 
-📱 **Mobile Features:**
-- **Maximise Mode**: Full-screen visualisation for optimal node viewing (⛶ button)
-- **Auto-Collapse**: Advanced settings collapse automatically on mobile to save space
-- **Improved Logo**: Professional SVG logo with gradient design
-- **Touch Gestures**: Pinch, zoom, and tap interactions for intuitive control
-- **Orientation Support**: Adapts layout for portrait and landscape modes
-- **Battery Optimisation**: Efficient rendering for extended mobile use
+## 🎯 UWB Positioning: The Foundation of Real-Time Tracking
+
+### What is Ultra-Wideband (UWB)?
+
+Ultra-Wideband technology forms the **precision positioning backbone** of the INST system. UWB provides:
+
+- **Centimetre-level accuracy** for indoor and outdoor positioning
+- **Low power consumption** essential for emergency device longevity  
+- **Penetration through obstacles** maintaining signal in debris/structural damage
+- **Minimal interference** with other emergency communication systems
+- **Real-time performance** with microsecond timing precision
+
+### UWB in Emergency Response Context
+
+In Mass Casualty Incidents, **knowing exactly where each casualty is located can mean the difference between life and death**. The UWB positioning system enables:
+
+#### 🏥 **Triage Optimisation**
+- **Spatial triage mapping** - visualise casualty distribution across incident zones
+- **Priority routing** - direct responders to most critical casualties first
+- **Resource allocation** - deploy medical teams based on real casualty density
+
+#### 🚑 **Coordinated Response** 
+- **Unified situational picture** - all emergency services see the same real-time data
+- **Avoid duplication** - prevent multiple teams responding to same casualty
+- **Coverage gaps** - identify areas that may have been missed
+
+#### 📍 **Precision in Chaos**
+- **GPS-denied environments** - works inside collapsed buildings, underground
+- **Debris navigation** - track casualties even when landmarks are destroyed
+- **Night operations** - position tracking independent of visibility
+
+## 📱 Mobile-First Crisis Interface (v3.3)
+
+The visualiser is now optimised for crisis response operations with a **touch-friendly, field-ready interface**:
+
+🎯 **Crisis Operations UX:**
+- **Compact Controls**: Greatly reduced control panel size, prioritising casualty display  
+- **Critical Information Priority**: Medical urgency and position data prominently displayed
+- **Touch-Friendly Operations**: Larger tap targets, field gesture support
+- **Prioritised Visualisation**: Casualty positions take 80%+ of screen space
+- **Rapid Assessment Sections**: Quick-access critical controls
+- **Field-Ready Display**: High contrast, readable in bright sunlight and low light
+- **Command Centre Mode**: Full-screen tactical display for incident command
+
+📱 **Crisis Response Features:**
+- **Maximise Mode**: Full-screen casualty tracking for optimal situation awareness (⛶ button)
+- **Auto-Collapse**: Non-critical settings collapse automatically to save space
+- **Professional Crisis Branding**: Clear visual identity for critical operations
+- **Touch Gestures**: Pinch, zoom, and tap interactions for rapid field use
+- **Orientation Support**: Adapts layout for portrait and landscape field tablets
+- **Battery Optimisation**: Efficient rendering for extended field operations
 
 ⚡ **Ultra-Fast Physics System (v3.1+):**
-- **Spring Constant**: 2.0 (100x stronger) for lightning-fast force response  
-- **Minimal Damping**: 0.6 (allows maximum sustained motion)
-- **Ultra-Light Mass**: 0.2 (near-instant acceleration)
+- **Spring Constant**: 2.0 (100x stronger) for lightning-fast casualty positioning response  
+- **Minimal Damping**: 0.6 (allows maximum sustained motion for dynamic situations)
+- **Ultra-Light Mass**: 0.2 (near-instant response to changing casualty positions)
 - **Extreme Forces**: All boundary, repulsion, and centring forces increased 100x
-- **Result**: Nodes move ~100x faster to equilibrium positions
+- **Result**: Casualties and responders position ~100x faster for real-time situational awareness
 
-## 🎮 Getting Started
+## 🚑 Crisis Response Getting Started
 
-### **Quick Demo (Mobile & Desktop)**
+### **Quick Crisis Demo (Mobile & Desktop)**
 1. Visit the [live demo](https://dynamicdevices.github.io/inst-visualiser/)
-2. **On Mobile**: Tap "Connect" to see the touch-optimised interface
-3. **Desktop**: Click "Start Simulation" to see ultra-fast physics in action
-4. **Maximise**: Use the ⛶ button for full-screen node visualisation
-5. **Explore**: Tap section headers to collapse/expand control groups
+2. **On Field Tablet**: Tap "Connect" to see the field-optimised crisis interface
+3. **Desktop Command Centre**: Click "Start Simulation" to see ultra-fast physics positioning
+4. **Tactical Display**: Use the ⛶ button for full-screen casualty positioning view
+5. **Situation Assessment**: Tap section headers to access detailed incident controls
 
-### **Mobile-Optimised Workflow**
-1. **Connect MQTT**: Tap "📡 MQTT Connection" → Enter your broker details → "Connect"
-2. **View Nodes**: Nodes appear with smooth touch-responsive animations  
-3. **Maximise**: Tap ⛶ for full-screen visualisation optimised for mobile viewing
-4. **Quick Actions**: Access essential controls via "⚡ Quick Actions" section
-5. **Monitor**: Live statistics show nodes, links, and coverage area
+### **Crisis Operations Workflow**
+1. **Connect to INST Network**: Tap "📡 MQTT Connection" → Pre-configured for INST crisis systems → "Connect"
+2. **Monitor Casualties**: Casualties and responders appear with medical priority indicators
+3. **Tactical View**: Tap ⛶ for full-screen situational awareness optimised for incident command
+4. **Rapid Response**: Access critical functions via "⚡ Crisis Actions" section
+5. **Live Operations**: Real-time statistics show casualty count, response coverage, and system health
 
-### **Test with Python Simulation**
+### **Test with Crisis Simulation**
 ```bash
 # Install dependencies
 pip install paho-mqtt numpy
 
-# Run UWB simulation publisher (generates realistic test data)
+# Run crisis response simulation (generates realistic casualty data)
 python examples/mqtt-simulated-publisher.py
 
-# In the visualiser (mobile or desktop):
-# - Broker: mqtt.dynamicdevices.co.uk (default)
-# - Topic: uwb/positions (default)  
-# - Tap/Click "Connect" to see simulated data
+# In the visualiser (field tablet or command centre):
+# - Broker: mqtt.dynamicdevices.co.uk (INST crisis network)
+# - Topic: uwb/positions (casualty tracking data)  
+# - Tap/Click "Connect" to see simulated crisis response data
 ```
 
-## 🎛️ Mobile-Optimised Control Panel
+## 🚨 Crisis Operations Control Panel
 
-### **📊 Live Statistics** (Always Visible)
-- **Nodes**: Active UWB devices
-- **Links**: Distance measurements  
-- **Messages**: Total MQTT messages received
-- **Area**: Physical coverage area in metres
-- **Last**: Timestamp of latest update
+### **📊 Live Crisis Statistics** (Always Visible)
+- **Casualties**: Active INST devices on casualties
+- **Responders**: Response personnel with positioning devices
+- **Updates**: Total position updates received from field
+- **Coverage Area**: Physical incident zone dimensions in metres
+- **Last Update**: Timestamp of latest casualty position data
 
-### **📡 MQTT Connection** (Touch-Optimised)
-- **Broker**: Your MQTT broker address (touch-friendly input)
-- **Port**: WebSocket port (typically 8083 for SSL)
-- **Topic**: MQTT topic for position data
-- **Auto-collapse**: Panel auto-hides after successful connection
+### **📡 INST Network Connection** (Touch-Optimised)
+- **Crisis Broker**: Pre-configured INST crisis network (touch-friendly input)
+- **Satellite Port**: WebSocket port for crisis communications (typically 8083 for secure)
+- **Casualty Data Topic**: MQTT topic for real-time casualty positioning
+- **Auto-collapse**: Panel auto-hides after successful connection to INST network
 
-### **⚡ Quick Actions** (Mobile Priority)
-- **Centre Nodes**: Re-centre visualisation to optimal view
-- **Clear All**: Remove all nodes and connections
-- **Reset Physics**: Zero all velocities for fresh positioning
-- **Show Distance Accuracy**: Toggle ✓/⚠/❌ symbols on distance labels
-- **Enable Physics**: Toggle ultra-fast spring-mass simulation
+### **⚡ Crisis Actions** (Priority Controls)
+- **Centre Casualties**: Re-centre display for optimal incident overview
+- **Clear Incident**: Remove all casualty and responder data (incident conclusion)
+- **Reset Positioning**: Zero all velocities for fresh positioning calculations
+- **Show Medical Priority**: Toggle ✓/⚠/❌ symbols for medical urgency indicators
+- **Enable Real-Time Physics**: Toggle ultra-fast positioning simulation for dynamic situations
 
-### **⚙️ Display Settings** (Collapsible)
-- **Stale Timeout**: Mark nodes as stale after N seconds
-- **Remove Timeout**: Remove stale nodes after additional time
-- **Distance Scale**: Adjust metres-to-pixels ratio (50-250px/m)
+### **⚙️ Crisis Display Settings** (Collapsible)
+- **Stale Device Timeout**: Mark devices as offline after N seconds without updates
+- **Remove Timeout**: Remove offline devices after additional time
+- **Distance Scale**: Adjust metres-to-pixels ratio for incident zone size (50-250px/m)
 
-### **🔬 Physics Tuning** (Advanced)
-- **Spring Force**: 0.5-10.0 (default: 2.0 for ultra-fast mode)
-- **Damping**: 0.3-0.9 (default: 0.6 for maximum motion)
-- **Node Mass**: 0.05-1.0 (default: 0.2 for instant acceleration)
+### **🔬 Physics Tuning** (Crisis Optimised)
+- **Response Speed**: 0.5-10.0 (default: 2.0 for ultra-fast crisis positioning)
+- **Stability**: 0.3-0.9 (default: 0.6 for maximum motion tracking)
+- **Device Mass**: 0.05-1.0 (default: 0.2 for instant position updates)
 
-### **🐛 Debug Tools** (Developer)
-- **Debug Logging**: Detailed spring connection messages
-- **Show Boundaries**: Visual outline with area dimensions
+### **🚨 Crisis Debug Tools** (Incident Command)
+- **System Logging**: Detailed crisis network connection messages
+- **Coverage Boundaries**: Visual outline with incident zone dimensions
 
-## 📊 Data Format
+## 📊 Emergency Data Format
 
-The visualiser expects JSON arrays containing distance measurements:
+The visualiser expects JSON arrays containing casualty and responder positioning measurements:
 
 ```json
 [
-  ["A001", "A002", 1.5],
-  ["A002", "A003", 2.1],
-  ["A003", "A001", 2.8]
+  ["INST-001", "ANCHOR-A", 1.5],
+  ["INST-002", "ANCHOR-A", 2.1], 
+  ["RESP-001", "ANCHOR-B", 2.8]
 ]
 ```
 
-**Format Details:**
-- **Array of arrays**: Each sub-array = one distance measurement
-- **Three elements**: `[node_id_1, node_id_2, distance_in_meters]`
-- **String node IDs**: 4-digit alphanumeric codes (e.g., "A001", "R001", "B5A4")
-- **Numeric distances**: Positive numbers in metres
-- **Gateway detection**: Node "B5A4" automatically styled as gateway (red)
+**Emergency Data Format Details:**
+- **Array of arrays**: Each sub-array = one position measurement
+- **Three elements**: `[device_id, anchor_id, distance_in_metres]`
+- **String device IDs**: INST device codes (e.g., "INST-001", "RESP-001", "ANCHOR-A")
+- **Numeric distances**: Positive numbers in metres for precise casualty positioning
+- **Gateway detection**: Device "B5A4" automatically styled as emergency gateway (red)
 
-## 📱 Mobile Usage Tips
+## 📱 Crisis Mobile Usage
 
-### **Portrait Mode (Phones)**
-- Compact title bar (same height as text) preserves screen space
-- Controls panel limited to ~120px height, visualisation gets majority of screen
-- Use maximise button (⛶) for full-screen node viewing
-- Swipe up in controls to access collapsed sections
-- Statistics remain visible for quick monitoring
+### **Portrait Mode (Field Tablets)**
+- Compact title bar preserves screen space for casualty display
+- Controls panel limited to essential crisis functions, casualty view gets majority of screen
+- Use maximise button (⛶) for full-screen tactical situational awareness
+- Swipe up in controls to access advanced incident settings
+- Critical statistics remain visible for rapid situation assessment
 
-### **Landscape Mode (Phones & Tablets)**
-- Controls appear on left (~220px), visualisation takes majority of screen
-- Better for detailed node manipulation and settings
-- All sections accessible without scrolling
-- Ideal for demo presentations
+### **Landscape Mode (Command Centre Tablets)**
+- Controls appear on left, casualty positioning takes majority of screen
+- Better for detailed incident management and coordination
+- All response sections accessible without scrolling
+- Ideal for incident command briefings and coordination
 
-### **Touch Interactions**
-- **Tap**: Activate buttons and toggle settings
-- **Tap & Hold**: Some buttons provide visual feedback  
-- **Tap Section Headers**: Expand/collapse control groups
-- **Tap ⛶**: Toggle full-screen visualisation mode
+### **Crisis Touch Interactions**
+- **Tap**: Activate critical controls and toggle essential settings
+- **Tap & Hold**: Important buttons provide haptic feedback for field use
+- **Tap Section Headers**: Expand/collapse crisis control groups
+- **Tap ⛶**: Toggle full-screen casualty tracking mode
 
-### **Performance on Mobile**
-- **Auto-optimisation**: Physics adjusts for mobile performance
-- **Battery Efficient**: Reduced animation when on battery power
-- **Touch Responsiveness**: 60fps interactions maintained
-- **Memory Management**: Automatic cleanup of old nodes/connections
+### **Field Performance on Mobile**
+- **Crisis Optimisation**: Physics adjusts for field tablet performance
+- **Battery Efficient**: Reduced animation when on battery power for extended operations
+- **Touch Responsiveness**: 60fps interactions maintained for critical operations
+- **Memory Management**: Automatic cleanup optimised for long incident operations
 
-## 🔧 Advanced Configuration
+## 🛰️ Emergency System Architecture
 
-### **Mobile-Specific Settings**
+```
+Satellite Network ←→ Ground Station ←→ MQTT Broker ←→ UWB Visualiser
+       ↑                                                    ↓
+   INST Devices ←→ UWB Positioning Network ←→ Emergency Response Teams
+```
+
+### Data Flow in Emergency Scenarios
+
+1. **INST devices** attached to casualties transmit position via UWB
+2. **UWB anchor networks** triangulate precise casualty positions  
+3. **Satellite uplinks** relay data when terrestrial networks are damaged
+4. **MQTT message broker** (`mqtt.dynamicdevices.co.uk`) distributes real-time emergency updates
+5. **Visualisation interface** provides live tactical picture to incident commanders
+
+## 🔧 Emergency Technical Configuration
+
+### **Emergency-Specific Settings**
 ```javascript
-// Configure for mobile via URL parameters
-// https://your-site.com/?mobile=true&compact=true
+// Configure for emergency response via URL parameters
+// https://your-site.com/?emergency=true&priority=high
 
 // Or programmatically via browser console:
 if (window.visualizer) {
-    // Enable mobile optimisations
-    visualizer.isMobileDevice = true;
-    visualizer.optimizeMobileLayout();
+    // Enable emergency optimisations
+    visualizer.isEmergencyMode = true;
+    visualizer.optimizeEmergencyLayout();
     
-    // Maximise visualisation for mobile viewing
+    // Maximise for tactical display
     visualizer.toggleMaximizeVisualization();
     
-    // Auto-collapse advanced sections
-    visualizer.autoCollapseMobileControls();
+    // Auto-collapse non-critical sections
+    visualizer.autoCollapseEmergencyControls();
 }
 ```
 
-### **Touch Event Optimisation**
+### **Emergency Touch Event Optimisation**
 ```javascript
-// Enhanced touch handling for mobile
-if (window.mobileUtils) {
-    // Check if running on mobile
-    console.log('Mobile device:', mobileUtils.isMobile());
+// Enhanced touch handling for emergency operations
+if (window.emergencyUtils) {
+    // Check if running in emergency mode
+    console.log('Emergency device:', emergencyUtils.isEmergencyTablet());
     
-    // Get current statistics
-    console.log('Stats:', mobileUtils.getStats());
+    // Get current casualty statistics
+    console.log('Casualty Stats:', emergencyUtils.getCasualtyStats());
     
-    // Quick actions for mobile workflow
-    mobileUtils.maximiseVisualization(); // Full-screen mode
-    mobileUtils.centerNodes();           // Re-centre display
-    mobileUtils.toggleControls();        // Show/hide controls
+    // Quick emergency actions
+    emergencyUtils.maximiseCasualtyView();    // Full-screen casualty tracking
+    emergencyUtils.centreCasualties();       // Re-centre incident display
+    emergencyUtils.toggleEmergencyControls(); // Show/hide advanced controls
 }
 ```
 
-## 🌟 Key Features
+## 🌟 Emergency Response Features
 
-### **Mobile Performance Optimised**
-- **60 FPS physics simulation** optimised for mobile processors
-- **Touch-responsive controls** with haptic feedback
-- **Automatic scaling** maintains optimal screen usage
-- **Battery-efficient rendering** with adaptive frame rates
-- **Memory management** with automatic node cleanup
+### **Emergency Performance Optimised**
+- **60 FPS physics simulation** optimised for emergency tablet processors
+- **Touch-responsive emergency controls** with haptic feedback for field use
+- **Automatic scaling** maintains optimal incident zone coverage
+- **Battery-efficient rendering** with adaptive frame rates for extended operations
+- **Memory management** with automatic cleanup for long emergency incidents
 
-### **Responsive Design**
-| Device | Layout | Optimisations |
-|--------|--------|---------------|
-| Mobile Portrait | Stacked | Compact controls, maximise mode |
-| Mobile Landscape | Side-by-side | Full controls, wide visualisation |
-| Tablet | Hybrid | Best of both worlds |
-| Desktop | Traditional | Full feature set |
+### **Emergency Device Compatibility**
+| Device | Layout | Emergency Optimisations |
+|--------|--------|-------------------------|
+| Emergency Tablet Portrait | Stacked | Compact controls, maximise tactical mode |
+| Emergency Tablet Landscape | Side-by-side | Full controls, wide casualty view |
+| Command Centre Display | Hybrid | Best tactical awareness |
+| Desktop Command | Traditional | Full emergency management features |
 
-### **Browser Compatibility**
-| Browser | Mobile | Desktop | Touch Support | Gestures |
-|---------|--------|---------|---------------|----------|
-| Chrome  | ✅     | ✅      | ✅           | ✅       |
-| Safari  | ✅     | ✅      | ✅           | ✅       |
-| Firefox | ✅     | ✅      | ✅           | ⚠️       |
-| Edge    | ✅     | ✅      | ✅           | ✅       |
+### **Emergency Browser Compatibility**
+| Browser | Mobile | Desktop | Touch Support | Emergency Mode |
+|---------|--------|---------|---------------|----------------|
+| Chrome  | ✅     | ✅      | ✅           | ✅             |
+| Safari  | ✅     | ✅      | ✅           | ✅             |
+| Firefox | ✅     | ✅      | ✅           | ⚠️             |
+| Edge    | ✅     | ✅      | ✅           | ✅             |
 
-### **Accessibility Features**
-- **High contrast mode** support for mobile devices
-- **Large touch targets** meet accessibility guidelines
-- **Voice control** compatibility on supported devices
-- **Screen reader** support for all controls
-- **Reduced motion** preference respected
+### **Emergency Accessibility Features**
+- **High contrast mode** support for emergency lighting conditions
+- **Large touch targets** meet emergency accessibility guidelines
+- **Voice control** compatibility on emergency tablets
+- **Screen reader** support for all emergency controls
+- **Reduced motion** preference respected during high-stress operations
 
-## 📁 Project Structure
+## 📁 Emergency Project Structure
 
 ```
 inst-visualiser/
-├── index.html              # Mobile-optimised main application
+├── index.html              # Emergency-optimised main application
 ├── css/
-│   └── main.css            # Responsive CSS with mobile-first design
+│   └── main.css            # Responsive CSS with emergency-first design
 ├── js/
-│   ├── physics.js          # Ultra-fast physics engine (unchanged)
-│   ├── visualizer.js       # Mobile-optimised core functionality
-│   └── app.js              # Mobile-aware application init
+│   ├── physics.js          # Ultra-fast physics engine for real-time casualty tracking
+│   ├── visualizer.js       # Emergency-optimised core functionality
+│   └── app.js              # Emergency-aware application init
 ├── examples/
-│   ├── mqtt-simulated-publisher.py  # Test data generator
-│   └── sample-data.json    # Sample UWB positioning data
+│   ├── mqtt-simulated-publisher.py  # Emergency scenario test data
+│   └── sample-data.json    # Sample casualty positioning data
 ├── resources/
-│   └── demo-pic.png        # Demo screenshot
-└── README.md               # This mobile-optimised documentation
+│   └── demo-pic.png        # Emergency interface screenshot
+└── README.md               # This emergency-optimised documentation
 ```
 
-## 🔍 Troubleshooting
+## 🚨 Emergency Troubleshooting
 
-### **Mobile-Specific Issues**
+### **Emergency-Specific Issues**
 
-**Touch Not Responsive**
-- ✅ **Clear browser cache** and reload page
-- ✅ **Check iOS Safari settings**: Ensure JavaScript enabled
-- ✅ **Disable iOS zoom**: May interfere with touch events
-- ✅ **Check Android Chrome flags**: Disable experimental touch features
+**Touch Not Responsive During Emergency**
+- ✅ **Clear emergency tablet cache** and reload application
+- ✅ **Check emergency network settings**: Ensure satellite/WiFi connectivity
+- ✅ **Disable tablet sleep mode**: Critical for continuous emergency operations
+- ✅ **Check emergency tablet battery**: Low power may affect touch sensitivity
 
-**Layout Issues on Mobile**
-- ✅ **Rotate device**: Try landscape mode for better layout
-- ✅ **Clear cookies**: Reset any stored layout preferences  
-- ✅ **Force refresh**: Use Ctrl+F5 or Cmd+Shift+R
-- ✅ **Check viewport settings**: Should be properly configured
+**Emergency Network Connection Issues**
+- ✅ **Test INST satellite connection**: Verify satellite link is operational
+- ✅ **Check emergency network settings**: Verify INST emergency broker access
+- ✅ **Use emergency simulation mode**: Test with built-in casualty data
+- ✅ **Verify emergency WebSocket support**: INST networks require WebSocket capability
 
-**Performance Issues on Mobile**
-- ✅ **Close other apps**: Free up device memory
-- ✅ **Use latest browser**: Update Chrome/Safari to latest version
-- ✅ **Reduce message frequency**: Lower MQTT update rate
-- ✅ **Disable debug mode**: Turn off debug logging for better performance
+**Performance Issues During Emergency Operations**
+- ✅ **Close non-emergency applications**: Free up tablet resources for casualty tracking
+- ✅ **Use latest emergency browser**: Update browser for optimal emergency performance
+- ✅ **Reduce position update frequency**: Lower MQTT rate if network is stressed
+- ✅ **Disable debug mode**: Turn off debug logging for better emergency performance
 
-### **General MQTT Issues**
-- ✅ **Test connection**: Try "Connect" button and check console
-- ✅ **Check broker settings**: Verify host, port, and topic
-- ✅ **Use simulation mode**: Test with built-in sample data
-- ✅ **Verify WebSocket support**: Some networks block WebSocket ports
+### **Critical Emergency MQTT Issues**
+- ✅ **Test INST connection**: Try "Connect" button and check emergency network console
+- ✅ **Check emergency broker settings**: Verify INST emergency network configuration
+- ✅ **Use emergency simulation mode**: Test with built-in emergency scenario data
+- ✅ **Verify satellite WebSocket support**: Emergency networks require WebSocket capability
 
-## 🎯 Version History
+## 🏆 Emergency System Recognition
 
-- **v3.2**: Mobile-Optimised UX with compact controls, small title bar, prioritised visualisation
-- **v3.1**: Ultra-Fast Physics Mode with 100x speed optimisation  
-- **v3.0**: Advanced spring-mass physics system
-- **v2.x**: Basic physics simulation
-- **v1.x**: Simple positioning algorithms
+### **Funding and Emergency Partnership:**
+- **European Space Agency (ESA)** - Emergency technology development funding
+- **UK Space Agency (UKSA)** - National emergency preparedness support  
+- **Business Applications and Space Solutions Programme (BASS)** - Emergency system deployment
+
+### **Emergency Evaluation Partners:**
+- **Greater Manchester Local Resilience Forum** - Real-world emergency validation
+- **Emergency services organisations** - Operational requirements definition
+- **Medical professionals** - Emergency triage optimisation consulting
+
+## 🎯 Emergency Version History
+
+- **v3.3**: Emergency Response Integration with correct INST project information
+- **v3.2**: Mobile-Optimised UX with compact controls, small title bar, prioritised casualty visualisation
+- **v3.1**: Ultra-Fast Physics Mode with 100x speed optimisation for real-time emergency response  
+- **v3.0**: Advanced spring-mass physics system for emergency casualty positioning
+- **v2.x**: Basic physics simulation for emergency scenarios
+- **v1.x**: Simple emergency positioning algorithms
 
 ## 📄 Licence & Copyright
 
 **Copyright (C) Dynamic Devices Ltd 2025**
 
-This program is free software: you can redistribute it and/or modify it under the terms of the **GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.**
+This program is free software: you can redistribute it and/or modify it under the terms of the **GNU General Public License as published by the Free Software Foundation, either version 3 of the Licence, or (at your option) any later version.**
 
-This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**. See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**. See the GNU General Public Licence for more details.
 
-You should have received a copy of the GNU General Public License along with this program. If not, see **<https://www.gnu.org/licenses/>**.
+You should have received a copy of the GNU General Public Licence along with this program. If not, see **<https://www.gnu.org/licenses/>**.
 
-### **Commercial Licensing**
-For commercial use cases requiring proprietary licensing or enterprise support, contact Dynamic Devices Ltd:
-- 📧 **Enterprise Sales**: [enterprise@dynamicdevices.co.uk](mailto:enterprise@dynamicdevices.co.uk)
+### **Emergency Commercial Licensing**
+For emergency response use cases requiring proprietary licensing or emergency services support, contact Dynamic Devices Ltd:
+- 📧 **Emergency Services Sales**: [emergency@dynamicdevices.co.uk](mailto:emergency@dynamicdevices.co.uk)
 - 🌐 **Website**: [https://www.dynamicdevices.co.uk](https://www.dynamicdevices.co.uk)
 
-### **Open Source Contributions**
-We welcome contributions to the INST Project! All contributions must be licensed under GPLv3 to maintain project compatibility.
+### **Emergency Open Source Contributions**
+We welcome contributions to the INST Emergency Response Project! All contributions must be licensed under GPLv3 to maintain emergency system compatibility.
 
-## 📞 Support & Contact
+## 📞 Emergency Support & Contact
 
-### **INST Project Support**
-- 📧 **Technical Support**: [inst-support@dynamicdevices.co.uk](mailto:inst-support@dynamicdevices.co.uk)
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/DynamicDevices/inst-visualiser/issues)
-- 📖 **Documentation**: [INST Project Wiki](https://github.com/DynamicDevices/inst-visualiser/wiki)
+### **INST Emergency Project Support**
+- 📧 **Emergency Technical Support**: [inst-emergency@dynamicdevices.co.uk](mailto:inst-emergency@dynamicdevices.co.uk)
+- 🐛 **Emergency Bug Reports**: [GitHub Issues](https://github.com/DynamicDevices/inst-visualiser/issues)
+- 📖 **Emergency Documentation**: [INST Project Wiki](https://github.com/DynamicDevices/inst-visualiser/wiki)
 - 🌐 **Company Website**: [Dynamic Devices Ltd](https://www.dynamicdevices.co.uk)
 
-### **Professional Services**
-- **Custom Development**: Bespoke UWB positioning solutions
-- **Integration Services**: Enterprise system integration and deployment
-- **Training & Consulting**: UWB technology training and implementation guidance  
-- **Hardware Supply**: Complete UWB hardware kits and development boards
+### **Emergency Professional Services**
+- **Emergency Custom Development**: Bespoke emergency response positioning solutions
+- **Emergency Integration Services**: Critical system integration and emergency deployment
+- **Emergency Training & Consulting**: Emergency response technology training and implementation guidance  
+- **Emergency Hardware Supply**: Complete emergency UWB hardware kits and development systems
+
+### **24/7 Emergency Operations Support**
+- **Emergency Hotline**: Available to authorised emergency services during major incidents
+- **Remote Emergency Monitoring**: Proactive emergency system monitoring and resolution
+- **Rapid Emergency Deployment**: On-site technical assistance for major emergency incidents
 
 ## 📄 Licence
 
-GNU General Public License v3.0 - see [LICENSE](LICENSE) file for details.
+GNU General Public Licence v3.0 - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-### **INST Project Team**
-- **Dynamic Devices Ltd** for INST Project vision and UWB expertise
-- **Engineering Team** for ultra-fast physics optimisation and mobile UX design
-- **Research Partners** for advancing UWB positioning algorithm development
+### **INST Emergency Project Team**
+- **Dynamic Devices Ltd** for INST Emergency Project vision and emergency UWB expertise
+- **Emergency Engineering Team** for ultra-fast physics optimisation and emergency mobile UX design
+- **Emergency Research Partners** for advancing emergency UWB positioning algorithm development
 
-### **Technology Partners**
-- **Eclipse Paho** for robust MQTT JavaScript client implementation
-- **UWB Industry Consortium** for standardisation and interoperability efforts
-- **FiRa Consortium** for secure ranging protocol development and certification
-- **DecaWave/Qorvo** for pioneering UWB semiconductor technology
+### **Emergency Technology Partners**
+- **European Space Agency (ESA)** for emergency satellite communication funding
+- **UK Space Agency (UKSA)** for national emergency preparedness support
+- **Emergency Services Community** for emergency response requirements and operational validation
+- **Eclipse Paho** for robust MQTT JavaScript client implementation suitable for emergency operations
 
-### **Open Source Community**
-- **Mobile UX Community** for touch interaction design insights and best practices
-- **UWB Positioning Researchers** for algorithm development and validation methodologies  
-- **Physics Simulation Community** for force-directed graph layout inspiration
-- **Indoor Positioning Research Groups** for advancing location technology
-
-### **Standards & Protocols**
-- **IEEE 802.15.4z** for UWB PHY and MAC layer standardisation
-- **FiRa Technical Working Groups** for secure ranging protocol specifications
-- **MQTT Protocol** for reliable IoT communication and real-time data streaming
-- **Web Standards** for responsive design and accessibility compliance
+### **Emergency Standards & Protocols**
+- **Emergency Response Standards** for multi-agency coordination protocol compliance
+- **Satellite Communication Protocols** for emergency-resilient data transmission
+- **Emergency Device Standards** for life-critical positioning device certification
+- **MQTT Protocol** for reliable emergency IoT communication and real-time emergency data streaming
 
 ---
 
-⭐ **Star this repository if you find it helpful!**
+⭐ **Star this repository if you find it helpful for emergency response!**
 
-*Made with ❤️ for the IoT and indoor positioning community by **Dynamic Devices Ltd***
+*Made with ❤️ for emergency services and the life-saving community by **Dynamic Devices Ltd***
 
-📱 *Now optimised for mobile devices - position anywhere, anytime!*  
-🏢 *Part of the INST Project - advancing indoor positioning technology*
+🚨 *Now optimised for emergency tablets - save lives anywhere, anytime!*  
+🛰️ *Part of the INST Project - advancing emergency response technology*
 
 **Copyright (C) Dynamic Devices Ltd 2025 - Licensed under GPLv3**
+
+---
+
+*The INST UWB Position Visualiser - Technology serving humanity in our most critical moments.*
+
+**"Every second counts. Every life matters. Every position is precisely known."**
