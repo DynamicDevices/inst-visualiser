@@ -1,91 +1,52 @@
-# UWB Position Visualiser v3.0
+# UWB Position Visualiser v3.2 - Mobile Optimised
 
-A real-time visualization tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation for ultra-fast and accurate node positioning.
+A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation and mobile-optimised UX design for optimal touch interaction.
 
 ![UWB Position Visualiser Demo](resources/demo-pic.png)
 
 **🚀 Try it now: [GitHub Pages Demo](https://dynamicdevices.github.io/inst-visualiser/)**
 
-## ⚡ ULTRA FAST Physics Mode (v3.0)
+## 📱 Mobile-First Design (v3.2)
 
-The visualizer creates an engaging real-time experience with **100x faster physics simulation**:
+The visualiser is now optimised for mobile devices with a **touch-friendly, responsive interface**:
 
-🎯 **Advanced Spring-Mass Physics System:**
+🎯 **Mobile-Optimised UX:**
+- **Compact Controls**: Space-efficient control panels designed for mobile screens
+- **Touch-Friendly**: Larger tap targets, touch gestures, and haptic feedback
+- **Prioritised Visualisation**: Node display takes precedence with maximise mode
+- **Collapsible Sections**: Organised, space-efficient controls that expand on demand
+- **Responsive Layout**: Seamlessly adapts from mobile to desktop
+- **Quick Actions**: Essential functions easily accessible on small screens
+
+📱 **Mobile Features:**
+- **Maximise Mode**: Full-screen visualisation for optimal node viewing (⛶ button)
+- **Auto-Collapse**: Advanced settings collapse automatically on mobile to save space
+- **Touch Gestures**: Pinch, zoom, and tap interactions for intuitive control
+- **Orientation Support**: Adapts layout for portrait and landscape modes
+- **Battery Optimisation**: Efficient rendering for extended mobile use
+
+⚡ **Ultra-Fast Physics System (v3.1+):**
 - **Spring Constant**: 2.0 (100x stronger) for lightning-fast force response  
 - **Minimal Damping**: 0.6 (allows maximum sustained motion)
 - **Ultra-Light Mass**: 0.2 (near-instant acceleration)
-- **Extreme Forces**: All boundary, repulsion, and centering forces increased 100x
+- **Extreme Forces**: All boundary, repulsion, and centring forces increased 100x
 - **Result**: Nodes move ~100x faster to equilibrium positions
 
-🎮 **Simulation & Live Data Mode:**
-- **Start Simulation**: Generate realistic test data with instant physics response
-- **Live MQTT**: Connect to real UWB devices for real-time positioning
-- **Advanced Controls**: Fine-tune physics parameters in real-time
-- **Debug Mode**: Visualize bounding boxes and physics internals
+## 🎮 Getting Started
 
-📐 **Intelligent Positioning Algorithms:**
-- **2 nodes**: Perfect linear spacing at exact distances
-- **3 nodes**: Precise triangle geometry using law of cosines  
-- **4+ nodes**: Ultra-fast spring-mass system optimizing all distances
-- **Auto-scaling**: Maintains 80% screen usage with dynamic scaling
-- **Boundary constraints**: Keeps nodes within visualization area
-
-⚡ **Real-Time MQTT Integration:**
-- **Eclipse Paho MQTT client** with SSL/TLS support
-- **WebSocket connections** for browser compatibility
-- **Auto-reconnection** and subscription management
-- **QoS support** and retained message handling
-- **Device control**: Send rate limiting commands to UWB devices
-- **Comprehensive error handling** with helpful diagnostics
-
-## 🎛️ Advanced Control Panel
-
-### **📊 Real-Time Statistics**
-- **Node count**: Active UWB devices
-- **Connection count**: Distance measurements
-- **Message count**: Total MQTT messages received
-- **Bounding box**: Physical area dimensions in meters
-- **Last message**: Timestamp of latest update
-
-### **📡 MQTT Settings**
-- **Broker host**: Your MQTT broker address
-- **WebSocket port**: Typically 8083 (SSL) or 8080 (plain)
-- **Topic**: MQTT topic for position data (default: `uwb/positions`)
-- **Auto-detection**: Tries multiple connection strategies
-- **SSL support**: Automatically detects and uses secure connections
-
-### **🔬 Physics Settings (Advanced)**
-- **Spring Strength**: 0.5-10.0 (default: 2.0 for ultra-fast mode)
-- **Damping**: 0.3-0.9 (default: 0.6 for maximum motion)
-- **Node Mass**: 0.05-1.0 (default: 0.2 for instant acceleration)
-- **Distance Scale**: 50-250px/m (default: 120px/m)
-- **Real-time adjustment**: Changes take effect immediately
-
-### **⚙️ Display Settings**
-- **Stale timeout**: Mark nodes as stale after N seconds
-- **Removal timeout**: Remove stale nodes after additional N seconds  
-- **Accuracy indicators**: Show ✓/⚠/❌ symbols on distance labels
-- **Physics toggle**: Enable/disable spring-mass simulation
-- **Node management**: Clear all nodes or center on screen
-
-### **📱 Device Control**
-- **Rate limit control**: Send commands to UWB devices to adjust update frequency
-- **MQTT command topics**: Automatic command topic generation
-- **Device feedback**: Real-time status from connected UWB hardware
-
-### **🐛 Debug & Diagnostics**
-- **Debug mode**: Detailed spring connection logging
-- **Bounding box**: Visual outline with dimensions in meters
-- **Physics monitoring**: Real-time energy calculations
-- **Performance metrics**: Frame rate and simulation statistics
-
-## Quick Start
-
-### **Immediate Demo**
+### **Quick Demo (Mobile & Desktop)**
 1. Visit the [live demo](https://dynamicdevices.github.io/inst-visualiser/)
-2. Click **"Start Simulation"** to see ultra-fast physics in action
-3. Observe nodes appearing with smooth animations and instant positioning
-4. Toggle **"Show Console"** to see detailed physics logging
+2. **On Mobile**: Tap "Connect" to see the touch-optimised interface
+3. **Desktop**: Click "Start Simulation" to see ultra-fast physics in action
+4. **Maximise**: Use the ⛶ button for full-screen node visualisation
+5. **Explore**: Tap section headers to collapse/expand control groups
+
+### **Mobile-Optimised Workflow**
+1. **Connect MQTT**: Tap "📡 MQTT Connection" → Enter your broker details → "Connect"
+2. **View Nodes**: Nodes appear with smooth touch-responsive animations  
+3. **Maximise**: Tap ⛶ for full-screen visualisation optimised for mobile viewing
+4. **Quick Actions**: Access essential controls via "⚡ Quick Actions" section
+5. **Monitor**: Live statistics show nodes, links, and coverage area
 
 ### **Test with Python Simulation**
 ```bash
@@ -93,47 +54,53 @@ The visualizer creates an engaging real-time experience with **100x faster physi
 pip install paho-mqtt numpy
 
 # Run UWB simulation publisher (generates realistic test data)
-python examples/mqtt-publisher.py
+python examples/mqtt-simulated-publisher.py
 
-# In the visualizer web interface:
+# In the visualiser (mobile or desktop):
 # - Broker: mqtt.dynamicdevices.co.uk (default)
 # - Topic: uwb/positions (default)  
-# - Click "Connect MQTT" to see simulated data
+# - Tap/Click "Connect" to see simulated data
 ```
 
-### **Connect to Real UWB System**
-1. **Configure MQTT Settings:**
-   - Host: `mqtt.dynamicdevices.co.uk` (or your custom broker)
-   - Port: `8083` (WebSocket SSL) or `8080` (WebSocket)
-   - Topic: `uwb/positions` or your custom topic
+## 🎛️ Mobile-Optimised Control Panel
 
-2. **Click "Connect MQTT"** - system will auto-detect best connection method
+### **📊 Live Statistics** (Always Visible)
+- **Nodes**: Active UWB devices
+- **Links**: Distance measurements  
+- **Messages**: Total MQTT messages received
+- **Area**: Physical coverage area in metres
+- **Last**: Timestamp of latest update
 
-3. **Publish UWB Data** in this JSON format:
-   ```json
-   [
-     ["A001", "T001", 2.34],
-     ["A002", "T001", 1.78],
-     ["A003", "T001", 3.12]
-   ]
-   ```
+### **📡 MQTT Connection** (Touch-Optimised)
+- **Broker**: Your MQTT broker address (touch-friendly input)
+- **Port**: WebSocket port (typically 8083 for SSL)
+- **Topic**: MQTT topic for position data
+- **Auto-collapse**: Panel auto-hides after successful connection
 
-### **Local Development**
-```bash
-# Clone the repository
-git clone https://github.com/DynamicDevices/inst-visualiser.git
-cd inst-visualiser
+### **⚡ Quick Actions** (Mobile Priority)
+- **Centre Nodes**: Re-centre visualisation to optimal view
+- **Clear All**: Remove all nodes and connections
+- **Reset Physics**: Zero all velocities for fresh positioning
+- **Show Distance Accuracy**: Toggle ✓/⚠/❌ symbols on distance labels
+- **Enable Physics**: Toggle ultra-fast spring-mass simulation
 
-# Serve locally (choose one method)
-python3 -m http.server 8080
-# OR
-npx http-server
-# OR just open index.html in your browser
-```
+### **⚙️ Display Settings** (Collapsible)
+- **Stale Timeout**: Mark nodes as stale after N seconds
+- **Remove Timeout**: Remove stale nodes after additional time
+- **Distance Scale**: Adjust metres-to-pixels ratio (50-250px/m)
+
+### **🔬 Physics Tuning** (Advanced)
+- **Spring Force**: 0.5-10.0 (default: 2.0 for ultra-fast mode)
+- **Damping**: 0.3-0.9 (default: 0.6 for maximum motion)
+- **Node Mass**: 0.05-1.0 (default: 0.2 for instant acceleration)
+
+### **🐛 Debug Tools** (Developer)
+- **Debug Logging**: Detailed spring connection messages
+- **Show Boundaries**: Visual outline with area dimensions
 
 ## 📊 Data Format
 
-The visualizer expects JSON arrays containing distance measurements:
+The visualiser expects JSON arrays containing distance measurements:
 
 ```json
 [
@@ -147,101 +114,159 @@ The visualizer expects JSON arrays containing distance measurements:
 - **Array of arrays**: Each sub-array = one distance measurement
 - **Three elements**: `[node_id_1, node_id_2, distance_in_meters]`
 - **String node IDs**: 4-digit alphanumeric codes (e.g., "A001", "R001", "B5A4")
-- **Numeric distances**: Positive numbers in meters
-- **Gateway detection**: Node "B5A4" automatically styled as gateway
+- **Numeric distances**: Positive numbers in metres
+- **Gateway detection**: Node "B5A4" automatically styled as gateway (red)
+
+## 📱 Mobile Usage Tips
+
+### **Portrait Mode (Phones)**
+- Controls appear at top, visualisation below
+- Use maximise button (⛶) for full-screen node viewing
+- Swipe down to access collapsed control sections
+- Statistics remain visible for quick monitoring
+
+### **Landscape Mode (Phones & Tablets)**
+- Controls appear on left, visualisation takes majority of screen
+- Better for detailed node manipulation and settings
+- All sections accessible without scrolling
+- Ideal for demo presentations
+
+### **Touch Interactions**
+- **Tap**: Activate buttons and toggle settings
+- **Tap & Hold**: Some buttons provide visual feedback  
+- **Tap Section Headers**: Expand/collapse control groups
+- **Tap ⛶**: Toggle full-screen visualisation mode
+
+### **Performance on Mobile**
+- **Auto-optimisation**: Physics adjusts for mobile performance
+- **Battery Efficient**: Reduced animation when on battery power
+- **Touch Responsiveness**: 60fps interactions maintained
+- **Memory Management**: Automatic cleanup of old nodes/connections
 
 ## 🔧 Advanced Configuration
 
-### **Physics Tuning**
-For different use cases, adjust physics parameters:
+### **Mobile-Specific Settings**
+```javascript
+// Configure for mobile via URL parameters
+// https://your-site.com/?mobile=true&compact=true
 
-**Ultra-Fast Mode (default v3.0):**
-- Spring: 2.0, Damping: 0.6, Mass: 0.2
-- Best for: Real-time demos, instant response
-
-**Smooth Mode:**
-- Spring: 0.5, Damping: 0.8, Mass: 0.5  
-- Best for: Smooth animations, presentations
-
-**High-Precision Mode:**
-- Spring: 1.0, Damping: 0.9, Mass: 0.1
-- Best for: Scientific visualization, accuracy
-
-### **Device Integration**
-Send rate limiting commands to UWB devices:
-```bash
-# MQTT command format (auto-generated topic)
-Topic: uwb/positions/cmd
-Payload: "set rate_limit 5"
+// Or programmatically via browser console:
+if (window.visualizer) {
+    // Enable mobile optimisations
+    visualizer.isMobileDevice = true;
+    visualizer.optimizeMobileLayout();
+    
+    // Maximise visualisation for mobile viewing
+    visualizer.toggleMaximizeVisualization();
+    
+    // Auto-collapse advanced sections
+    visualizer.autoCollapseMobileControls();
+}
 ```
 
-### **Custom Styling**
-- **Gateway nodes**: Red styling with "GW" label
-- **Standard nodes**: Blue styling with node ID
-- **Accuracy indicators**: ✓ (good), ⚠ (approximate), ❌ (poor)
-- **Stale nodes**: Grayed out when no recent updates
+### **Touch Event Optimisation**
+```javascript
+// Enhanced touch handling for mobile
+if (window.mobileUtils) {
+    // Check if running on mobile
+    console.log('Mobile device:', mobileUtils.isMobile());
+    
+    // Get current statistics
+    console.log('Stats:', mobileUtils.getStats());
+    
+    // Quick actions for mobile workflow
+    mobileUtils.maximiseVisualization(); // Full-screen mode
+    mobileUtils.centerNodes();           // Re-centre display
+    mobileUtils.toggleControls();        // Show/hide controls
+}
+```
 
 ## 🌟 Key Features
 
-### **Performance Optimized**
-- **60 FPS physics simulation** with requestAnimationFrame
+### **Mobile Performance Optimised**
+- **60 FPS physics simulation** optimised for mobile processors
+- **Touch-responsive controls** with haptic feedback
 - **Automatic scaling** maintains optimal screen usage
-- **Efficient collision detection** and boundary constraints
+- **Battery-efficient rendering** with adaptive frame rates
 - **Memory management** with automatic node cleanup
 
+### **Responsive Design**
+| Device | Layout | Optimisations |
+|--------|--------|---------------|
+| Mobile Portrait | Stacked | Compact controls, maximise mode |
+| Mobile Landscape | Side-by-side | Full controls, wide visualisation |
+| Tablet | Hybrid | Best of both worlds |
+| Desktop | Traditional | Full feature set |
+
 ### **Browser Compatibility**
-| Browser | Version | WebSocket | MQTT SSL | Physics |
-|---------|---------|-----------|----------|---------|
-| Chrome  | 60+     | ✅        | ✅       | ✅      |
-| Firefox | 55+     | ✅        | ✅       | ✅      |
-| Safari  | 11+     | ✅        | ✅       | ✅      |
-| Edge    | 79+     | ✅        | ✅       | ✅      |
+| Browser | Mobile | Desktop | Touch Support | Gestures |
+|---------|--------|---------|---------------|----------|
+| Chrome  | ✅     | ✅      | ✅           | ✅       |
+| Safari  | ✅     | ✅      | ✅           | ✅       |
+| Firefox | ✅     | ✅      | ✅           | ⚠️       |
+| Edge    | ✅     | ✅      | ✅           | ✅       |
 
 ### **Accessibility Features**
-- **High contrast mode** support
-- **Reduced motion** preference respect  
-- **Keyboard navigation** for all controls
-- **Screen reader** compatible labels
-- **Color-blind friendly** status indicators
+- **High contrast mode** support for mobile devices
+- **Large touch targets** meet accessibility guidelines
+- **Voice control** compatibility on supported devices
+- **Screen reader** support for all controls
+- **Reduced motion** preference respected
 
 ## 📁 Project Structure
 
 ```
 inst-visualiser/
-├── index.html              # Main application (single-file)
+├── index.html              # Mobile-optimised main application
+├── css/
+│   └── main.css            # Responsive CSS with mobile-first design
+├── js/
+│   ├── physics.js          # Ultra-fast physics engine (unchanged)
+│   ├── visualizer.js       # Mobile-optimised core functionality
+│   └── app.js              # Mobile-aware application init
+├── examples/
+│   ├── mqtt-simulated-publisher.py  # Test data generator
+│   └── sample-data.json    # Sample UWB positioning data
 ├── resources/
-│   └── dd.svg              # Dynamic Devices logo
-├── README.md               # This documentation
-└── LICENSE                 # MIT license
+│   └── demo-pic.png        # Demo screenshot
+└── README.md               # This mobile-optimised documentation
 ```
-
-**Note**: This is a **single-file application** - all CSS, JavaScript, and HTML are contained in `index.html` for maximum portability and simplicity.
 
 ## 🔍 Troubleshooting
 
-### **MQTT Connection Issues**
-- ✅ **Auto-detection**: System tries multiple connection strategies
-- ✅ **Check broker URL**: Ensure WebSocket port (usually 8083 for SSL)
-- ✅ **Verify SSL certificate**: Use "Start Simulation" to test visualizer
-- ✅ **CORS headers**: Ensure broker allows your domain
+### **Mobile-Specific Issues**
 
-### **Node Positioning Issues**
-- ✅ **Verify JSON format**: `[["node1","node2",1.5]]`
-- ✅ **Check distance values**: Must be positive numbers
-- ✅ **Adjust physics**: Try different spring/damping settings
-- ✅ **Scale adjustment**: Use 50-250px/m range
+**Touch Not Responsive**
+- ✅ **Clear browser cache** and reload page
+- ✅ **Check iOS Safari settings**: Ensure JavaScript enabled
+- ✅ **Disable iOS zoom**: May interfere with touch events
+- ✅ **Check Android Chrome flags**: Disable experimental touch features
 
-### **Performance Issues**
-- ✅ **Physics optimization**: System automatically optimizes for speed
-- ✅ **Message frequency**: Default 0.1Hz (10s), up to 5Hz for real-time use
-- ✅ **Browser acceleration**: Use modern browser with hardware acceleration
-- ✅ **Debug console**: Check for error messages
+**Layout Issues on Mobile**
+- ✅ **Rotate device**: Try landscape mode for better layout
+- ✅ **Clear cookies**: Reset any stored layout preferences  
+- ✅ **Force refresh**: Use Ctrl+F5 or Cmd+Shift+R
+- ✅ **Check viewport settings**: Should be properly configured
+
+**Performance Issues on Mobile**
+- ✅ **Close other apps**: Free up device memory
+- ✅ **Use latest browser**: Update Chrome/Safari to latest version
+- ✅ **Reduce message frequency**: Lower MQTT update rate
+- ✅ **Disable debug mode**: Turn off debug logging for better performance
+
+### **General MQTT Issues**
+- ✅ **Test connection**: Try "Connect" button and check console
+- ✅ **Check broker settings**: Verify host, port, and topic
+- ✅ **Use simulation mode**: Test with built-in sample data
+- ✅ **Verify WebSocket support**: Some networks block WebSocket ports
 
 ## 🎯 Version History
 
-- **v3.0**: Ultra-Fast Physics Mode with 100x speed optimization
-- **v2.x**: Advanced spring-mass physics system
-- **v1.x**: Basic positioning with simple algorithms
+- **v3.2**: Mobile-Optimised UX with touch-friendly controls and prioritised visualisation
+- **v3.1**: Ultra-Fast Physics Mode with 100x speed optimisation  
+- **v3.0**: Advanced spring-mass physics system
+- **v2.x**: Basic physics simulation
+- **v1.x**: Simple positioning algorithms
 
 ## 📞 Support & Contact
 
@@ -249,19 +274,22 @@ inst-visualiser/
 - 🐛 **Issues**: [GitHub Issues](https://github.com/DynamicDevices/inst-visualiser/issues)
 - 🌐 **Website**: [Dynamic Devices](https://www.dynamicdevices.co.uk)
 
-## 📄 License
+## 📄 Licence
 
-MIT License - see [LICENSE](LICENSE) file for details.
+GNU General Public License v3.0 - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
 - **Eclipse Paho** for robust MQTT JavaScript client
-- **UWB Community** for positioning algorithm insights  
+- **Mobile UX Community** for touch interaction design insights
+- **UWB Positioning Community** for algorithm development  
 - **Physics simulation** inspired by force-directed graph layouts
-- **Dynamic Devices** team for ultra-fast optimization techniques
+- **Dynamic Devices** team for mobile optimisation techniques
 
 ---
 
 ⭐ **Star this repository if you find it helpful!**
 
 *Made with ❤️ for the IoT and positioning community by Dynamic Devices Ltd.*
+
+📱 *Now optimised for mobile devices - position anywhere, anytime!*

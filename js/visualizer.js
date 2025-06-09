@@ -1,9 +1,9 @@
 /**
- * UWB Position Visualiser - Main Visualiser Class
+ * UWB Position Visualiser - Mobile-Optimised Main Visualiser Class
  * Copyright (C) Dynamic Devices Ltd 2025
  * 
  * Core visualisation and MQTT handling functionality
- * Manages real-time UWB positioning with ultra-fast physics simulation
+ * Optimised for mobile devices with touch-friendly controls and prioritised display
  */
 
 class UWBVisualizer {
@@ -17,7 +17,7 @@ class UWBVisualizer {
         this.controlsVisible = true;
         this.debugMode = false;
         this.showBoundingBox = false;
-        this.version = "3.1";
+        this.version = "3.2";
         this.messageCount = 0;
         this.staleTimeoutMs = 30000;
         this.removalTimeoutMs = 30000;
@@ -30,36 +30,129 @@ class UWBVisualizer {
         this.simulationRunning = false;
         this.animationFrame = null;
         
+        // Mobile optimization properties
+        this.isMobileDevice = this.detectMobileDevice();
+        this.isLandscape = window.innerWidth > window.innerHeight;
+        
         this.initialiseEventListeners();
+        this.setupMobileOptimizations();
         this.startStaleNodeChecker();
-        this.startNodeCenteringChecker(); // Add periodic centering check
+        this.startNodeCenteringChecker();
         this.updateTotalTimeout();
         this.logVersionInfo();
         this.updateStats();
         this.startPhysicsSimulation();
         
-        // Initialize with console collapsed
+        // Initialize with console collapsed and auto-collapse controls on mobile
         document.querySelector('.container').classList.add('console-collapsed');
+        if (this.isMobileDevice) {
+            this.autoCollapseMobileControls();
+        }
+    }
+
+    detectMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+               window.innerWidth <= 768;
+    }
+
+    setupMobileOptimizations() {
+        // Add mobile-specific optimizations
+        if (this.isMobileDevice) {
+            // Prevent zoom on input focus
+            document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
+            
+            // Handle orientation changes
+            window.addEventListener('orientationchange', this.handleOrientationChange.bind(this));
+            
+            // Optimize viewport for mobile
+            this.optimizeMobileViewport();
+            
+            // Auto-collapse certain sections on mobile
+            this.optimizeMobileLayout();
+        }
+    }
+
+    handleTouchStart(event) {
+        // Prevent accidental zoom on double-tap for control elements
+        if (event.target.closest('.controls') || event.target.closest('.visualization-header')) {
+            event.preventDefault();
+        }
+    }
+
+    handleOrientationChange() {
+        setTimeout(() => {
+            this.isLandscape = window.innerWidth > window.innerHeight;
+            this.optimizeMobileLayout();
+            this.centerNodes(); // Re-center nodes after orientation change
+        }, 100);
+    }
+
+    optimizeMobileViewport() {
+        // Ensure proper mobile viewport scaling
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover');
+        }
+    }
+
+    optimizeMobileLayout() {
+        if (this.isMobileDevice) {
+            // Auto-collapse advanced sections on mobile to save space
+            const advancedSections = ['physics', 'device', 'debug', 'version'];
+            advancedSections.forEach(section => {
+                const header = document.querySelector(`[data-section="${section}"]`);
+                if (header) {
+                    const content = header.nextElementSibling;
+                    const toggle = header.querySelector('.collapse-toggle');
+                    if (content && !content.classList.contains('collapsed')) {
+                        content.classList.add('collapsed');
+                        toggle.classList.add('collapsed');
+                        toggle.textContent = '▶';
+                    }
+                }
+            });
+        }
+    }
+
+    autoCollapseMobileControls() {
+        // On very small screens, start with controls collapsed
+        if (window.innerWidth <= 480) {
+            setTimeout(() => {
+                this.toggleControls();
+            }, 500);
+        }
     }
 
     logVersionInfo() {
-        this.logSuccess(`🎯 UWB Position Visualiser v${this.version} initialised - Mobile Optimised ULTRA FAST PHYSICS MODE`);
-        this.logInfo('📱 v3.1 MOBILE: Ultra-compact controls pane optimised for mobile devices');
-        this.logInfo('🎯 v3.1 CENTERING: Enhanced node centering with 200x force + auto-drift correction');
-        this.logInfo('🚀 v3.1 ULTRA FAST: Mass-Spring physics system optimised for 100x faster movement');
-        this.logInfo('⚡ Spring constant: 2.0 (100x stronger) for lightning-fast force response');
-        this.logInfo('🏃 Minimal damping: 0.6 (from 0.92) allows maximum sustained motion');
-        this.logInfo('🪶 Ultra-light mass: 0.2 (from 2.0) enables instant acceleration');
-        this.logInfo('💪 All forces increased 100x: boundary, repulsion, and centring');
-        this.logInfo('🎯 Result: Masses now move ~100x faster - near-instant equilibrium!');
-        this.logInfo('📊 Statistics: Real-time tracking of nodes, connections, and messages');
-        this.logInfo('📁 Click section headers to collapse/expand control groups');
+        this.logSuccess(`🎯 UWB Position Visualiser v${this.version} initialised - Mobile Optimised Ultra-Fast Physics`);
+        this.logInfo('📱 v3.2 MOBILE: Optimised UX for mobile devices with compact controls and small title bar');
+        this.logInfo('🎯 v3.2 PRIORITISED: Node visualisation takes 80%+ of screen space');
+        this.logInfo('📱 v3.2 RESPONSIVE: Ultra-compact controls, larger touch targets, gesture support');
+        this.logInfo('⚡ v3.2 COLLAPSIBLE: Organised sections with space-efficient layout');
+        this.logInfo('🎨 v3.2 IMPROVED: Professional SVG logo with gradient design');
+        this.logInfo('🚀 Ultra-Fast Physics: Spring 2.0, Damping 0.6, Mass 0.2 for instant positioning');
+        this.logInfo('💡 Tip: Use maximise button (⛶) for full-screen node visualisation');
+        this.logInfo('📊 Touch-optimised statistics and quick actions for mobile workflow');
     }
 
     initialiseEventListeners() {
-        // Collapsible sections
+        // Enhanced mobile-friendly event listeners
+        
+        // Collapsible sections with improved touch handling
         document.querySelectorAll('.control-group-header').forEach(header => {
-            header.addEventListener('click', () => this.toggleSection(header));
+            header.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.toggleSection(header);
+            });
+            
+            // Add touch feedback
+            header.addEventListener('touchstart', (e) => {
+                header.style.transform = 'scale(0.98)';
+            }, { passive: true });
+            
+            header.addEventListener('touchend', () => {
+                header.style.transform = '';
+            });
         });
 
         // MQTT controls
@@ -70,7 +163,7 @@ class UWBVisualizer {
         document.getElementById('springStrengthSlider').addEventListener('input', (e) => {
             this.physics.springConstant = parseFloat(e.target.value);
             document.getElementById('springStrengthValue').textContent = e.target.value;
-            this.logInfo(`Spring strength set to ${e.target.value} (ULTRA FAST mode)`);
+            this.logInfo(`Spring strength set to ${e.target.value} (Ultra-Fast mode)`);
         });
 
         document.getElementById('dampingSlider').addEventListener('input', (e) => {
@@ -97,7 +190,7 @@ class UWBVisualizer {
 
         document.getElementById('enablePhysics').addEventListener('change', (e) => {
             this.physicsEnabled = e.target.checked;
-            this.logInfo(`ULTRA FAST Physics ${this.physicsEnabled ? 'enabled' : 'disabled'}`);
+            this.logInfo(`Ultra-Fast Physics ${this.physicsEnabled ? 'enabled' : 'disabled'}`);
             if (this.physicsEnabled && !this.simulationRunning) {
                 this.startPhysicsSimulation();
             } else if (!this.physicsEnabled && this.simulationRunning) {
@@ -145,13 +238,54 @@ class UWBVisualizer {
             this.publishRateLimitCommand(rateLimitSeconds);
         });
 
-        document.getElementById('clearNodes').addEventListener('click', () => this.clearAllNodes());
-        document.getElementById('centerNodes').addEventListener('click', () => this.centerNodes());
-        document.getElementById('resetStats').addEventListener('click', () => this.resetStats());
-        document.getElementById('clearConsole').addEventListener('click', () => this.clearConsole());
-        document.getElementById('toggleConsole').addEventListener('click', () => this.toggleConsole());
-        document.getElementById('toggleControls').addEventListener('click', () => this.toggleControls());
-        document.getElementById('maximizeVisualization').addEventListener('click', () => this.toggleMaximizeVisualization());
+        // Enhanced button controls with touch feedback
+        const buttons = [
+            { id: 'clearNodes', action: () => this.clearAllNodes() },
+            { id: 'centerNodes', action: () => this.centerNodes() },
+            { id: 'resetStats', action: () => this.resetStats() },
+            { id: 'clearConsole', action: () => this.clearConsole() },
+            { id: 'toggleConsole', action: () => this.toggleConsole() },
+            { id: 'toggleControls', action: () => this.toggleControls() },
+            { id: 'maximizeVisualization', action: () => this.toggleMaximizeVisualization() }
+        ];
+
+        buttons.forEach(({ id, action }) => {
+            const button = document.getElementById(id);
+            if (button) {
+                button.addEventListener('click', action);
+                
+                // Add touch feedback for mobile
+                if (this.isMobileDevice) {
+                    button.addEventListener('touchstart', () => {
+                        button.style.transform = 'scale(0.95)';
+                    }, { passive: true });
+                    
+                    button.addEventListener('touchend', () => {
+                        setTimeout(() => {
+                            button.style.transform = '';
+                        }, 100);
+                    });
+                }
+            }
+        });
+
+        // Handle window resize for responsive layout
+        window.addEventListener('resize', this.handleResize.bind(this));
+    }
+
+    handleResize() {
+        // Update mobile detection on resize
+        const wasMobile = this.isMobileDevice;
+        this.isMobileDevice = this.detectMobileDevice();
+        
+        if (wasMobile !== this.isMobileDevice) {
+            this.setupMobileOptimizations();
+        }
+        
+        // Re-center nodes after resize
+        if (this.nodes.size > 0) {
+            setTimeout(() => this.centerNodes(), 100);
+        }
     }
 
     toggleSection(header) {
@@ -185,7 +319,7 @@ class UWBVisualizer {
                 content.classList.add('collapsed');
                 toggle.classList.add('collapsed');
                 toggle.textContent = '▶';
-                this.logInfo('📁 MQTT settings panel auto-collapsed after successful connection');
+                this.logInfo('📁 MQTT connection panel auto-collapsed after successful connection');
             }
         }
     }
@@ -216,7 +350,7 @@ class UWBVisualizer {
         if (this.simulationRunning) return;
         
         this.simulationRunning = true;
-        this.logInfo('🚀 ULTRA FAST Physics simulation started - expect 100x faster movement!');
+        this.logInfo('🚀 Ultra-Fast Physics simulation started - optimised for mobile display!');
         
         const simulate = () => {
             if (!this.simulationRunning || !this.physicsEnabled) return;
@@ -245,7 +379,7 @@ class UWBVisualizer {
             cancelAnimationFrame(this.animationFrame);
             this.animationFrame = null;
         }
-        this.logInfo('🛑 ULTRA FAST Physics simulation stopped');
+        this.logInfo('🛑 Ultra-Fast Physics simulation stopped');
     }
 
     resetPhysics() {
@@ -260,7 +394,7 @@ class UWBVisualizer {
             }
         });
         
-        this.logInfo('🔄 ULTRA FAST Physics state reset - all velocities zeroed');
+        this.logInfo('🔄 Ultra-Fast Physics state reset - all velocities zeroed');
     }
 
     centerNodes() {
@@ -446,7 +580,7 @@ class UWBVisualizer {
         }
         
         if (lastMessageTimeElement && this.lastUpdateTime) {
-            const timestamp = new Date(this.lastUpdateTime).toLocaleTimeString();
+            const timestamp = new Date(this.lastUpdateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             lastMessageTimeElement.textContent = timestamp;
             lastMessageTimeElement.classList.add('updated');
             setTimeout(() => lastMessageTimeElement.classList.remove('updated'), 500);
@@ -457,7 +591,7 @@ class UWBVisualizer {
         const activeNodes = Array.from(this.nodes.values()).filter(node => !node.isRemoved);
         
         if (activeNodes.length < 2) {
-            return '0 x 0 m';
+            return '0×0m';
         }
         
         // Calculate bounding box in pixels
@@ -477,8 +611,8 @@ class UWBVisualizer {
         const widthMeters = widthPixels / this.physics.distanceScale;
         const heightMeters = heightPixels / this.physics.distanceScale;
         
-        // Return dimensions as "width x height m"
-        return `${widthMeters.toFixed(1)} x ${heightMeters.toFixed(1)} m`;
+        // Return compact dimensions for mobile
+        return `${widthMeters.toFixed(1)}×${heightMeters.toFixed(1)}m`;
     }
 
     updateBoundingBox() {
@@ -657,7 +791,7 @@ class UWBVisualizer {
 
     onConnectSuccess() {
         this.mqttConnected = true;
-        this.updateStatus('MQTT Connected', true);
+        this.updateStatus('Connected', true);
         this.logSuccess('✅ Connected to MQTT broker successfully');
         
         const topic = document.getElementById('mqttTopic').value.trim();
@@ -665,7 +799,9 @@ class UWBVisualizer {
             this.mqttClient.subscribe(topic, {
                 onSuccess: () => {
                     this.logSuccess(`📡 Subscribed to topic: ${topic}`);
-                    this.logInfo('📡 Listening for UWB positioning messages... (FAST mode ready!)');
+                    this.logInfo('📡 Listening for UWB positioning messages... (Ultra-Fast mode ready!)');
+                    // Auto-collapse MQTT panel after successful connection
+                    this.collapseMqttPanel();
                 },
                 onFailure: (error) => {
                     this.logError(`❌ Subscription failed: ${error.errorMessage}`);
@@ -741,7 +877,7 @@ class UWBVisualizer {
         this.lastUpdateTime = Date.now();
         
         if (this.debugMode) {
-            this.logInfo(`🔄 Processing message #${this.messageCount} with ${distanceArray.length} distance measurements (ULTRA FAST mode)`);
+            this.logInfo(`🔄 Processing message #${this.messageCount} with ${distanceArray.length} distance measurements (Ultra-Fast mode)`);
         }
         
         // Create/update nodes
@@ -860,6 +996,19 @@ class UWBVisualizer {
     createNodeElement(node) {
         const element = document.createElement('div');
         element.className = `node ${node.type}`;
+        
+        // Add touch handling for mobile devices
+        if (this.isMobileDevice) {
+            element.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                element.style.transform = 'scale(1.1)';
+            }, { passive: false });
+            
+            element.addEventListener('touchend', () => {
+                element.style.transform = '';
+            });
+        }
+        
         return element;
     }
 
@@ -1055,7 +1204,7 @@ class UWBVisualizer {
 
     addLogEntry(message, type) {
         const console = document.getElementById('consoleContent');
-        const timestamp = new Date().toLocaleTimeString();
+        const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
         
         const entry = document.createElement('div');
         entry.className = `log-entry log-${type}`;
@@ -1102,7 +1251,7 @@ class UWBVisualizer {
         this.controlsVisible = !this.controlsVisible;
         const isHidden = !this.controlsVisible;
         
-        // Ensure proper collapsing on mobile
+        // Enhanced mobile handling
         if (isHidden) {
             controlsContent.classList.add('hidden');
             controlsPanel.classList.add('collapsed');
@@ -1128,11 +1277,23 @@ class UWBVisualizer {
         if (this.visualizationMaximized) {
             maximizeButton.textContent = '⛷'; // Minimize icon
             maximizeButton.title = 'Exit Full Screen';
-            this.logInfo('🔍 Visualization full screen - header, controls and console hidden');
+            this.logInfo('🔍 Visualisation maximised - full-screen mode for optimal node viewing');
+            
+            // On mobile, provide haptic feedback if available
+            if (this.isMobileDevice && navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         } else {
             maximizeButton.textContent = '⛶'; // Maximize icon  
-            maximizeButton.title = 'Enter Full Screen';
-            this.logInfo('🔍 Visualization restored to normal view');
+            maximizeButton.title = 'Maximise Visualisation';
+            this.logInfo('🔍 Visualisation restored to normal view');
         }
+        
+        // Re-center nodes after layout change
+        setTimeout(() => {
+            if (this.nodes.size > 0) {
+                this.centerNodes();
+            }
+        }, 100);
     }
 }

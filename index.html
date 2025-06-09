@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    UWB Position Visualiser
+    UWB Position Visualiser - Mobile Optimised
     Copyright (C) Dynamic Devices Ltd 2025
     
     This program is free software: you can redistribute it and/or modify
@@ -19,16 +19,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UWB Position Visualiser</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>UWB Position Visualiser - Mobile Optimised</title>
+    <meta name="description" content="Real-time UWB positioning visualiser with ultra-fast physics simulation, optimised for mobile devices">
+    <meta name="keywords" content="UWB, positioning, visualisation, MQTT, mobile">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo" style="width: 24px; height: 24px; margin-right: 10px; background: #3498db; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">DD</div>
-            <h1>UWB Position Visualiser v3.1</h1>
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 3h7v7H3V3zm1 1v5h5V4H4z" fill="currentColor"/>
+                    <path d="M14 3h7v7h-7V3zm1 1v5h5V4h-5z" fill="currentColor"/>
+                    <path d="M3 14h7v7H3v-7zm1 1v5h5v-5H4z" fill="currentColor"/>
+                    <path d="M14 14h7v7h-7v-7zm1 1v5h5v-5h-5z" fill="currentColor"/>
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                </svg>
+            </div>
+            <h1>UWB Position Visualiser v3.2</h1>
             <div class="status">
                 <div class="status-indicator" id="statusIndicator"></div>
                 <span id="statusText">Disconnected</span>
@@ -43,56 +56,77 @@
             <div class="controls-content" id="controlsContent">
                 <div class="control-group">
                     <div class="control-group-header" data-section="mqtt">
-                        <h3>📡 MQTT Settings</h3>
+                        <h3>📡 MQTT Connection</h3>
                         <button class="collapse-toggle">▼</button>
                     </div>
                     <div class="control-group-content">
                         <div class="input-group">
-                            <label>Broker Host:</label>
+                            <label>Broker:</label>
                             <input type="text" id="mqttHost" value="mqtt.dynamicdevices.co.uk" placeholder="mqtt.broker.com">
                         </div>
                         <div class="input-group">
-                            <label>Port (WebSocket):</label>
-                            <input type="number" id="mqttPort" value="8083" placeholder="8080 (ws) or 8084 (wss)">
+                            <label>Port:</label>
+                            <input type="number" id="mqttPort" value="8083" placeholder="8083">
                         </div>
                         <div class="input-group">
                             <label>Topic:</label>
-                            <input type="text" id="mqttTopic" value="uwb/positions" placeholder="uwb/distances">
+                            <input type="text" id="mqttTopic" value="uwb/positions" placeholder="uwb/positions">
                         </div>
-                        <button class="btn" id="connectMqtt">Connect MQTT</button>
+                        <button class="btn" id="connectMqtt">Connect</button>
                         <button class="btn secondary" id="disconnectMqtt" disabled>Disconnect</button>
                     </div>
                 </div>
 
                 <div class="control-group">
                     <div class="control-group-header" data-section="stats">
-                        <h3>📊 Statistics</h3>
+                        <h3>📊 Live Statistics</h3>
                         <button class="collapse-toggle">▼</button>
                     </div>
                     <div class="control-group-content">
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <span class="stat-label">Nodes:</span>
+                                <span class="stat-label">Nodes</span>
                                 <span class="stat-value" id="nodeCount">0</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Connections:</span>
+                                <span class="stat-label">Links</span>
                                 <span class="stat-value" id="connectionCount">0</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Messages:</span>
+                                <span class="stat-label">Msgs</span>
                                 <span class="stat-value" id="messageCount">0</span>
                             </div>
-                            <div class="stat-item" style="grid-column: 1 / -1;">
-                                <span class="stat-label">Bounding Box:</span>
-                                <span class="stat-value" id="totalArea" style="font-size: 12px;">0 x 0 m</span>
-                            </div>
-                            <div class="stat-item" style="grid-column: 1 / -1;">
-                                <span class="stat-label">Last Message:</span>
-                                <span class="stat-value" id="lastMessageTime" style="font-size: 12px;">Never</span>
+                            <div class="stat-item">
+                                <span class="stat-label">Area</span>
+                                <span class="stat-value" id="totalArea" style="font-size: 9px;">0×0m</span>
                             </div>
                         </div>
-                        <button class="btn secondary" id="resetStats" style="font-size: 11px; padding: 6px 12px; margin-top: 8px;">Reset Stats</button>
+                        <div style="text-align: center; font-size: 8px; color: #7f8c8d; margin-top: 3px;">
+                            Last: <span id="lastMessageTime">Never</span>
+                        </div>
+                        <button class="btn secondary" id="resetStats" style="margin-top: 6px;">Reset Stats</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-group-header" data-section="quick">
+                        <h3>⚡ Quick Actions</h3>
+                        <button class="collapse-toggle collapsed">▶</button>
+                    </div>
+                    <div class="control-group-content collapsed">
+                        <button class="btn success" id="centerNodes">Centre Nodes</button>
+                        <button class="btn" id="clearNodes">Clear All</button>
+                        <button class="btn secondary" id="resetPhysics">Reset Physics</button>
+                        <div class="input-group" style="margin-top: 8px;">
+                            <label>
+                                <input type="checkbox" id="showAccuracy" checked> Show Distance Accuracy
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label>
+                                <input type="checkbox" id="enablePhysics" checked> Enable Physics Simulation
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -103,54 +137,44 @@
                     </div>
                     <div class="control-group-content collapsed">
                         <div class="input-group">
-                            <label>Stale Timeout: <span id="staleTimeoutValue">30</span>s</label>
-                            <input type="range" id="staleTimeoutSlider" min="10" max="120" value="30" step="10" style="width: 100%; margin-top: 5px;">
+                            <label>Stale After: <span id="staleTimeoutValue">30</span>s</label>
+                            <input type="range" id="staleTimeoutSlider" min="10" max="120" value="30" step="10">
                         </div>
                         <div class="input-group">
-                            <label>Removal Timeout: <span id="removalTimeoutValue">30</span>s (after stale)</label>
-                            <input type="range" id="removalTimeoutSlider" min="10" max="180" value="30" step="10" style="width: 100%; margin-top: 5px;">
-                            <div style="font-size: 10px; color: #7f8c8d; margin-top: 2px;">
-                                Total: <span id="totalTimeoutValue">60</span>s (stale + removal)
+                            <label>Remove After: <span id="removalTimeoutValue">30</span>s</label>
+                            <input type="range" id="removalTimeoutSlider" min="10" max="180" value="30" step="10">
+                            <div style="font-size: 9px; color: #7f8c8d; margin-top: 2px;">
+                                Total: <span id="totalTimeoutValue">60</span>s
                             </div>
                         </div>
                         <div class="input-group">
-                            <label>
-                                <input type="checkbox" id="showAccuracy" checked> Show Accuracy
-                            </label>
+                            <label>Distance Scale: <span id="scaleValue">120</span>px/m</label>
+                            <input type="range" id="scaleSlider" min="50" max="250" value="120" step="10">
                         </div>
-                        <div class="input-group">
-                            <label>
-                                <input type="checkbox" id="enablePhysics" checked> Enable Physics
-                            </label>
-                        </div>
-                        <button class="btn" id="clearNodes">Clear Nodes</button>
-                        <button class="btn success" id="centerNodes">Centre Nodes</button>
                     </div>
                 </div>
 
                 <div class="control-group">
                     <div class="control-group-header" data-section="physics">
-                        <h3>🔬 Physics Settings</h3>
+                        <h3>🔬 Physics Tuning</h3>
                         <button class="collapse-toggle collapsed">▶</button>
                     </div>
                     <div class="control-group-content collapsed">
                         <div class="input-group">
-                            <label>Spring Strength: <span id="springStrengthValue">2.0</span></label>
-                            <input type="range" id="springStrengthSlider" min="0.5" max="10.0" value="2.0" step="0.5" style="width: 100%; margin-top: 5px;">
+                            <label>Spring Force: <span id="springStrengthValue">2.0</span></label>
+                            <input type="range" id="springStrengthSlider" min="0.5" max="10.0" value="2.0" step="0.5">
                         </div>
                         <div class="input-group">
                             <label>Damping: <span id="dampingValue">0.6</span></label>
-                            <input type="range" id="dampingSlider" min="0.3" max="0.9" value="0.6" step="0.01" style="width: 100%; margin-top: 5px;">
+                            <input type="range" id="dampingSlider" min="0.3" max="0.9" value="0.6" step="0.01">
                         </div>
                         <div class="input-group">
                             <label>Node Mass: <span id="massValue">0.2</span></label>
-                            <input type="range" id="massSlider" min="0.05" max="1.0" value="0.2" step="0.05" style="width: 100%; margin-top: 5px;">
+                            <input type="range" id="massSlider" min="0.05" max="1.0" value="0.2" step="0.05">
                         </div>
-                        <div class="input-group">
-                            <label>Distance Scale: <span id="scaleValue">120</span>px/m</label>
-                            <input type="range" id="scaleSlider" min="50" max="250" value="120" step="10" style="width: 100%; margin-top: 5px;">
+                        <div style="font-size: 9px; color: #7f8c8d; line-height: 1.3; margin-top: 4px;">
+                            💡 Ultra-fast mode: High spring force, low damping, light mass for instant positioning
                         </div>
-                        <button class="btn success" id="resetPhysics">Reset Physics</button>
                     </div>
                 </div>
 
@@ -161,11 +185,10 @@
                     </div>
                     <div class="control-group-content collapsed">
                         <div class="input-group">
-                            <label>Update Rate Limit: <span id="rateLimitValue">5</span>s</label>
-                            <input type="range" id="rateLimitSlider" min="1" max="60" value="5" step="1" style="width: 100%; margin-top: 5px;">
-                            <div style="font-size: 10px; color: #7f8c8d; margin-top: 5px; line-height: 1.3;">
-                                ℹ️ Controls how often the UWB device sends position updates<br>
-                                💡 Requires MQTT connection to send commands to device
+                            <label>Update Rate: <span id="rateLimitValue">5</span>s</label>
+                            <input type="range" id="rateLimitSlider" min="1" max="60" value="5" step="1">
+                            <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
+                                ℹ️ Controls UWB device update frequency
                             </div>
                         </div>
                     </div>
@@ -173,27 +196,22 @@
 
                 <div class="control-group">
                     <div class="control-group-header" data-section="debug">
-                        <h3>🐛 Debug Settings</h3>
+                        <h3>🐛 Debug Tools</h3>
                         <button class="collapse-toggle collapsed">▶</button>
                     </div>
                     <div class="control-group-content collapsed">
                         <div class="debug-toggle">
                             <input type="checkbox" id="debugMode">
                             <label for="debugMode" class="debug-toggle-button"></label>
-                            <label for="debugMode" class="debug-toggle-label">Enable Debug Mode</label>
+                            <label for="debugMode" class="debug-toggle-label">Debug Logging</label>
                         </div>
-                        <div style="font-size: 10px; color: #7f8c8d; margin-top: 5px; line-height: 1.3;">
-                            ℹ️ Shows detailed spring connection messages and internal physics data
+                        <div class="debug-toggle">
+                            <input type="checkbox" id="showBoundingBox">
+                            <label for="showBoundingBox" class="debug-toggle-button"></label>
+                            <label for="showBoundingBox" class="debug-toggle-label">Show Boundaries</label>
                         </div>
-                        <div class="input-group" style="margin-top: 15px;">
-                            <div class="debug-toggle">
-                                <input type="checkbox" id="showBoundingBox">
-                                <label for="showBoundingBox" class="debug-toggle-button"></label>
-                                <label for="showBoundingBox" class="debug-toggle-label">Show Bounding Box</label>
-                            </div>
-                            <div style="font-size: 10px; color: #7f8c8d; margin-top: 2px;">
-                                🔲 Visual outline with dimensions in metres
-                            </div>
+                        <div style="font-size: 9px; color: #7f8c8d; margin-top: 4px;">
+                            🔍 Shows detailed physics data and area dimensions
                         </div>
                     </div>
                 </div>
@@ -204,21 +222,19 @@
                         <button class="collapse-toggle collapsed">▶</button>
                     </div>
                     <div class="control-group-content collapsed">
-                        <div style="font-size: 11px; color: #34495e; line-height: 1.4; background: rgba(231, 76, 60, 0.1); padding: 8px; border-radius: 4px; border-left: 3px solid var(--secondary-color);">
-                            <strong style="color: var(--secondary-color);">v3.1 - Mobile Optimised ULTRA FAST Physics</strong><br>
-                            • <strong>Mobile</strong>: Compact controls pane for mobile devices<br>
-                            • <strong>Centering</strong>: Enhanced node centering (200x force + auto-center)<br>
-                            • <strong>Spring Constant</strong>: 2.0 (100x faster response)<br>
-                            • <strong>Damping</strong>: 0.6 (minimal resistance, maximum motion)<br>
-                            • <strong>Mass</strong>: 0.2 (1/10 original for instant acceleration)<br>
-                            • <strong>Forces</strong>: All boundary/repulsion forces increased 100x<br>
-                            • <strong>Result</strong>: Masses move ~100x faster to equilibrium<br><br>
+                        <div style="font-size: 10px; color: #34495e; line-height: 1.4; background: rgba(46, 204, 113, 0.1); padding: 8px; border-radius: 4px; border-left: 3px solid var(--success-color);">
+                            <strong style="color: var(--success-color);">v3.2 - Mobile Optimised UX</strong><br>
+                            • <strong>Compact Controls</strong>: Greatly reduced panel size<br>
+                            • <strong>Small Title Bar</strong>: Minimal header preserving screen space<br>
+                            • <strong>Prioritised Display</strong>: Nodes get 80%+ of screen<br>
+                            • <strong>Touch-Friendly</strong>: Larger tap targets and gestures<br>
+                            • <strong>Responsive Layout</strong>: Adapts from mobile to desktop<br>
+                            • <strong>Collapsible Sections</strong>: Ultra-compact organised controls<br>
+                            • <strong>Professional Logo</strong>: Improved SVG design<br><br>
                             
-                            <strong>Extreme Physics:</strong><br>
-                            • Boundary Force: 10.0 (was 0.1)<br>
-                            • Repulsion: 80000 (was 800)<br>
-                            • Centring: 0.1 (was 0.0005) + auto-drift correction<br>
-                            • Lightning-fast, near-instant positioning!
+                            <strong>Ultra-Fast Physics (v3.1+):</strong><br>
+                            Spring: 2.0 | Damping: 0.6 | Mass: 0.2<br>
+                            Lightning-fast equilibrium positioning!
                         </div>
                     </div>
                 </div>
@@ -227,15 +243,15 @@
 
         <div class="visualization">
             <div class="visualization-header">
-                <h3>🎯 Node Visualisation</h3>
-                <button class="maximize-toggle" id="maximizeVisualization">⛶</button>
+                <h3>🎯 Node Positioning</h3>
+                <button class="maximize-toggle" id="maximizeVisualization" title="Maximise Visualisation">⛶</button>
             </div>
             <div class="canvas-container" id="canvas"></div>
         </div>
 
         <div class="console collapsed" id="consolePanel">
             <div class="console-header">
-                <h3>📋 Console Log</h3>
+                <h3>📋 System Log</h3>
                 <div class="console-buttons">
                     <button class="console-toggle" id="clearConsole">Clear</button>
                     <button class="console-toggle" id="toggleConsole">Show</button>
