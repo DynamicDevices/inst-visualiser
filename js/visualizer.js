@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  * 
- * Core visualisation and MQTT handling functionality
+ * Core visualisation functionality with separated MQTT handling
  * Optimised for touch devices with responsive controls and prioritised display
  */
 
@@ -25,13 +25,11 @@ class UWBVisualizer {
         this.nodes = new Map();
         this.connections = new Map();
         this.canvas = document.getElementById('canvas');
-        this.mqttClient = null;
-        this.mqttConnected = false;
         this.consoleVisible = false;
         this.controlsVisible = true;
         this.debugMode = false;
         this.showBoundingBox = false;
-        this.version = "3.4";
+        this.version = "3.5";
         this.messageCount = 0;
         this.staleTimeoutMs = 30000;
         this.removalTimeoutMs = 30000;
@@ -47,6 +45,9 @@ class UWBVisualizer {
         // Mobile optimization properties
         this.isMobileDevice = this.detectMobileDevice();
         this.isLandscape = window.innerWidth > window.innerHeight;
+        
+        // MQTT Manager for separated MQTT functionality
+        this.mqttManager = new MQTTManager(this);
         
         this.initialiseEventListeners();
         this.setupMobileOptimizations();
@@ -139,11 +140,11 @@ class UWBVisualizer {
 
     logVersionInfo() {
         this.logSuccess(`🎯 UWB Position Visualiser v${this.version} initialised - Responsive Advanced Physics`);
-        this.logInfo('📱 v3.4 PROFESSIONAL: Optimised UX for professional positioning applications');
-        this.logInfo('🎯 v3.4 PRIORITISED: Node visualisation takes 80%+ of screen space');
-        this.logInfo('📱 v3.4 RESPONSIVE: Ultra-compact controls, larger touch targets, gesture support');
-        this.logInfo('⚡ v3.4 COLLAPSIBLE: Organised sections with space-efficient layout');
-        this.logInfo('🎨 v3.4 IMPROVED: Professional SVG logo with gradient design');
+        this.logInfo('📱 v3.5 MODULAR: Separated MQTT management for better code organisation');
+        this.logInfo('🎯 v3.5 PRIORITISED: Node visualisation takes 80%+ of screen space');
+        this.logInfo('📱 v3.5 RESPONSIVE: Ultra-compact controls, larger touch targets, gesture support');
+        this.logInfo('⚡ v3.5 COLLAPSIBLE: Organised sections with space-efficient layout');
+        this.logInfo('🎨 v3.5 IMPROVED: Professional SVG logo with gradient design');
         this.logInfo('🚀 Advanced Physics: Spring 2.0, Damping 0.6, Mass 0.2 for responsive positioning');
         this.logInfo('💡 Tip: Use maximise button (⛶) for full-screen node visualisation');
         this.logInfo('📊 Touch-optimised statistics and quick actions for workflow');
@@ -169,9 +170,9 @@ class UWBVisualizer {
             });
         });
 
-        // MQTT controls
-        document.getElementById('connectMqtt').addEventListener('click', () => this.connectMQTT());
-        document.getElementById('disconnectMqtt').addEventListener('click', () => this.disconnectMQTT());
+        // MQTT controls - using separated MQTT manager
+        document.getElementById('connectMqtt').addEventListener('click', () => this.mqttManager.connect());
+        document.getElementById('disconnectMqtt').addEventListener('click', () => this.mqttManager.disconnect());
 
         // Physics controls - adjusted ranges for ultra-fast mode
         document.getElementById('springStrengthSlider').addEventListener('input', (e) => {
@@ -249,7 +250,7 @@ class UWBVisualizer {
         document.getElementById('rateLimitSlider').addEventListener('input', (e) => {
             const rateLimitSeconds = parseInt(e.target.value);
             document.getElementById('rateLimitValue').textContent = rateLimitSeconds;
-            this.publishRateLimitCommand(rateLimitSeconds);
+            this.mqttManager.publishRateLimitCommand(rateLimitSeconds);
         });
 
         // Enhanced button controls with touch feedback
@@ -319,44 +320,6 @@ class UWBVisualizer {
             toggle.classList.add('collapsed');
             toggle.textContent = '▶';
             this.logInfo(`📁 ${section.charAt(0).toUpperCase() + section.slice(1)} section collapsed`);
-        }
-    }
-
-    collapseMqttPanel() {
-        // Force collapse the MQTT panel after successful connection
-        const mqttHeader = document.querySelector('[data-section="mqtt"]');
-        if (mqttHeader) {
-            const content = mqttHeader.nextElementSibling;
-            const toggle = mqttHeader.querySelector('.collapse-toggle');
-            
-            if (content && toggle && !content.classList.contains('collapsed')) {
-                content.classList.add('collapsed');
-                toggle.classList.add('collapsed');
-                toggle.textContent = '▶';
-                this.logInfo('📁 MQTT connection panel auto-collapsed after successful connection');
-            }
-        }
-    }
-
-    publishRateLimitCommand(rateLimitSeconds) {
-        if (!this.mqttConnected || !this.mqttClient) {
-            this.logWarning('⚠️ Cannot send rate limit command - MQTT not connected');
-            return;
-        }
-
-        const baseTopic = document.getElementById('mqttTopic').value.trim();
-        const commandTopic = `${baseTopic}/cmd`;
-        const payload = `set rate_limit ${rateLimitSeconds}`;
-
-        try {
-            const message = new Paho.MQTT.Message(payload);
-            message.destinationName = commandTopic;
-            message.qos = 1; // Ensure delivery
-            
-            this.mqttClient.send(message);
-            this.logSuccess(`📡 Rate limit command sent: ${payload} → ${commandTopic}`);
-        } catch (error) {
-            this.logError(`❌ Failed to send rate limit command: ${error.message}`);
         }
     }
 
@@ -700,190 +663,6 @@ class UWBVisualizer {
         
         this.updateStats();
         this.logInfo('📊 Statistics reset - all data cleared');
-    }
-
-    // MQTT methods (unchanged from previous version)
-    connectMQTT() {
-        if (this.mqttConnected) {
-            this.logWarning('⚠️ Already connected to MQTT broker');
-            return;
-        }
-
-        const host = document.getElementById('mqttHost').value.trim();
-        const port = parseInt(document.getElementById('mqttPort').value);
-        const topic = document.getElementById('mqttTopic').value.trim();
-
-        if (!host || !port || !topic) {
-            this.logError('❌ Please fill in all MQTT settings');
-            return;
-        }
-
-        if (typeof Paho === 'undefined' || typeof Paho.MQTT === 'undefined') {
-            this.logError('❌ Eclipse Paho MQTT client not loaded');
-            return;
-        }
-
-        this.logInfo('📡 Connecting to MQTT broker...');
-        this.attemptConnectionWithAutodetection(host, port, topic);
-    }
-
-    attemptConnectionWithAutodetection(host, port, topic) {
-        // Always try SSL/WSS connections first, then fall back to non-SSL
-        const strategies = [
-            { useSSL: true, path: '/mqtt', description: 'WSS with standard WebSocket path' },
-            { useSSL: true, path: '', description: 'WSS with root WebSocket path' },
-            { useSSL: false, path: '/mqtt', description: 'WS fallback with standard path' },
-            { useSSL: false, path: '', description: 'WS fallback with root path' }
-        ];
-
-        this.tryConnectionStrategies(host, port, topic, strategies, 0);
-    }
-
-    shouldUseSSL(port) {
-        const sslPorts = [8084, 8883, 443, 9001];
-        const nonSslPorts = [8080, 8083, 1883, 9000];
-        
-        if (sslPorts.includes(port)) return true;
-        if (nonSslPorts.includes(port)) return false;
-        return port > 8083;
-    }
-
-    tryConnectionStrategies(host, port, topic, strategies, index) {
-        if (index >= strategies.length) {
-            this.logError('❌ All connection strategies failed');
-            return;
-        }
-
-        const strategy = strategies[index];
-        this.logInfo(`🔗 Strategy ${index + 1}/${strategies.length}: ${strategy.description}`);
-        
-        this.attemptConnection(host, port, topic, strategy.useSSL, strategy.path, () => {
-            setTimeout(() => {
-                this.tryConnectionStrategies(host, port, topic, strategies, index + 1);
-            }, 1000);
-        });
-    }
-
-    attemptConnection(host, port, topic, useSSL, path, onFailure) {
-        try {
-            const clientId = "uwb_visualiser_" + Math.random().toString(16).substring(2, 8);
-            
-            if (path) {
-                this.mqttClient = new Paho.MQTT.Client(host, port, path, clientId);
-            } else {
-                this.mqttClient = new Paho.MQTT.Client(host, port, clientId);
-            }
-            
-            this.mqttClient.onConnectionLost = (responseObject) => {
-                this.onConnectionLost(responseObject);
-            };
-            
-            this.mqttClient.onMessageArrived = (message) => {
-                this.onMessageArrived(message);
-            };
-
-            const connectOptions = {
-                onSuccess: () => this.onConnectSuccess(topic),
-                onFailure: (error) => {
-                    const errorMsg = error.errorMessage || error.message || 'Unknown error';
-                    this.logWarning(`⚠️ Connection failed: ${errorMsg}`);
-                    if (onFailure) onFailure();
-                },
-                timeout: 10,
-                keepAliveInterval: 30,
-                cleanSession: true,
-                useSSL: useSSL,
-            };
-
-            this.mqttClient.connect(connectOptions);
-            
-        } catch (error) {
-            this.logError(`❌ Connection setup error: ${error.message}`);
-            if (onFailure) onFailure();
-        }
-    }
-
-    onConnectSuccess() {
-        this.mqttConnected = true;
-        this.updateStatus('Connected', true);
-        this.logSuccess('✅ Connected to MQTT broker successfully');
-        
-        const topic = document.getElementById('mqttTopic').value.trim();
-        try {
-            this.mqttClient.subscribe(topic, {
-                onSuccess: () => {
-                    this.logSuccess(`📡 Subscribed to topic: ${topic}`);
-                    this.logInfo('📡 Listening for UWB positioning messages... (Advanced mode ready!)');
-                    // Auto-collapse MQTT panel after successful connection
-                    this.collapseMqttPanel();
-                },
-                onFailure: (error) => {
-                    this.logError(`❌ Subscription failed: ${error.errorMessage}`);
-                }
-            });
-        } catch (error) {
-            this.logError(`❌ Subscription error: ${error.message}`);
-        }
-        
-        document.getElementById('connectMqtt').disabled = true;
-        document.getElementById('disconnectMqtt').disabled = false;
-    }
-
-    onConnectionLost(responseObject) {
-        this.mqttConnected = false;
-        this.updateStatus('Connection Lost', false);
-        
-        if (responseObject.errorCode !== 0) {
-            this.logError(`❌ Connection lost: ${responseObject.errorMessage}`);
-        }
-        
-        document.getElementById('connectMqtt').disabled = false;
-        document.getElementById('disconnectMqtt').disabled = true;
-        this.mqttClient = null;
-    }
-
-    onMessageArrived(message) {
-        const topic = message.destinationName;
-        const payload = message.payloadString;
-        
-        this.logSuccess(`📨 MQTT message received: ${payload}`);
-        
-        try {
-            const distanceData = JSON.parse(payload);
-            
-            if (Array.isArray(distanceData)) {
-                this.processDistanceData(distanceData);
-            } else {
-                this.logWarning('⚠️ Invalid message format - expected array');
-            }
-        } catch (error) {
-            this.logError(`❌ Failed to parse message: ${error.message}`);
-        }
-    }
-
-    disconnectMQTT() {
-        if (!this.mqttConnected) {
-            this.logWarning('⚠️ Not connected to MQTT broker');
-            return;
-        }
-
-        this.logInfo('📡 Disconnecting from MQTT broker...');
-        
-        if (this.mqttClient) {
-            try {
-                this.mqttClient.disconnect();
-                this.logInfo('📡 Disconnected from MQTT broker');
-            } catch (error) {
-                this.logError(`❌ Disconnect error: ${error.message}`);
-            }
-            this.mqttClient = null;
-        }
-        
-        this.mqttConnected = false;
-        this.updateStatus('Disconnected', false);
-        
-        document.getElementById('connectMqtt').disabled = false;
-        document.getElementById('disconnectMqtt').disabled = true;
     }
 
     processDistanceData(distanceArray) {

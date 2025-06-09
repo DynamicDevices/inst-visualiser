@@ -1,8 +1,8 @@
-# UWB Position Visualiser v3.4
+# UWB Position Visualiser v3.5
 
 **Part of the INST Project - Instantly Networked Smart Triage**
 
-A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation and touch-optimised UX design for professional positioning applications and system monitoring.
+A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation, modular architecture, and touch-optimised UX design for professional positioning applications and system monitoring.
 
 ![UWB Position Visualiser Demo](resources/demo-pic.png)
 
@@ -59,9 +59,9 @@ In professional positioning applications, **knowing exactly where each element i
 - **Obstacle navigation** - track positions even when landmarks are obscured
 - **24/7 operations** - position tracking independent of visibility conditions
 
-## 📱 Touch-First Professional Interface (v3.4)
+## 📱 Touch-First Professional Interface (v3.5)
 
-The visualiser is now optimised for professional operations with a **touch-friendly, field-ready interface**:
+The visualiser is now optimised for professional operations with a **touch-friendly, field-ready interface** and **modular architecture**:
 
 🎯 **Professional Operations UX:**
 - **Compact Controls**: Greatly reduced control panel size, prioritising positioning display  
@@ -86,6 +86,13 @@ The visualiser is now optimised for professional operations with a **touch-frien
 - **Ultra-Light Mass**: 0.2 (near-instant response to changing positions)
 - **Extreme Forces**: All boundary, repulsion, and centring forces increased 100x
 - **Result**: Nodes position ~100x faster for real-time situational awareness
+
+🏗️ **Modular Architecture (v3.5):**
+- **Separated MQTT Management**: Dedicated MQTTManager class for better code organisation
+- **Improved Maintainability**: Clear separation of concerns between visualisation and networking
+- **Enhanced Debugging**: Easier to trace MQTT-specific issues
+- **Better Testing**: Individual components can be tested independently
+- **Code Reusability**: MQTT functionality can be reused in other projects
 
 ## 🚑 Professional Getting Started
 
@@ -215,6 +222,24 @@ Satellite Network ←→ Ground Station ←→ MQTT Broker ←→ UWB Visualiser
 4. **MQTT message broker** (`mqtt.dynamicdevices.co.uk`) distributes real-time updates
 5. **Visualisation interface** provides live tactical picture to operational commanders
 
+### Modular Architecture (v3.5)
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   UWBVisualizer │◄──►│   MQTTManager   │◄──►│ SpringMassSystem │
+│                 │    │                 │    │                 │
+│ • Node Display  │    │ • Connection    │    │ • Physics Sim   │
+│ • UI Controls   │    │ • Message Parse │    │ • Force Calc    │
+│ • Touch Events  │    │ • Auto-retry    │    │ • Position Upd  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+**Benefits of Modular Design:**
+- **Maintainability**: Easier to update MQTT functionality without affecting visualisation
+- **Debugging**: Clear boundaries between networking and rendering issues
+- **Testing**: Each component can be unit tested independently
+- **Reusability**: MQTTManager can be used in other INST project components
+
 ## 🔧 Professional Technical Configuration
 
 ### **Professional-Specific Settings**
@@ -253,6 +278,24 @@ if (window.systemUtils) {
 }
 ```
 
+### **MQTT Manager Configuration**
+```javascript
+// Access separated MQTT functionality
+if (window.visualizer && window.visualizer.mqttManager) {
+    const mqtt = window.visualizer.mqttManager;
+    
+    // Connection status
+    console.log('MQTT Connected:', mqtt.isConnected());
+    
+    // Manual connection control
+    mqtt.connect();
+    mqtt.disconnect();
+    
+    // Send rate limit commands
+    mqtt.publishRateLimitCommand(10);
+}
+```
+
 ## 🌟 Professional Features
 
 ### **Professional Performance Optimised**
@@ -261,6 +304,7 @@ if (window.systemUtils) {
 - **Automatic scaling** maintains optimal operational zone coverage
 - **Battery-efficient rendering** with adaptive frame rates for extended operations
 - **Memory management** with automatic cleanup for long operational sessions
+- **Modular architecture** reduces memory footprint and improves performance
 
 ### **Professional Device Compatibility**
 | Device | Layout | Professional Optimisations |
@@ -294,7 +338,8 @@ inst-visualiser/
 │   └── main.css            # Responsive CSS with touch-first design
 ├── js/
 │   ├── physics.js          # Ultra-fast physics engine for real-time positioning tracking
-│   ├── visualizer.js       # Responsive core functionality
+│   ├── mqtt.js             # Separated MQTT management for better organisation
+│   ├── visualizer.js       # Core visualisation functionality
 │   └── app.js              # Touch-aware application init
 ├── examples/
 │   ├── mqtt-simulated-publisher.py  # Professional scenario test data
@@ -331,6 +376,7 @@ inst-visualiser/
 - ✅ **Check broker settings**: Verify professional network configuration
 - ✅ **Use simulation mode**: Test with built-in scenario data
 - ✅ **Verify WebSocket support**: Professional networks require WebSocket capability
+- ✅ **MQTT Manager debug**: Use `window.visualizer.mqttManager` to inspect connection state
 
 ## 🏆 Professional System Recognition
 
@@ -346,6 +392,7 @@ inst-visualiser/
 
 ## 🎯 Professional Version History
 
+- **v3.5**: Modular Architecture with separated MQTT management for better code organisation
 - **v3.4**: Professional Positioning with refined interface and terminology
 - **v3.3**: Emergency Response Integration with correct INST project information
 - **v3.2**: Touch-Optimised UX with compact controls, small title bar, prioritised positioning visualisation
@@ -399,7 +446,7 @@ GNU General Public Licence v3.0 - see [LICENSE](LICENSE) file for details.
 
 ### **INST Professional Project Team**
 - **Dynamic Devices Ltd** for INST Professional Project vision and UWB expertise
-- **Advanced Engineering Team** for advanced physics optimisation and touch-friendly UX design
+- **Advanced Engineering Team** for advanced physics optimisation and modular architecture design
 - **Professional Research Partners** for advancing UWB positioning algorithm development
 
 ### **Professional Technology Partners**
@@ -421,7 +468,8 @@ GNU General Public Licence v3.0 - see [LICENSE](LICENSE) file for details.
 *Made with ❤️ for professional positioning and the technology community by **Dynamic Devices Ltd***
 
 🚨 *Now optimised for professional tablets - precise positioning anywhere, anytime!*  
-🛰️ *Part of the INST Project - advancing positioning technology*
+🛰️ *Part of the INST Project - advancing positioning technology*  
+🏗️ *v3.5: Modular architecture for better maintainability*
 
 **Copyright (C) Dynamic Devices Ltd 2025 - Licensed under GPLv3**
 

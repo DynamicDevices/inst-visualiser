@@ -1,5 +1,5 @@
 /**
- * UWB Position Visualiser - Physics Engine v3.4
+ * UWB Position Visualiser - Physics Engine v3.5
  * Copyright (C) Dynamic Devices Ltd 2025
  * 
  * Advanced spring-mass physics system for high-performance positioning simulation
