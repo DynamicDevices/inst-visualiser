@@ -2,7 +2,7 @@
 
 **Part of the INST Project - Instantly Networked Smart Triage**
 
-A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation, modular architecture, and touch-optimised UX design for professional positioning applications and system monitoring.
+A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation, modular architecture, and touch-optimised UX design for positioning applications and system monitoring.
 
 ![UWB Position Visualiser Demo](resources/demo-pic.png)
 
@@ -10,7 +10,7 @@ A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQT
 
 ## 🚨 About the INST Project
 
-**INST (Instantly Networked Smart Triage)** is a professional positioning system designed for emergency response applications. Developed with funding from the **European Space Agency (ESA)** and **UK Space Agency (UKSA)** through the Business Applications and Space Solutions Programme (BASS), INST addresses positioning and coordination challenges in various operational environments.
+**INST (Instantly Networked Smart Triage)** is a positioning system designed for emergency response applications. Developed with funding from the **European Space Agency (ESA)** and **UK Space Agency (UKSA)** through the Business Applications and Space Solutions Programme (BASS), INST addresses positioning and coordination challenges in various operational environments.
 
 ### The Technology INST Provides
 
@@ -40,11 +40,11 @@ Ultra-Wideband technology forms the **precision positioning backbone** of the IN
 - **Minimal interference** with other communication systems
 - **Real-time performance** with microsecond timing precision
 
-### UWB in Professional Applications
+### UWB in Applications
 
-In professional positioning applications, **knowing exactly where each element is located provides significant operational advantages**. The UWB positioning system enables:
+In positioning applications, **knowing exactly where each element is located provides significant operational advantages**. The UWB positioning system enables:
 
-#### 🏥 **Professional Monitoring**
+#### 🏥 **Monitoring**
 - **Spatial mapping** - visualise distribution of tracked elements across operational zones
 - **Priority routing** - direct personnel to most important locations first
 - **Resource allocation** - deploy teams based on real positioning data
@@ -59,23 +59,23 @@ In professional positioning applications, **knowing exactly where each element i
 - **Obstacle navigation** - track positions even when landmarks are obscured
 - **24/7 operations** - position tracking independent of visibility conditions
 
-## 📱 Touch-First Professional Interface (v3.5)
+## 📱 Touch-First Interface (v3.5)
 
-The visualiser is now optimised for professional operations with a **touch-friendly, field-ready interface** and **modular architecture**:
+The visualiser is optimised for operations with a **touch-friendly, field-ready interface** and **modular architecture**:
 
-🎯 **Professional Operations UX:**
+🎯 **Operations UX:**
 - **Compact Controls**: Greatly reduced control panel size, prioritising positioning display  
 - **Critical Information Priority**: Position and status data prominently displayed
-- **Touch-Friendly Operations**: Larger tap targets, professional gesture support
+- **Touch-Friendly Operations**: Larger tap targets, gesture support
 - **Prioritised Visualisation**: Node positions take 80%+ of screen space
 - **Rapid Assessment Sections**: Quick-access essential controls
 - **Field-Ready Display**: High contrast, readable in various lighting conditions
 - **Command Centre Mode**: Full-screen tactical display for operational command
 
-📱 **Professional Response Features:**
+📱 **Response Features:**
 - **Maximise Mode**: Full-screen positioning tracking for optimal situation awareness (⛶ button)
 - **Auto-Collapse**: Non-essential settings collapse automatically to save space
-- **Professional System Branding**: Clear visual identity for operational use
+- **System Branding**: Clear visual identity for operational use
 - **Touch Gestures**: Pinch, zoom, and tap interactions for rapid field use
 - **Orientation Support**: Adapts layout for portrait and landscape tablets
 - **Battery Optimisation**: Efficient rendering for extended field operations
@@ -91,40 +91,26 @@ The visualiser is now optimised for professional operations with a **touch-frien
 - **Separated MQTT Management**: Dedicated MQTTManager class for better code organisation
 - **Improved Maintainability**: Clear separation of concerns between visualisation and networking
 - **Enhanced Debugging**: Easier to trace MQTT-specific issues
-- **Better Testing**: Individual components can be tested independently
+- **Better Code Quality**: Individual components can be developed and maintained independently
 - **Code Reusability**: MQTT functionality can be reused in other projects
 
-## 🚑 Professional Getting Started
+## 🚑 Getting Started
 
 ### **Quick Demo (Touch & Desktop)**
 1. Visit the [live demo](https://dynamicdevices.github.io/inst-visualiser/)
-2. **On Tablet**: Tap "Connect" to see the field-optimised professional interface
-3. **Desktop Command Centre**: Click "Start Simulation" to see advanced physics positioning
+2. **On Tablet**: Tap "Connect" to see the field-optimised interface
+3. **Desktop Command Centre**: Click to see advanced physics positioning
 4. **Tactical Display**: Use the ⛶ button for full-screen positioning view
 5. **System Assessment**: Tap section headers to access detailed operational controls
 
-### **Professional Operations Workflow**
+### **Operations Workflow**
 1. **Connect to Network**: Tap "📡 MQTT Connection" → Configure for operational systems → "Connect"
 2. **Monitor Positions**: Tracked items appear with status indicators
 3. **Tactical View**: Tap ⛶ for full-screen situational awareness optimised for operational command
 4. **Rapid Response**: Access essential functions via "⚡ Quick Actions" section
 5. **Live Operations**: Real-time statistics show tracking count, coverage, and system health
 
-### **Test with Professional Simulation**
-```bash
-# Install dependencies
-pip install paho-mqtt numpy
-
-# Run professional simulation (generates realistic positioning data)
-python examples/mqtt-simulated-publisher.py
-
-# In the visualiser (tablet or command centre):
-# - Broker: mqtt.dynamicdevices.co.uk (professional network)
-# - Topic: uwb/positions (positioning tracking data)  
-# - Tap/Click "Connect" to see simulated professional data
-```
-
-## 🚨 Professional Operations Control Panel
+## 🚨 Operations Control Panel
 
 ### **📊 Live System Statistics** (Always Visible)
 - **Nodes**: Active positioning devices
@@ -134,7 +120,7 @@ python examples/mqtt-simulated-publisher.py
 - **Last Update**: Timestamp of latest position data
 
 ### **📡 Network Connection** (Touch-Optimised)
-- **System Broker**: Pre-configured professional network (touch-friendly input)
+- **System Broker**: Pre-configured network (touch-friendly input)
 - **Network Port**: WebSocket port for system communications (typically 8083 for secure)
 - **Position Data Topic**: MQTT topic for real-time positioning
 - **Auto-collapse**: Panel auto-hides after successful connection to network
@@ -144,7 +130,7 @@ python examples/mqtt-simulated-publisher.py
 - **Clear All Data**: Remove all positioning data (system reset)
 - **Reset Physics**: Zero all velocities for fresh positioning calculations
 - **Show Distance Accuracy**: Toggle ✓/⚠/❌ symbols for distance accuracy indicators
-- **Enable Physics Simulation**: Toggle high-performance positioning simulation for dynamic situations
+- **Enable Physics Simulation**: Toggle high-performance positioning for dynamic situations
 
 ### **⚙️ Display Settings** (Collapsible)
 - **Node Stale Timeout**: Mark devices as offline after N seconds without updates
@@ -214,7 +200,7 @@ Satellite Network ←→ Ground Station ←→ MQTT Broker ←→ UWB Visualiser
    INST Devices ←→ UWB Positioning Network ←→ Operational Teams
 ```
 
-### Data Flow in Professional Scenarios
+### Data Flow in Scenarios
 
 1. **INST devices** track positions via UWB
 2. **UWB anchor networks** triangulate precise positions  
@@ -240,38 +226,38 @@ Satellite Network ←→ Ground Station ←→ MQTT Broker ←→ UWB Visualiser
 - **Testing**: Each component can be unit tested independently
 - **Reusability**: MQTTManager can be used in other INST project components
 
-## 🔧 Professional Technical Configuration
+## 🔧 Technical Configuration
 
-### **Professional-Specific Settings**
+### **System-Specific Settings**
 ```javascript
-// Configure for professional use via URL parameters
-// https://your-site.com/?professional=true&priority=high
+// Configure via URL parameters
+// https://your-site.com/?mode=operational&priority=high
 
 // Or programmatically via browser console:
 if (window.visualizer) {
-    // Enable professional optimisations
-    visualizer.isProfessionalMode = true;
-    visualizer.optimizeProfessionalLayout();
+    // Enable operational optimisations
+    visualizer.isOperationalMode = true;
+    visualizer.optimizeLayout();
     
     // Maximise for tactical display
     visualizer.toggleMaximizeVisualization();
     
     // Auto-collapse non-essential sections
-    visualizer.autoCollapseProfessionalControls();
+    visualizer.autoCollapseControls();
 }
 ```
 
-### **Professional Touch Event Optimisation**
+### **Touch Event Optimisation**
 ```javascript
-// Enhanced touch handling for professional operations
+// Enhanced touch handling for operations
 if (window.systemUtils) {
-    // Check if running in professional mode
-    console.log('Professional device:', systemUtils.isTabletDevice());
+    // Check if running on tablet device
+    console.log('Tablet device:', systemUtils.isTabletDevice());
     
     // Get current system statistics
     console.log('System Stats:', systemUtils.getSystemStats());
     
-    // Quick professional actions
+    // Quick actions
     systemUtils.maximiseDisplay();        // Full-screen positioning tracking
     systemUtils.centreNodes();           // Re-centre operational display
     systemUtils.toggleControls();        // Show/hide advanced controls
@@ -296,40 +282,40 @@ if (window.visualizer && window.visualizer.mqttManager) {
 }
 ```
 
-## 🌟 Professional Features
+## 🌟 Features
 
-### **Professional Performance Optimised**
-- **60 FPS physics simulation** optimised for professional tablet processors
+### **Performance Optimised**
+- **60 FPS physics simulation** optimised for tablet processors
 - **Touch-responsive controls** with haptic feedback for field use
 - **Automatic scaling** maintains optimal operational zone coverage
 - **Battery-efficient rendering** with adaptive frame rates for extended operations
 - **Memory management** with automatic cleanup for long operational sessions
 - **Modular architecture** reduces memory footprint and improves performance
 
-### **Professional Device Compatibility**
-| Device | Layout | Professional Optimisations |
-|--------|--------|---------------------------|
-| Professional Tablet Portrait | Stacked | Compact controls, maximise tactical mode |
-| Professional Tablet Landscape | Side-by-side | Full controls, wide positioning view |
+### **Device Compatibility**
+| Device | Layout | Optimisations |
+|--------|--------|---------------|
+| Tablet Portrait | Stacked | Compact controls, maximise tactical mode |
+| Tablet Landscape | Side-by-side | Full controls, wide positioning view |
 | Command Centre Display | Hybrid | Best tactical awareness |
-| Desktop Command | Traditional | Full professional management features |
+| Desktop Command | Traditional | Full management features |
 
-### **Professional Browser Compatibility**
-| Browser | Touch | Desktop | Touch Support | Professional Mode |
-|---------|-------|---------|---------------|-------------------|
-| Chrome  | ✅    | ✅      | ✅           | ✅                |
-| Safari  | ✅    | ✅      | ✅           | ✅                |
-| Firefox | ✅    | ✅      | ✅           | ⚠️                |
-| Edge    | ✅    | ✅      | ✅           | ✅                |
+### **Browser Compatibility**
+| Browser | Touch | Desktop | Touch Support | Advanced Mode |
+|---------|-------|---------|---------------|---------------|
+| Chrome  | ✅    | ✅      | ✅           | ✅            |
+| Safari  | ✅    | ✅      | ✅           | ✅            |
+| Firefox | ✅    | ✅      | ✅           | ⚠️            |
+| Edge    | ✅    | ✅      | ✅           | ✅            |
 
-### **Professional Accessibility Features**
+### **Accessibility Features**
 - **High contrast mode** support for various lighting conditions
-- **Large touch targets** meet professional accessibility guidelines
-- **Voice control** compatibility on professional tablets
-- **Screen reader** support for all professional controls
+- **Large touch targets** meet accessibility guidelines
+- **Voice control** compatibility on tablets
+- **Screen reader** support for all controls
 - **Reduced motion** preference respected during operations
 
-## 📁 Professional Project Structure
+## 📁 Project Structure
 
 ```
 inst-visualiser/
@@ -341,17 +327,14 @@ inst-visualiser/
 │   ├── mqtt.js             # Separated MQTT management for better organisation
 │   ├── visualizer.js       # Core visualisation functionality
 │   └── app.js              # Touch-aware application init
-├── examples/
-│   ├── mqtt-simulated-publisher.py  # Professional scenario test data
-│   └── sample-data.json    # Sample positioning data
 ├── resources/
-│   └── demo-pic.png        # Professional interface screenshot
-└── README.md               # This responsive documentation
+│   └── demo-pic.png        # Interface screenshot
+└── README.md               # This documentation
 ```
 
-## 🚨 Professional Troubleshooting
+## 🚨 Troubleshooting
 
-### **Professional-Specific Issues**
+### **Common Issues**
 
 **Touch Not Responsive During Operations**
 - ✅ **Clear tablet cache** and reload application
@@ -361,43 +344,40 @@ inst-visualiser/
 
 **Network Connection Issues**
 - ✅ **Test INST satellite connection**: Verify satellite link is operational
-- ✅ **Check network settings**: Verify professional broker access
-- ✅ **Use simulation mode**: Test with built-in positioning data
-- ✅ **Verify WebSocket support**: Professional networks require WebSocket capability
+- ✅ **Check network settings**: Verify broker access
+- ✅ **Verify WebSocket support**: Networks require WebSocket capability
 
 **Performance Issues During Operations**
 - ✅ **Close non-essential applications**: Free up tablet resources for positioning tracking
-- ✅ **Use latest browser**: Update browser for optimal professional performance
+- ✅ **Use latest browser**: Update browser for optimal performance
 - ✅ **Reduce position update frequency**: Lower MQTT rate if network is stressed
-- ✅ **Disable debug mode**: Turn off debug logging for better professional performance
+- ✅ **Disable debug mode**: Turn off debug logging for better performance
 
 ### **Essential MQTT Issues**
 - ✅ **Test connection**: Try "Connect" button and check network console
-- ✅ **Check broker settings**: Verify professional network configuration
-- ✅ **Use simulation mode**: Test with built-in scenario data
-- ✅ **Verify WebSocket support**: Professional networks require WebSocket capability
+- ✅ **Check broker settings**: Verify network configuration
+- ✅ **Verify WebSocket support**: Networks require WebSocket capability
 - ✅ **MQTT Manager debug**: Use `window.visualizer.mqttManager` to inspect connection state
 
-## 🏆 Professional System Recognition
+## 🏆 System Recognition
 
-### **Funding and Professional Partnership:**
+### **Funding and Partnership:**
 - **European Space Agency (ESA)** - Technology development funding
 - **UK Space Agency (UKSA)** - National preparedness support  
 - **Business Applications and Space Solutions Programme (BASS)** - System deployment
 
-### **Professional Evaluation Partners:**
+### **Evaluation Partners:**
 - **Greater Manchester Local Resilience Forum** - Real-world validation
-- **Professional organisations** - Operational requirements definition
-- **Technical professionals** - System optimisation consulting
+- **Technical organisations** - System optimisation consulting
 
-## 🎯 Professional Version History
+## 🎯 Version History
 
 - **v3.5**: Modular Architecture with separated MQTT management for better code organisation
-- **v3.4**: Professional Positioning with refined interface and terminology
+- **v3.4**: Positioning with refined interface and terminology
 - **v3.3**: Emergency Response Integration with correct INST project information
 - **v3.2**: Touch-Optimised UX with compact controls, small title bar, prioritised positioning visualisation
 - **v3.1**: High-Performance Physics Mode with 100x speed optimisation for real-time positioning response  
-- **v3.0**: Advanced spring-mass physics system for professional positioning
+- **v3.0**: Advanced spring-mass physics system for positioning
 - **v2.x**: Basic physics simulation for positioning scenarios
 - **v1.x**: Simple positioning algorithms
 
@@ -411,32 +391,32 @@ This program is distributed in the hope that it will be useful, but **WITHOUT AN
 
 You should have received a copy of the GNU General Public Licence along with this program. If not, see **<https://www.gnu.org/licenses/>**.
 
-### **Professional Commercial Licensing**
-For professional use cases requiring proprietary licensing or professional services support, contact Dynamic Devices Ltd:
-- 📧 **Professional Services Sales**: [professional@dynamicdevices.co.uk](mailto:professional@dynamicdevices.co.uk)
+### **Commercial Licensing**
+For use cases requiring proprietary licensing or services support, contact Dynamic Devices Ltd:
+- 📧 **Services Sales**: [services@dynamicdevices.co.uk](mailto:services@dynamicdevices.co.uk)
 - 🌐 **Website**: [https://www.dynamicdevices.co.uk](https://www.dynamicdevices.co.uk)
 
-### **Professional Open Source Contributions**
-We welcome contributions to the INST Professional Positioning Project! All contributions must be licensed under GPLv3 to maintain professional system compatibility.
+### **Open Source Contributions**
+We welcome contributions to the INST Positioning Project! All contributions must be licensed under GPLv3 to maintain system compatibility.
 
-## 📞 Professional Support & Contact
+## 📞 Support & Contact
 
-### **INST Professional Project Support**
-- 📧 **Professional Technical Support**: [inst-professional@dynamicdevices.co.uk](mailto:inst-professional@dynamicdevices.co.uk)
-- 🐛 **Professional Bug Reports**: [GitHub Issues](https://github.com/DynamicDevices/inst-visualiser/issues)
-- 📖 **Professional Documentation**: [INST Project Wiki](https://github.com/DynamicDevices/inst-visualiser/wiki)
+### **INST Project Support**
+- 📧 **Technical Support**: [inst-support@dynamicdevices.co.uk](mailto:inst-support@dynamicdevices.co.uk)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/DynamicDevices/inst-visualiser/issues)
+- 📖 **Documentation**: [INST Project Wiki](https://github.com/DynamicDevices/inst-visualiser/wiki)
 - 🌐 **Company Website**: [Dynamic Devices Ltd](https://www.dynamicdevices.co.uk)
 
-### **Professional Services**
-- **Professional Custom Development**: Bespoke positioning solutions
-- **Professional Integration Services**: System integration and deployment
-- **Professional Training & Consulting**: Technology training and implementation guidance  
-- **Professional Hardware Supply**: Complete UWB hardware kits and development systems
+### **Services**
+- **Custom Development**: Bespoke positioning solutions
+- **Integration Services**: System integration and deployment
+- **Training & Consulting**: Technology training and implementation guidance  
+- **Hardware Supply**: Complete UWB hardware kits and development systems
 
-### **24/7 Professional Operations Support**
-- **Professional Hotline**: Available to authorised professionals during major operations
-- **Remote Professional Monitoring**: Proactive system monitoring and resolution
-- **Rapid Professional Deployment**: On-site technical assistance for major operational requirements
+### **24/7 Operations Support**
+- **Support Hotline**: Available during major operations
+- **Remote Monitoring**: Proactive system monitoring and resolution
+- **Rapid Deployment**: On-site technical assistance for major operational requirements
 
 ## 📄 Licence
 
@@ -444,30 +424,30 @@ GNU General Public Licence v3.0 - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-### **INST Professional Project Team**
-- **Dynamic Devices Ltd** for INST Professional Project vision and UWB expertise
+### **INST Project Team**
+- **Dynamic Devices Ltd** for INST Project vision and UWB expertise
 - **Advanced Engineering Team** for advanced physics optimisation and modular architecture design
-- **Professional Research Partners** for advancing UWB positioning algorithm development
+- **Research Partners** for advancing UWB positioning algorithm development
 
-### **Professional Technology Partners**
+### **Technology Partners**
 - **European Space Agency (ESA)** for satellite communication funding
 - **UK Space Agency (UKSA)** for national preparedness support
-- **Professional Community** for operational requirements and validation
-- **Eclipse Paho** for robust MQTT JavaScript client implementation suitable for professional operations
+- **Community** for operational requirements and validation
+- **Eclipse Paho** for robust MQTT JavaScript client implementation suitable for operations
 
-### **Professional Standards & Protocols**
-- **Professional Standards** for multi-agency coordination protocol compliance
+### **Standards & Protocols**
+- **Standards** for multi-agency coordination protocol compliance
 - **Satellite Communication Protocols** for resilient data transmission
-- **Professional Device Standards** for positioning device certification
-- **MQTT Protocol** for reliable IoT communication and real-time professional data streaming
+- **Device Standards** for positioning device certification
+- **MQTT Protocol** for reliable IoT communication and real-time data streaming
 
 ---
 
-⭐ **Star this repository if you find it helpful for professional positioning!**
+⭐ **Star this repository if you find it helpful for positioning!**
 
-*Made with ❤️ for professional positioning and the technology community by **Dynamic Devices Ltd***
+*Made with ❤️ for positioning and the technology community by **Dynamic Devices Ltd***
 
-🚨 *Now optimised for professional tablets - precise positioning anywhere, anytime!*  
+🚨 *Now optimised for tablets - precise positioning anywhere, anytime!*  
 🛰️ *Part of the INST Project - advancing positioning technology*  
 🏗️ *v3.5: Modular architecture for better maintainability*
 
