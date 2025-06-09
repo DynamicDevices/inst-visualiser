@@ -221,8 +221,12 @@ def setup_mqtt():
 def publish_to_mqtt(data):
     global mqtt_client, last_publish_time
     
-    if mqtt_client is None or args.disable_mqtt:
-        log_verbose("MQTT publish skipped - client not available or disabled")
+    if mqtt_client is None:
+        log_info("MQTT publish skipped - client not available")
+        return
+        
+    if args.disable_mqtt:
+        log_verbose("MQTT publish skipped - disabled via command line")
         return
         
     current_time = time.time()
@@ -233,17 +237,17 @@ def publish_to_mqtt(data):
         rate_limit = current_rate_limit
     
     if time_since_last < rate_limit:
-        log_verbose(f"MQTT publish rate limited - {time_since_last:.1f}s < {rate_limit}s")
+        log_info(f"MQTT publish rate limited - waiting {rate_limit - time_since_last:.1f}s more")
         return
         
     if not mqtt_client.is_connected():
-        log_verbose("MQTT client not connected, skipping publish")
+        log_info("MQTT client not connected, skipping publish")
         return
         
     try:
         # Convert data to JSON string with proper formatting
         json_data = json.dumps(data)
-        log_verbose(f"Publishing to topic '{args.mqtt_topic}': {json_data}")
+        log_verbose(f"Attempting to publish to topic '{args.mqtt_topic}': {json_data}")
         
         result = mqtt_client.publish(args.mqtt_topic, json_data, qos=1)
         log_verbose(f"Publish result: rc={result.rc}, mid={result.mid}")
@@ -258,11 +262,10 @@ def publish_to_mqtt(data):
                 mqtt.MQTT_ERR_PAYLOAD_SIZE: "Payload too large"
             }
             error_msg = error_messages.get(result.rc, f"Unknown error {result.rc}")
-            log_error(f"Failed to publish to MQTT: {error_msg}")
-            log_verbose(f"MQTT publish failed with detailed error: {error_msg}")
+            log_info(f"Failed to publish to MQTT: {error_msg}")
             
     except Exception as e:
-        log_error(f"Error publishing to MQTT: {e}")
+        log_info(f"Error publishing to MQTT: {e}")
         log_verbose(f"MQTT publish exception: {type(e).__name__}: {str(e)}")
         if args.verbose:
             import traceback
