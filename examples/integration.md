@@ -1,4 +1,4 @@
-# Integration Guide - UWB Position Visualiser v3.0
+# Integration Guide - UWB Position Visualiser v3.4
 
 This guide explains how to integrate the UWB Position Visualiser with various systems and data sources.
 
@@ -359,7 +359,7 @@ replayer.replay_data(mqtt_client, "uwb/positions", speed_factor=2.0)
 
 // Or programmatically via browser console:
 if (window.visualizer) {
-    // Ultra-fast mode (default v3.0)
+    // Advanced mode (default v3.4)
     visualizer.physics.springConstant = 2.0;
     visualizer.physics.damping = 0.6;
     visualizer.physics.mass = 0.2;
@@ -431,9 +431,9 @@ class HighFrequencyPublisher:
             self.last_publish = time.time()
 
 # Usage for different scenarios
-battery_publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=0.1)  # Every 10s
-demo_publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=1.0)     # Every 1s  
-realtime_publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=5.0) # Every 0.2s
+low_power_publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=0.1)  # Every 10s
+demo_publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=1.0)       # Every 1s  
+realtime_publisher = HighFrequencyPublisher(mqtt_client, "uwb/positions", max_rate=5.0)   # Every 0.2s
 
 # Add measurements as they arrive
 while True:

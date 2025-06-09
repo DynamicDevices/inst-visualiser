@@ -1,14 +1,14 @@
 /**
- * UWB Position Visualiser - Physics Engine
+ * UWB Position Visualiser - Physics Engine v3.4
  * Copyright (C) Dynamic Devices Ltd 2025
  * 
- * Advanced spring-mass physics system for ultra-fast positioning simulation
+ * Advanced spring-mass physics system for high-performance positioning simulation
  * Optimised for 100x faster movement with minimal damping and ultra-light masses
  */
 
 class SpringMassSystem {
     constructor() {
-        // ULTRA FAST PHYSICS PARAMETERS - Optimised for 100x faster movement
+        // HIGH PERFORMANCE PHYSICS PARAMETERS - Optimised for 100x faster movement
         this.springConstant = 2.0;     // 100x increase: extremely strong springs
         this.damping = 0.6;            // Minimal damping: allows maximum sustained motion
         this.mass = 0.2;               // 1/10 original mass: near-instant acceleration
@@ -26,7 +26,7 @@ class SpringMassSystem {
         // Centering force - 200x stronger for better centralization
         this.centeringForce = 0.1;     // 200x increase: powerful center attraction
         
-        // Auto-scaling parameters - ultra responsive with better centering
+        // Auto-scaling parameters - highly responsive with better centering
         this.targetScreenUsage = 0.7;   // Target 70% usage for better centering
         this.scaleAdjustmentRate = 0.1; // Ultra-fast scale adjustments
     }

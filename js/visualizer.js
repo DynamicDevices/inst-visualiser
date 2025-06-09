@@ -1,5 +1,5 @@
 /**
- * UWB Position Visualiser - Mobile-Optimised Main Visualiser Class
+ * UWB Position Visualiser - Responsive Main Visualiser Class
  * Part of the INST Project - Indoor Positioning System Technology
  * Copyright (C) Dynamic Devices Ltd 2025
  * 
@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  * 
  * Core visualisation and MQTT handling functionality
- * Optimised for mobile devices with touch-friendly controls and prioritised display
+ * Optimised for touch devices with responsive controls and prioritised display
  */
 
 class UWBVisualizer {
@@ -31,7 +31,7 @@ class UWBVisualizer {
         this.controlsVisible = true;
         this.debugMode = false;
         this.showBoundingBox = false;
-        this.version = "3.2";
+        this.version = "3.4";
         this.messageCount = 0;
         this.staleTimeoutMs = 30000;
         this.removalTimeoutMs = 30000;
@@ -138,15 +138,15 @@ class UWBVisualizer {
     }
 
     logVersionInfo() {
-        this.logSuccess(`🎯 UWB Position Visualiser v${this.version} initialised - Mobile Optimised Ultra-Fast Physics`);
-        this.logInfo('📱 v3.2 MOBILE: Optimised UX for mobile devices with compact controls and small title bar');
-        this.logInfo('🎯 v3.2 PRIORITISED: Node visualisation takes 80%+ of screen space');
-        this.logInfo('📱 v3.2 RESPONSIVE: Ultra-compact controls, larger touch targets, gesture support');
-        this.logInfo('⚡ v3.2 COLLAPSIBLE: Organised sections with space-efficient layout');
-        this.logInfo('🎨 v3.2 IMPROVED: Professional SVG logo with gradient design');
-        this.logInfo('🚀 Ultra-Fast Physics: Spring 2.0, Damping 0.6, Mass 0.2 for instant positioning');
+        this.logSuccess(`🎯 UWB Position Visualiser v${this.version} initialised - Responsive Advanced Physics`);
+        this.logInfo('📱 v3.4 PROFESSIONAL: Optimised UX for professional positioning applications');
+        this.logInfo('🎯 v3.4 PRIORITISED: Node visualisation takes 80%+ of screen space');
+        this.logInfo('📱 v3.4 RESPONSIVE: Ultra-compact controls, larger touch targets, gesture support');
+        this.logInfo('⚡ v3.4 COLLAPSIBLE: Organised sections with space-efficient layout');
+        this.logInfo('🎨 v3.4 IMPROVED: Professional SVG logo with gradient design');
+        this.logInfo('🚀 Advanced Physics: Spring 2.0, Damping 0.6, Mass 0.2 for responsive positioning');
         this.logInfo('💡 Tip: Use maximise button (⛶) for full-screen node visualisation');
-        this.logInfo('📊 Touch-optimised statistics and quick actions for mobile workflow');
+        this.logInfo('📊 Touch-optimised statistics and quick actions for workflow');
     }
 
     initialiseEventListeners() {
@@ -177,7 +177,7 @@ class UWBVisualizer {
         document.getElementById('springStrengthSlider').addEventListener('input', (e) => {
             this.physics.springConstant = parseFloat(e.target.value);
             document.getElementById('springStrengthValue').textContent = e.target.value;
-            this.logInfo(`Spring strength set to ${e.target.value} (Ultra-Fast mode)`);
+            this.logInfo(`Spring strength set to ${e.target.value} (High-performance mode)`);
         });
 
         document.getElementById('dampingSlider').addEventListener('input', (e) => {
@@ -193,7 +193,7 @@ class UWBVisualizer {
             this.nodes.forEach(node => {
                 if (!node.isRemoved) node.mass = this.physics.mass;
             });
-            this.logInfo(`Node mass set to ${e.target.value} (ultra-light = instant response)`);
+            this.logInfo(`Node mass set to ${e.target.value} (lightweight = responsive positioning)`);
         });
 
         document.getElementById('scaleSlider').addEventListener('input', (e) => {
@@ -204,7 +204,7 @@ class UWBVisualizer {
 
         document.getElementById('enablePhysics').addEventListener('change', (e) => {
             this.physicsEnabled = e.target.checked;
-            this.logInfo(`Ultra-Fast Physics ${this.physicsEnabled ? 'enabled' : 'disabled'}`);
+            this.logInfo(`Advanced Physics ${this.physicsEnabled ? 'enabled' : 'disabled'}`);
             if (this.physicsEnabled && !this.simulationRunning) {
                 this.startPhysicsSimulation();
             } else if (!this.physicsEnabled && this.simulationRunning) {
@@ -364,12 +364,12 @@ class UWBVisualizer {
         if (this.simulationRunning) return;
         
         this.simulationRunning = true;
-        this.logInfo('🚀 Ultra-Fast Physics simulation started - optimised for mobile display!');
+        this.logInfo('🚀 Advanced Physics simulation started - optimised for responsive display!');
         
         const simulate = () => {
             if (!this.simulationRunning || !this.physicsEnabled) return;
             
-            // Run physics simulation with ultra-fast parameters
+            // Run physics simulation with high-performance parameters
             this.physics.simulate(
                 this.nodes, 
                 this.connections, 
@@ -393,7 +393,7 @@ class UWBVisualizer {
             cancelAnimationFrame(this.animationFrame);
             this.animationFrame = null;
         }
-        this.logInfo('🛑 Ultra-Fast Physics simulation stopped');
+        this.logInfo('🛑 Advanced Physics simulation stopped');
     }
 
     resetPhysics() {
@@ -408,7 +408,7 @@ class UWBVisualizer {
             }
         });
         
-        this.logInfo('🔄 Ultra-Fast Physics state reset - all velocities zeroed');
+        this.logInfo('🔄 Advanced Physics state reset - all velocities zeroed');
     }
 
     centerNodes() {
@@ -813,7 +813,7 @@ class UWBVisualizer {
             this.mqttClient.subscribe(topic, {
                 onSuccess: () => {
                     this.logSuccess(`📡 Subscribed to topic: ${topic}`);
-                    this.logInfo('📡 Listening for UWB positioning messages... (Ultra-Fast mode ready!)');
+                    this.logInfo('📡 Listening for UWB positioning messages... (Advanced mode ready!)');
                     // Auto-collapse MQTT panel after successful connection
                     this.collapseMqttPanel();
                 },
@@ -891,7 +891,7 @@ class UWBVisualizer {
         this.lastUpdateTime = Date.now();
         
         if (this.debugMode) {
-            this.logInfo(`🔄 Processing message #${this.messageCount} with ${distanceArray.length} distance measurements (Ultra-Fast mode)`);
+            this.logInfo(`🔄 Processing message #${this.messageCount} with ${distanceArray.length} distance measurements (Advanced mode)`);
         }
         
         // Create/update nodes
@@ -924,9 +924,9 @@ class UWBVisualizer {
             });
             
             if (wasRemoved) {
-                this.logSuccess(`🔄 Restored connection ${node1}-${node2}: ${distance.toFixed(2)}m (will snap instantly!)`);
+                this.logSuccess(`🔄 Restored connection ${node1}-${node2}: ${distance.toFixed(2)}m (will snap quickly!)`);
             } else if (this.debugMode) {
-                this.logInfo(`📏 Spring connection ${node1}-${node2}: ${distance.toFixed(2)}m (ultra-fast physics)`);
+                this.logInfo(`📏 Spring connection ${node1}-${node2}: ${distance.toFixed(2)}m (advanced physics)`);
             }
         });
 
@@ -954,7 +954,7 @@ class UWBVisualizer {
                 hasInitialPosition: false
             });
             
-            this.logSuccess(`✨ Created new ${isGateway ? 'gateway' : 'standard'} node: ${nodeId} (ultra-fast physics enabled)`);
+            this.logSuccess(`✨ Created new ${isGateway ? 'gateway' : 'standard'} node: ${nodeId} (advanced physics enabled)`);
             this.updateStats();
         } else {
             const node = this.nodes.get(nodeId);
@@ -962,7 +962,7 @@ class UWBVisualizer {
                 node.isRemoved = false;
                 node.isStale = false;
                 node.lastUpdate = Date.now();
-                this.logSuccess(`🔄 Restored previously removed node: ${nodeId} (will move instantly to position)`);
+                this.logSuccess(`🔄 Restored previously removed node: ${nodeId} (will move to position quickly)`);
             }
         }
     }

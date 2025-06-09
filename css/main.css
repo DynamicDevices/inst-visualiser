@@ -1,8 +1,8 @@
 /**
- * UWB Position Visualiser - Mobile-Optimised Stylesheet  
+ * UWB Position Visualiser - Responsive Stylesheet  
  * Copyright (C) Dynamic Devices Ltd 2025
  * 
- * Comprehensive styling optimised for mobile devices with compact controls
+ * Comprehensive styling optimised for touch devices with compact controls
  * and prioritised visualisation area with maximise functionality
  */
 
@@ -734,7 +734,7 @@ body {
     color: #e74c3c;
 }
 
-/* Mobile-First Responsive Design */
+/* Responsive Design */
 @media (max-width: 768px) {
     body {
         font-size: 12px;

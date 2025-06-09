@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 UWB Position Data MQTT Publisher - FIXED for paho-mqtt v2.0+
-Dynamic Devices Ltd - Example code for inst-visualiser v3.0
+Dynamic Devices Ltd - Example code for inst-visualiser v3.4
 
 Requirements:
     pip install paho-mqtt numpy
@@ -138,7 +138,7 @@ class SimulationGenerator:
     """
     
     def __init__(self):
-        # Define node positions in a coordinate system (meters)
+        # Define node positions in a coordinate system (metres)
         self.nodes = {
             "B5A4": (0.0, 0.0),      # Gateway at origin
             "R001": (3.0, 2.0),      # Room 1

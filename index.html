@@ -31,9 +31,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>UWB Position Visualiser - Crisis Response</title>
-    <meta name="description" content="Real-time UWB casualty positioning visualiser for crisis response with ultra-fast physics simulation, optimised for field tablets and command centres">
-    <meta name="keywords" content="UWB, crisis response, casualty tracking, MQTT, INST, mass casualty incidents, incident coordination">
+    <title>UWB Position Visualiser - Real-Time Tracking</title>
+    <meta name="description" content="Real-time UWB positioning visualiser with advanced physics simulation, optimised for tablets and desktop systems">
+    <meta name="keywords" content="UWB, positioning, tracking, MQTT, INST, real-time monitoring, location tracking">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <link rel="stylesheet" href="css/main.css">
 </head>
@@ -49,7 +49,7 @@
                     <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
                 </svg>
             </div>
-            <h1>UWB Position Visualiser v3.3</h1>
+            <h1>UWB Position Visualiser v3.4</h1>
             <div class="status">
                 <div class="status-indicator" id="statusIndicator"></div>
                 <span id="statusText">Disconnected</span>
@@ -58,46 +58,46 @@
 
         <div class="controls" id="controlsPanel">
             <div class="controls-header">
-                <h2>⚙️ Crisis Controls</h2>
+                <h2>⚙️ System Controls</h2>
                 <button class="controls-toggle" id="toggleControls">Hide</button>
             </div>
             <div class="controls-content" id="controlsContent">
                 <div class="control-group">
                     <div class="control-group-header" data-section="mqtt">
-                        <h3>📡 INST Network</h3>
+                        <h3>📡 MQTT Network</h3>
                         <button class="collapse-toggle">▼</button>
                     </div>
                     <div class="control-group-content">
                         <div class="input-group">
-                            <label>Crisis Broker:</label>
+                            <label>Broker Host:</label>
                             <input type="text" id="mqttHost" value="mqtt.dynamicdevices.co.uk" placeholder="mqtt.broker.com">
                         </div>
                         <div class="input-group">
-                            <label>Satellite Port:</label>
+                            <label>Broker Port:</label>
                             <input type="number" id="mqttPort" value="8083" placeholder="8083">
                         </div>
                         <div class="input-group">
-                            <label>Casualty Data:</label>
+                            <label>Position Topic:</label>
                             <input type="text" id="mqttTopic" value="uwb/positions" placeholder="uwb/positions">
                         </div>
-                        <button class="btn" id="connectMqtt">Connect to INST</button>
+                        <button class="btn" id="connectMqtt">Connect to Network</button>
                         <button class="btn secondary" id="disconnectMqtt" disabled>Disconnect</button>
                     </div>
                 </div>
 
                 <div class="control-group">
                     <div class="control-group-header" data-section="stats">
-                        <h3>📊 Crisis Status</h3>
+                        <h3>📊 System Status</h3>
                         <button class="collapse-toggle">▼</button>
                     </div>
                     <div class="control-group-content">
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <span class="stat-label">Casualties</span>
+                                <span class="stat-label">Nodes</span>
                                 <span class="stat-value" id="nodeCount">0</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Positions</span>
+                                <span class="stat-label">Connections</span>
                                 <span class="stat-value" id="connectionCount">0</span>
                             </div>
                             <div class="stat-item">
@@ -112,27 +112,27 @@
                         <div style="text-align: center; font-size: 8px; color: #7f8c8d; margin-top: 3px;">
                             Last Update: <span id="lastMessageTime">Never</span>
                         </div>
-                        <button class="btn secondary" id="resetStats" style="margin-top: 6px;">Reset Emergency Data</button>
+                        <button class="btn secondary" id="resetStats" style="margin-top: 6px;">Reset System Data</button>
                     </div>
                 </div>
 
                 <div class="control-group">
                     <div class="control-group-header" data-section="quick">
-                        <h3>⚡ Crisis Actions</h3>
+                        <h3>⚡ Quick Actions</h3>
                         <button class="collapse-toggle collapsed">▶</button>
                     </div>
                     <div class="control-group-content collapsed">
-                        <button class="btn success" id="centerNodes">Centre Casualties</button>
-                        <button class="btn" id="clearNodes">Clear Incident</button>
-                        <button class="btn secondary" id="resetPhysics">Reset Positioning</button>
+                        <button class="btn success" id="centerNodes">Centre Display</button>
+                        <button class="btn" id="clearNodes">Clear All Nodes</button>
+                        <button class="btn secondary" id="resetPhysics">Reset Physics</button>
                         <div class="input-group" style="margin-top: 8px;">
                             <label>
-                                <input type="checkbox" id="showAccuracy" checked> Show Medical Priority
+                                <input type="checkbox" id="showAccuracy" checked> Show Distance Accuracy
                             </label>
                         </div>
                         <div class="input-group">
                             <label>
-                                <input type="checkbox" id="enablePhysics" checked> Enable Real-Time Physics
+                                <input type="checkbox" id="enablePhysics" checked> Enable Physics Simulation
                             </label>
                         </div>
                     </div>
@@ -140,23 +140,23 @@
 
                 <div class="control-group">
                     <div class="control-group-header" data-section="display">
-                        <h3>⚙️ Crisis Display</h3>
+                        <h3>⚙️ Display Settings</h3>
                         <button class="collapse-toggle collapsed">▶</button>
                     </div>
                     <div class="control-group-content collapsed">
                         <div class="input-group">
-                            <label>Device Offline: <span id="staleTimeoutValue">30</span>s</label>
+                            <label>Node Stale Timeout: <span id="staleTimeoutValue">30</span>s</label>
                             <input type="range" id="staleTimeoutSlider" min="10" max="120" value="30" step="10">
                         </div>
                         <div class="input-group">
-                            <label>Remove Device: <span id="removalTimeoutValue">30</span>s</label>
+                            <label>Node Removal Timeout: <span id="removalTimeoutValue">30</span>s</label>
                             <input type="range" id="removalTimeoutSlider" min="10" max="180" value="30" step="10">
                             <div style="font-size: 9px; color: #7f8c8d; margin-top: 2px;">
                                 Total: <span id="totalTimeoutValue">60</span>s
                             </div>
                         </div>
                         <div class="input-group">
-                            <label>Incident Scale: <span id="scaleValue">120</span>px/m</label>
+                            <label>Display Scale: <span id="scaleValue">120</span>px/m</label>
                             <input type="range" id="scaleSlider" min="50" max="250" value="120" step="10">
                         </div>
                     </div>
@@ -164,24 +164,24 @@
 
                 <div class="control-group">
                     <div class="control-group-header" data-section="physics">
-                        <h3>🔬 Response Physics</h3>
+                        <h3>🔬 Physics Settings</h3>
                         <button class="collapse-toggle collapsed">▶</button>
                     </div>
                     <div class="control-group-content collapsed">
                         <div class="input-group">
-                            <label>Response Speed: <span id="springStrengthValue">2.0</span></label>
+                            <label>Spring Strength: <span id="springStrengthValue">2.0</span></label>
                             <input type="range" id="springStrengthSlider" min="0.5" max="10.0" value="2.0" step="0.5">
                         </div>
                         <div class="input-group">
-                            <label>Stability: <span id="dampingValue">0.6</span></label>
+                            <label>Damping Factor: <span id="dampingValue">0.6</span></label>
                             <input type="range" id="dampingSlider" min="0.3" max="0.9" value="0.6" step="0.01">
                         </div>
                         <div class="input-group">
-                            <label>Device Mass: <span id="massValue">0.2</span></label>
+                            <label>Node Mass: <span id="massValue">0.2</span></label>
                             <input type="range" id="massSlider" min="0.05" max="1.0" value="0.2" step="0.05">
                         </div>
                         <div style="font-size: 9px; color: #7f8c8d; line-height: 1.3; margin-top: 4px;">
-                            💡 Emergency mode: High response speed, low stability, light mass for instant casualty positioning
+                            💡 High-performance mode: High spring strength, low damping, light mass for responsive positioning
                         </div>
                     </div>
                 </div>
@@ -196,7 +196,7 @@
                             <label>Update Rate: <span id="rateLimitValue">5</span>s</label>
                             <input type="range" id="rateLimitSlider" min="1" max="60" value="5" step="1">
                             <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
-                                ℹ️ Controls INST device update frequency
+                                ℹ️ Controls device update frequency
                             </div>
                         </div>
                     </div>
@@ -204,22 +204,22 @@
 
                 <div class="control-group">
                     <div class="control-group-header" data-section="debug">
-                        <h3>🚨 Crisis Debug</h3>
+                        <h3>🐛 Debug Tools</h3>
                         <button class="collapse-toggle collapsed">▶</button>
                     </div>
                     <div class="control-group-content collapsed">
                         <div class="debug-toggle">
                             <input type="checkbox" id="debugMode">
                             <label for="debugMode" class="debug-toggle-button"></label>
-                            <label for="debugMode" class="debug-toggle-label">System Logging</label>
+                            <label for="debugMode" class="debug-toggle-label">Debug Logging</label>
                         </div>
                         <div class="debug-toggle">
                             <input type="checkbox" id="showBoundingBox">
                             <label for="showBoundingBox" class="debug-toggle-button"></label>
-                            <label for="showBoundingBox" class="debug-toggle-label">Coverage Boundaries</label>
+                            <label for="showBoundingBox" class="debug-toggle-label">Show Boundaries</label>
                         </div>
                         <div style="font-size: 9px; color: #7f8c8d; margin-top: 4px;">
-                            🔍 Shows detailed crisis network data and incident zone dimensions
+                            🔍 Shows detailed system information and coverage area dimensions
                         </div>
                     </div>
                 </div>
@@ -230,21 +230,21 @@
                         <button class="collapse-toggle collapsed">▶</button>
                     </div>
                     <div class="control-group-content collapsed">
-                        <div style="font-size: 10px; color: #34495e; line-height: 1.4; background: rgba(231, 76, 60, 0.1); padding: 8px; border-radius: 4px; border-left: 3px solid var(--secondary-color);">
-                            <strong style="color: var(--secondary-color);">v3.3 - INST Emergency Response</strong><br>
+                        <div style="font-size: 10px; color: #34495e; line-height: 1.4; background: rgba(52, 152, 219, 0.1); padding: 8px; border-radius: 4px; border-left: 3px solid var(--primary-color);">
+                            <strong style="color: var(--primary-color);">v3.4 - Professional Positioning</strong><br>
                             • <strong>INST Project</strong>: Instantly Networked Smart Triage<br>
-                            • <strong>Mission</strong>: Save lives in Mass Casualty Incidents<br>
+                            • <strong>Mission</strong>: Real-time positioning and tracking<br>
                             • <strong>Funding</strong>: ESA & UKSA BASS Programme<br>
-                            • <strong>Response</strong>: Manchester Arena lessons learned<br>
-                            • <strong>Mobile Optimised</strong>: Emergency tablet interface<br>
-                            • <strong>Satellite Ready</strong>: GPS-denied environment support<br>
-                            • <strong>Real-Time</strong>: Casualty tracking & coordination<br><br>
+                            • <strong>Technology</strong>: UWB precision positioning<br>
+                            • <strong>Touch-Optimised</strong>: Tablet-friendly interface<br>
+                            • <strong>Network Ready</strong>: MQTT integration support<br>
+                            • <strong>Real-Time</strong>: Live positioning updates<br><br>
                             
-                            <strong>Ultra-Fast Emergency Physics:</strong><br>
+                            <strong>Advanced Physics Engine:</strong><br>
                             Spring: 2.0 | Damping: 0.6 | Mass: 0.2<br>
-                            Lightning-fast casualty positioning!<br><br>
+                            Optimised for responsive positioning updates<br><br>
                             
-                            <strong style="color: var(--secondary-color);">"Every second counts. Every life matters."</strong>
+                            <strong style="color: var(--primary-color);">"Precision positioning made simple"</strong>
                         </div>
                     </div>
                 </div>
@@ -253,8 +253,8 @@
 
         <div class="visualization">
             <div class="visualization-header">
-                <h3>🚨 Casualty Positioning</h3>
-                <button class="maximize-toggle" id="maximizeVisualization" title="Maximise Tactical Display">⛶</button>
+                <h3>📍 Node Positioning</h3>
+                <button class="maximize-toggle" id="maximizeVisualization" title="Maximise Display">⛶</button>
             </div>
             <div class="canvas-container" id="canvas"></div>
         </div>

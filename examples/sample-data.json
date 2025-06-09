@@ -1,5 +1,5 @@
 {
-  "description": "Sample UWB positioning data for testing the UWB Position Visualiser v3.0",
+  "description": "Sample UWB positioning data for testing the UWB Position Visualiser v3.4",
   "format": "Array of distance measurements: [[node1, node2, distance_in_meters], ...]",
   "scenarios": {
     "simple_triangle": {
