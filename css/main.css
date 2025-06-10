@@ -1,10 +1,11 @@
 /**
- * UWB Position Visualiser - Mobile-Optimised Stylesheet v3.5
+ * UWB Position Visualiser - Mobile-Optimised Stylesheet v3.7
  * Copyright (C) Dynamic Devices Ltd 2025
  * 
  * Comprehensive styling optimised for mobile devices with compact controls
  * and prioritised visualisation area with maximise functionality
  * Enhanced for modular architecture and improved maintainability
+ * Added simulation control styling
  */
 
 * {
@@ -18,6 +19,7 @@
     --secondary-color: #e74c3c;
     --success-color: #27ae60;
     --warning-color: #f39c12;
+    --simulation-color: #9b59b6;
     --dark-bg: #2c3e50;
     --light-bg: #ecf0f1;
     --text-color: #2c3e50;
@@ -124,9 +126,19 @@ body {
     background: var(--success-color);
 }
 
+.status-indicator.simulating {
+    background: var(--simulation-color);
+    animation: simulationPulse 1s infinite;
+}
+
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+}
+
+@keyframes simulationPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
 }
 
 .controls {
@@ -208,6 +220,11 @@ body {
     background: rgba(255, 255, 255, 0.8);
 }
 
+.control-group[data-section="simulation"] {
+    border-color: var(--simulation-color);
+    background: rgba(155, 89, 182, 0.05);
+}
+
 .control-group-header {
     display: flex;
     justify-content: space-between;
@@ -220,8 +237,16 @@ body {
     min-height: 36px;
 }
 
+.control-group[data-section="simulation"] .control-group-header {
+    background: rgba(155, 89, 182, 0.15);
+}
+
 .control-group-header:hover {
     background: rgba(52, 152, 219, 0.15);
+}
+
+.control-group[data-section="simulation"] .control-group-header:hover {
+    background: rgba(155, 89, 182, 0.2);
 }
 
 .control-group-header h3 {
@@ -244,6 +269,10 @@ body {
     min-width: 16px;
 }
 
+.control-group[data-section="simulation"] .collapse-toggle {
+    color: var(--simulation-color);
+}
+
 .collapse-toggle.collapsed {
     transform: rotate(-90deg);
 }
@@ -260,6 +289,26 @@ body {
     padding-top: 0;
     padding-bottom: 0;
     opacity: 0;
+}
+
+.simulation-status {
+    padding: 6px 8px;
+    background: rgba(155, 89, 182, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid var(--simulation-color);
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s ease;
+}
+
+.simulation-status.active {
+    background: rgba(155, 89, 182, 0.2);
+    border-left-color: var(--success-color);
+    animation: statusGlow 2s infinite alternate;
+}
+
+@keyframes statusGlow {
+    0% { box-shadow: 0 0 5px rgba(155, 89, 182, 0.3); }
+    100% { box-shadow: 0 0 10px rgba(155, 89, 182, 0.6); }
 }
 
 .stats-grid {
@@ -330,6 +379,10 @@ body {
     cursor: pointer;
 }
 
+.control-group[data-section="simulation"] .input-group input[type="range"] {
+    background: linear-gradient(90deg, var(--simulation-color), var(--primary-color));
+}
+
 .input-group input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 14px;
@@ -339,6 +392,10 @@ body {
     border: 2px solid var(--primary-color);
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.control-group[data-section="simulation"] .input-group input[type="range"]::-webkit-slider-thumb {
+    border-color: var(--simulation-color);
 }
 
 .btn {
@@ -366,6 +423,14 @@ body {
 
 .btn.success {
     background: var(--success-color);
+}
+
+.btn.simulation {
+    background: var(--simulation-color);
+}
+
+.btn.simulation:hover {
+    box-shadow: 0 2px 8px rgba(155, 89, 182, 0.3);
 }
 
 .btn:disabled {
@@ -735,6 +800,10 @@ body {
     color: #e74c3c;
 }
 
+.log-simulation {
+    color: #9b59b6;
+}
+
 /* Mobile-First Responsive Design */
 @media (max-width: 768px) {
     body {
@@ -878,6 +947,11 @@ body {
     
     .stat-value {
         font-size: 10px;
+    }
+    
+    .simulation-status {
+        padding: 4px 6px;
+        font-size: 8px;
     }
     
     .visualization {
@@ -1078,5 +1152,10 @@ body {
     
     .console-content {
         max-height: 40px;
+    }
+    
+    .simulation-status {
+        padding: 3px 4px;
+        font-size: 7px;
     }
 }
