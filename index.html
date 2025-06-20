@@ -296,14 +296,23 @@
     <script src="js/mqtt.js"></script>
     <script src="js/gps-utils.js"></script>
 
-    <!-- Map modules (load before visualizer) -->
+    <!-- Map modules -->
     <script src="js/map/map-markers.js"></script>
     <script src="js/map/map-scaling.js"></script>
     <script src="js/map/map-manager-core.js"></script>
 
-    <!-- Simulation and visualization -->
+    <!-- Visualizer modules (load in dependency order) -->
+    <script src="js/visualizer/visualizer-nodes.js"></script>
+    <script src="js/visualizer/visualizer-connections.js"></script>
+    <script src="js/visualizer/visualizer-physics.js"></script>
+    <script src="js/visualizer/visualizer-ui.js"></script>
+    <script src="js/visualizer/visualizer-mobile.js"></script>
+    <script src="js/visualizer/visualizer-stats.js"></script>
+    <script src="js/visualizer/visualizer-logging.js"></script>
+    <script src="js/visualizer/visualizer-core.js"></script>
+
+    <!-- Simulation and remaining files -->
     <script src="js/mqtt-simulator.js"></script>
-    <script src="js/visualizer.js"></script>
 
     <!-- Application initialization (MUST be last) -->
     <script src="js/app.js"></script>

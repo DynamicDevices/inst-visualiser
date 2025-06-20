@@ -307,6 +307,8 @@ function updateStatusIndicator() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initialising UWB Position Visualiser v4.0 - INST Crisis Response...');
 
+    visualizer = new UWBVisualizer();
+    
     // Initialize GPS and map functionality first
     initializeGPSAndMap();
     
@@ -315,8 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🎯 Mission: Save lives in Mass Casualty Incidents through real-time casualty tracking');
     console.log('🏗️ v4.0: Enhanced Map Visualization with improved controls');
     console.log('🎭 New Feature: Single toggle view switching and improved map scaling');
-    
-    visualizer = new UWBVisualizer();
     
     // Set up map manager integration with visualizer
     if (mapManager && visualizer) {
