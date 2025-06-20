@@ -504,10 +504,16 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: rgba(52, 152, 219, 0.1);
     border-bottom: 1px solid var(--border-color);
+    cursor: default;
+    transition: background-color 0.3s ease;
     min-height: 36px;
+}
+
+.visualization-header:hover {
+    background: rgba(52, 152, 219, 0.15);
 }
 
 .visualization-header h3 {
@@ -519,6 +525,36 @@ body {
     letter-spacing: 0.3px;
 }
 
+.view-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.view-toggle {
+    background: var(--secondary-color);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.view-toggle:hover {
+    background: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.view-toggle.active {
+    background: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
 .maximize-toggle {
     background: var(--primary-color);
     border: none;
@@ -526,15 +562,36 @@ body {
     padding: 6px 8px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
-    font-weight: bold;
+    font-size: 10px;
+    font-weight: 500;
     transition: all 0.3s ease;
     min-width: 28px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .maximize-toggle:hover {
     background: var(--dark-bg);
     transform: scale(1.05);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .view-controls {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .view-toggle {
+        padding: 4px 6px;
+        font-size: 9px;
+    }
+
+    .maximize-toggle {
+        padding: 3px 5px;
+        font-size: 8px;
+        min-width: 20px;
+    }
 }
 
 .canvas-container {
@@ -1156,16 +1213,94 @@ input[type="radio"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    border-radius: 8px 8px 0 0;
+    padding: 10px 12px;
+    background: rgba(52, 152, 219, 0.1);
+    border-bottom: 1px solid var(--border-color);
+    cursor: default;
+    transition: background-color 0.3s ease;
+    min-height: 36px;
+}
+
+.visualization-header:hover {
+    background: rgba(52, 152, 219, 0.15);
 }
 
 .visualization-header h3 {
+    color: var(--dark-bg);
     margin: 0;
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.view-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.view-toggle {
+    background: var(--secondary-color);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.view-toggle:hover {
+    background: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.view-toggle.active {
+    background: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.maximize-toggle {
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 28px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.maximize-toggle:hover {
+    background: var(--dark-bg);
+    transform: scale(1.05);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .view-controls {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .view-toggle {
+        padding: 4px 6px;
+        font-size: 9px;
+    }
+
+    .maximize-toggle {
+        padding: 3px 5px;
+        font-size: 8px;
+        min-width: 20px;
+    }
 }
 
 /* Map loading indicator */

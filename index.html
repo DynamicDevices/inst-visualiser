@@ -35,8 +35,9 @@
     <meta name="description" content="Real-time UWB positioning visualiser with advanced physics simulation, optimised for tablets and desktop systems">
     <meta name="keywords" content="UWB, positioning, tracking, MQTT, INST, real-time monitoring, location tracking">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Leaflet for OpenStreetMap support -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
@@ -51,7 +52,7 @@
                     <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
                 </svg>
             </div>
-            <h1>UWB Position Visualiser v3.8</h1>
+            <h1>UWB Position Visualiser v3.9</h1>
             <div class="status">
                 <div class="status-indicator" id="statusIndicator"></div>
                 <span id="statusText">Disconnected</span>
@@ -64,40 +65,11 @@
                 <button class="controls-toggle" id="toggleControls">Hide</button>
             </div>
             <div class="controls-content" id="controlsContent">
-                <div class="control-group">
-                    <div class="control-group-header" data-section="stats">
-                        <h3>📊 System Status</h3>
-                        <button class="collapse-toggle">▼</button>
-                    </div>
-                    <div class="control-group-content">
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <span class="stat-label">Nodes</span>
-                                <span class="stat-value" id="nodeCount">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Connections</span>
-                                <span class="stat-value" id="connectionCount">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Updates</span>
-                                <span class="stat-value" id="messageCount">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Coverage</span>
-                                <span class="stat-value" id="totalArea" style="font-size: 9px;">0×0m</span>
-                            </div>
-                        </div>
-                        <div style="text-align: center; font-size: 8px; color: #7f8c8d; margin-top: 3px;">
-                            Last Update: <span id="lastMessageTime">Never</span>
-                        </div>
-                        <button class="btn secondary" id="resetStats" style="margin-top: 6px;">Reset System Data</button>
-                    </div>
-                </div>
-
+                
+                <!-- MQTT Connection Section (renamed and moved to top) -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="mqtt">
-                        <h3>📡 MQTT Network</h3>
+                        <h3>📡 MQTT Connection</h3>
                         <button class="collapse-toggle">▼</button>
                     </div>
                     <div class="control-group-content">
@@ -118,6 +90,7 @@
                     </div>
                 </div>
 
+                <!-- Simulation Mode Section (moved below MQTT Connection) -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="simulation">
                         <h3>🎭 Simulation Mode</h3>
@@ -125,16 +98,23 @@
                     </div>
                     <div class="control-group-content collapsed">
                         <div class="input-group">
-                            <label>Simulation Rate: <span id="simulationRateValue">1.0</span>Hz</label>
-                            <input type="range" id="simulationRateSlider" min="0.1" max="5.0" value="1.0" step="0.1">
+                            <label>Update Interval: <span id="simulationRateValue">1</span>s</label>
+                            <input type="range" id="simulationRateSlider" min="1" max="60" value="1" step="1">
                             <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
-                                ℹ️ Controls how often simulated data is published
+                                ℹ️ Controls how often simulated data is published (1-60 seconds)
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Tag Count: <span id="tagCountValue">3</span></label>
+                            <input type="range" id="tagCountSlider" min="1" max="10" value="3" step="1">
+                            <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
+                                🏷️ Number of mobile tags to simulate (1-10)
                             </div>
                         </div>
                         <button class="btn success" id="startSimulation">Start Simulation</button>
                         <button class="btn secondary" id="stopSimulation" disabled>Stop Simulation</button>
                         <div style="font-size: 9px; color: #7f8c8d; line-height: 1.3; margin-top: 4px;">
-                            💡 Simulates 1 gateway (B5A4), 3 anchors (R001-R003), and 1 mobile tag (T001) with realistic movement and 5cm measurement noise
+                            💡 Simulates 1 GPS-enabled gateway (Liverpool), 3 anchors, and configurable mobile tags with realistic movement and 5cm measurement noise
                         </div>
                         <div class="simulation-status" id="simulationStatus" style="font-size: 9px; color: #34495e; margin-top: 4px; font-weight: 500;">
                             🎭 Simulation: Ready
@@ -142,6 +122,29 @@
                     </div>
                 </div>
 
+                <!-- GPS & Mapping Section (single instance only) -->
+                <div class="control-group">
+                    <div class="control-group-header" data-section="gps">
+                        <h3>🌍 GPS & Mapping</h3>
+                        <button class="collapse-toggle collapsed">▶</button>
+                    </div>
+                    <div class="control-group-content collapsed">
+                        <div class="input-group">
+                            <label>Gateway GPS Latitude:</label>
+                            <input type="number" id="gatewayLat" value="53.4084" step="0.0001" placeholder="53.4084">
+                        </div>
+                        <div class="input-group">
+                            <label>Gateway GPS Longitude:</label>
+                            <input type="number" id="gatewayLng" value="-2.9916" step="0.0001" placeholder="-2.9916">
+                        </div>
+                        <div style="font-size: 9px; color: #7f8c8d; margin-top: 4px;">
+                            📍 Default: Liverpool City Centre, UK
+                        </div>
+                        <button class="btn" id="updateGatewayGPS">Update Gateway Position</button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="quick">
                         <h3>⚡ Quick Actions</h3>
@@ -164,6 +167,7 @@
                     </div>
                 </div>
 
+                <!-- Display Settings Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="display">
                         <h3>⚙️ Display Settings</h3>
@@ -188,6 +192,7 @@
                     </div>
                 </div>
 
+                <!-- Physics Settings Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="physics">
                         <h3>🔬 Physics Settings</h3>
@@ -212,6 +217,7 @@
                     </div>
                 </div>
 
+                <!-- Device Control Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="device">
                         <h3>📱 Device Control</h3>
@@ -228,6 +234,7 @@
                     </div>
                 </div>
 
+                <!-- Debug Tools Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="debug">
                         <h3>🐛 Debug Tools</h3>
@@ -250,6 +257,7 @@
                     </div>
                 </div>
 
+                <!-- INST Project Info Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="version">
                         <h3>ℹ️ INST Project Info</h3>
@@ -257,28 +265,30 @@
                     </div>
                     <div class="control-group-content collapsed">
                         <div style="font-size: 10px; color: #34495e; line-height: 1.4; background: rgba(52, 152, 219, 0.1); padding: 8px; border-radius: 4px; border-left: 3px solid var(--primary-color);">
-                            <strong style="color: var(--primary-color);">v3.7 - Integrated Simulation</strong><br>
+                            <strong style="color: var(--primary-color);">v3.9 - GPS & Mapping Support</strong><br>
                             • <strong>INST Project</strong>: Instantly Networked Smart Triage<br>
                             • <strong>Mission</strong>: Real-time positioning and tracking<br>
                             • <strong>Funding</strong>: ESA & UKSA BASS Programme<br>
-                            • <strong>Technology</strong>: UWB precision positioning<br>
-                            • <strong>Architecture</strong>: Separated MQTT management<br>
-                            • <strong>New Feature</strong>: Built-in UWB data simulation<br>
+                            • <strong>Technology</strong>: UWB precision positioning + GPS<br>
+                            • <strong>Architecture</strong>: Hybrid GPS/UWB positioning<br>
+                            • <strong>New Feature</strong>: OpenStreetMap integration<br>
+                            • <strong>GPS Support</strong>: Absolute positioning capability<br>
+                            • <strong>Configurable Tags</strong>: 1-10 mobile tags<br>
                             • <strong>Touch-Optimised</strong>: Tablet-friendly interface<br>
                             • <strong>Network Ready</strong>: MQTT integration support<br>
                             • <strong>Real-Time</strong>: Live positioning updates<br><br>
                             
-                            <strong>Advanced Physics Engine:</strong><br>
-                            Spring: 2.0 | Damping: 0.6 | Mass: 0.2<br>
-                            Optimised for responsive positioning updates<br><br>
+                            <strong>Hybrid Positioning System:</strong><br>
+                            GPS: Absolute positioning | UWB: Relative positioning<br>
+                            Gateway: Liverpool (53.4084, -2.9916)<br><br>
                             
                             <strong>Simulation Features:</strong><br>
                             • Realistic UWB measurement noise (5cm)<br>
-                            • Mobile tag movement patterns<br>
-                            • Configurable update rates (0.1-5.0Hz)<br>
-                            • Gateway + 3 anchors + 1 mobile tag<br><br>
+                            • Mobile tag movement patterns (1-10 tags)<br>
+                            • Configurable update intervals (1-60 seconds)<br>
+                            • GPS-enabled gateway + 3 anchors<br><br>
                             
-                            <strong style="color: var(--primary-color);">"Precision positioning made simple"</strong>
+                            <strong style="color: var(--primary-color);">"Precision positioning with global context"</strong>
                         </div>
                     </div>
                 </div>
@@ -288,14 +298,14 @@
         <div class="visualization">
             <div class="visualization-header">
                 <h3>📍 Node Positioning</h3>
-                <div class="view-toggles">
-                    <button class="view-toggle active" id="physicsView">Physics</button>
-                    <button class="view-toggle" id="mapView">Map</button>
+                <div class="view-controls">
+                    <button class="view-toggle active" id="physicsView" title="Physics View">🔬 Physics</button>
+                    <button class="view-toggle" id="mapView" title="Map View">🗺️ Map</button>
                     <button class="maximize-toggle" id="maximizeVisualization" title="Maximise Display">⛶</button>
                 </div>
             </div>
             <div class="canvas-container" id="canvas"></div>
-            <div id="map" style="display: none;"></div>
+            <div class="map-container hidden" id="mapContainer"></div>
         </div>
 
         <div class="console collapsed" id="consolePanel">
@@ -313,10 +323,10 @@
     <!-- Application Scripts -->
     <script src="js/physics.js"></script>
     <script src="js/mqtt.js"></script>
+    <script src="js/gps-utils.js"></script>
+    <script src="js/map-manager.js"></script>
     <script src="js/mqtt-simulator.js"></script>
     <script src="js/visualizer.js"></script>
-    <script src="js/gps.js"></script>
-    <script src="js/map.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
