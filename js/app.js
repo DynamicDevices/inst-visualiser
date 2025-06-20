@@ -36,13 +36,10 @@ function initializeGPSAndMap() {
     gpsUtils = new GPSUtils();
     mapManager = new MapManager();
 
-    // Set up view toggle buttons
-    const physicsViewBtn = document.getElementById('physicsView');
-    const mapViewBtn = document.getElementById('mapView');
-
-    if (physicsViewBtn && mapViewBtn) {
-        physicsViewBtn.addEventListener('click', () => switchToPhysicsView());
-        mapViewBtn.addEventListener('click', () => switchToMapView());
+    // Set up single view toggle button
+    const viewToggleBtn = document.getElementById('viewToggle');
+    if (viewToggleBtn) {
+        viewToggleBtn.addEventListener('click', () => toggleView());
     }
 
     // Set up GPS controls
@@ -51,46 +48,72 @@ function initializeGPSAndMap() {
         updateGPSBtn.addEventListener('click', updateGatewayGPS);
     }
 
+    // Set up UWB scale control
+    const uwbScaleSlider = document.getElementById('uwbScaleSlider');
+    const uwbScaleValue = document.getElementById('uwbScaleValue');
+    if (uwbScaleSlider && uwbScaleValue) {
+        uwbScaleSlider.addEventListener('input', (e) => {
+            const scale = parseFloat(e.target.value);
+            uwbScaleValue.textContent = scale.toFixed(1);
+            if (mapManager) {
+                mapManager.setUWBScale(scale);
+            }
+        });
+    }
+
     console.log('GPS and Map functionality initialized');
 }
 
-// Switch to physics view
-function switchToPhysicsView() {
-    currentView = 'physics';
+// Toggle between physics and map view
+function toggleView() {
+    const viewToggleBtn = document.getElementById('viewToggle');
 
-    // Update button states
-    document.getElementById('physicsView').classList.add('active');
-    document.getElementById('mapView').classList.remove('active');
+    if (currentView === 'physics') {
+        // Switch to map view
+        currentView = 'map';
+        viewToggleBtn.textContent = '🔬 Physics View'; // Show what we'll switch TO next
+        viewToggleBtn.setAttribute('data-view', 'map');
+        viewToggleBtn.classList.add('map-active');
 
-    // Show physics canvas, hide map
-    document.getElementById('canvas').style.display = 'block';
-    if (mapManager) {
-        mapManager.hideMapView();
-    }
-
-    console.log('Switched to physics view');
-}
-
-// Switch to map view
-function switchToMapView() {
-    currentView = 'map';
-
-    // Update button states
-    document.getElementById('physicsView').classList.remove('active');
-    document.getElementById('mapView').classList.add('active');
-
-    // Hide physics canvas, show map
-    document.getElementById('canvas').style.display = 'none';
-    if (mapManager) {
-        // Set visualizer reference if not already set
-        if (!mapManager.visualizer && visualizer) {
-            mapManager.setVisualizer(visualizer);
+        // Show map, hide physics
+        document.getElementById('canvas').style.display = 'none';
+        if (mapManager) {
+            if (!mapManager.visualizer && visualizer) {
+                mapManager.setVisualizer(visualizer);
+            }
+            mapManager.showMapView();
         }
 
-        mapManager.showMapView();
-    }
+        console.log('Switched to map view');
+    } else {
+        // Switch to physics view
+        currentView = 'physics';
+        viewToggleBtn.textContent = '🗺️ Map View'; // Show what we'll switch TO next
+        viewToggleBtn.setAttribute('data-view', 'physics');
+        viewToggleBtn.classList.remove('map-active');
 
-    console.log('Switched to map view');
+        // Show physics, hide map
+        document.getElementById('canvas').style.display = 'block';
+        if (mapManager) {
+            mapManager.hideMapView();
+        }
+
+        console.log('Switched to physics view');
+    }
+}
+
+// Switch to physics view (legacy function for compatibility)
+function switchToPhysicsView() {
+    if (currentView !== 'physics') {
+        toggleView();
+    }
+}
+
+// Switch to map view (legacy function for compatibility)
+function switchToMapView() {
+    if (currentView !== 'map') {
+        toggleView();
+    }
 }
 
 // Update gateway GPS position
@@ -247,7 +270,7 @@ function updateSimulationStatus() {
     const stats = uwbSimulator.getStats();
 
     if (stats.running) {
-        statusElement.textContent = `🎭 Active: ${stats.messagesPublished} msgs, ${stats.averageRate.toFixed(2)} msg/s, ${stats.currentInterval}s interval`;
+        statusElement.textContent = `🎭 Running: ${stats.messagesPublished} msgs, ${stats.averageRate.toFixed(2)} msg/s, ${stats.currentInterval}s interval`;
         statusElement.classList.add('active');
     } else {
         statusElement.textContent = '🎭 Simulation: Ready';
@@ -282,7 +305,7 @@ function updateStatusIndicator() {
  * Initialise the UWB Position Visualiser for Crisis Response when DOM is ready
  */
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initialising UWB Position Visualiser v3.9 - INST Crisis Response...');
+    console.log('DOM loaded, initialising UWB Position Visualiser v4.0 - INST Crisis Response...');
 
     // Initialize GPS and map functionality first
     initializeGPSAndMap();
@@ -290,14 +313,15 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🚨 INST Project: Instantly Networked Smart Triage - Crisis Response System');
     console.log('💫 Funded by ESA & UKSA through BASS Programme for crisis response');
     console.log('🎯 Mission: Save lives in Mass Casualty Incidents through real-time casualty tracking');
-    console.log('🏗️ v3.9: GPS & OpenStreetMap integration with configurable simulation');
-    console.log('🎭 New Feature: Built-in data simulation with realistic movement patterns');
+    console.log('🏗️ v4.0: Enhanced Map Visualization with improved controls');
+    console.log('🎭 New Feature: Single toggle view switching and improved map scaling');
     
     visualizer = new UWBVisualizer();
     
     // Set up map manager integration with visualizer
     if (mapManager && visualizer) {
         mapManager.setVisualizer(visualizer);
+        console.log('Map manager integrated with visualizer');
         
         // Hook into visualizer's node update events
         const originalProcessMessage = visualizer.processMessage;
@@ -344,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Provide global debug function for emergency operations development
     window.debugVisualizer = function() {
-        console.log('=== UWB Position Visualiser v3.9 Emergency Debug Info ===');
+        console.log('=== UWB Position Visualiser v4.0 Emergency Debug Info ===');
         console.log('Emergency visualiser object:', visualizer);
         console.log('MQTT manager:', visualizer.mqttManager);
         console.log('UWB simulator:', uwbSimulator);
@@ -388,6 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isSimulationRunning: () => uwbSimulator?.isRunning() || false,
         
         // View controls
+        toggleView: () => toggleView(),
         switchToPhysicsView: () => switchToPhysicsView(),
         switchToMapView: () => switchToMapView(),
         updateGatewayGPS: (lat, lng) => updateGatewayGPS(),
@@ -410,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
             physicsMode: 'Ultra-Fast Crisis Positioning',
             deviceType: visualizer?.isMobileDevice ? 'Field Tablet' : 'Command Centre',
             readyForCrisis: visualizer?.physicsEnabled && !uwbSimulator?.isRunning(),
-            architecture: 'Modular MQTT v3.9',
+            architecture: 'Modular MQTT v4.0',
             simulationCapable: !!uwbSimulator,
             simulationActive: uwbSimulator?.isRunning() || false,
             currentView: currentView,
@@ -419,14 +444,14 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     };
     
-    console.log('UWB Position Visualiser v3.9 ready for crisis operations!');
+    console.log('UWB Position Visualiser v4.0 ready for crisis operations!');
     console.log('🚨 Crisis features: Casualty tracking, INST network integration, tactical displays');
     console.log('📱 Mobile optimised: Touch-friendly crisis controls and prioritised casualty display');
     console.log('⚡ Ultra-Fast Physics: 100x speed optimisation for instant crisis positioning');
     console.log('🛰️ INST Integration: Satellite-enabled crisis response system ready');
     console.log('🏗️ Modular Architecture: Separated MQTT management for better maintainability');
     console.log('🎭 Simulation Ready: Built-in UWB data simulation with realistic movement patterns');
-    console.log('🗺️ GPS & Mapping: OpenStreetMap integration with hybrid positioning');
+    console.log('🗺️ GPS & Mapping: Enhanced map visualization with improved scaling');
     console.log('💡 Crisis commands: crisisUtils.maximiseCasualtyView() for tactical display');
     console.log('🎯 Use crisisUtils.getCrisisStatus() for crisis system status');
     console.log('🎪 Simulation commands: crisisUtils.startSimulation() / .stopSimulation()');

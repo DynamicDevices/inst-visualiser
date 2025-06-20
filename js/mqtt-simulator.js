@@ -286,7 +286,7 @@ class UWBSimulator {
     /**
      * Update gateway GPS coordinates
      * @param {number} lat - Latitude
-     * @param {number} lon - Longitude
+     * @param {number} lng - Longitude
      * @param {number} alt - Altitude in meters
      */
     updateGatewayGPS(lat, lng, alt = 25) {
@@ -296,6 +296,9 @@ class UWBSimulator {
                 this.nodes["B5A4"].alt = alt;
             }
             console.log(`🎭 Simulator: Gateway GPS updated to ${lat}, ${lng}, ${alt}m`);
+            
+            // Also ensure the gateway is marked as having GPS coordinates
+            this.nodes["B5A4"].hasGPS = true;
         }
     }
 

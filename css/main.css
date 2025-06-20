@@ -8,6 +8,26 @@
  * Added simulation control styling
  */
 
+/* Distance labels on map */
+.distance-label {
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.distance-label div {
+    transform: translate(-50%, -50%);
+}
+
+/* Ensure map container has proper stacking */
+.map-container {
+    position: relative;
+    z-index: 1;
+}
+
+.map-container .leaflet-container {
+    background: #f8f9fa;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -1140,6 +1160,165 @@ body {
     border-radius: 8px;
     overflow: hidden;
     position: relative;
+}
+
+/* Single view toggle button styling */
+.view-toggle-single {
+    background: var(--primary-color);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    color: white;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    min-width: 120px;
+    text-align: center;
+}
+
+.view-toggle-single:hover {
+    background: var(--dark-bg);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.view-toggle-single.map-active {
+    background: var(--success-color);
+}
+
+.view-toggle-single.map-active:hover {
+    background: var(--secondary-color);
+}
+
+/* Map-specific distance labels (different from physics view) */
+.map-distance-label {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.distance-text {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #3498db;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #2c3e50;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    font-family: Arial, sans-serif;
+}
+
+/* Map node marker styling to match physics view */
+.map-node-marker-container {
+    background: transparent !important;
+    border: none !important;
+}
+
+.map-node-marker {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.map-node-marker:hover {
+    transform: scale(1.1);
+}
+
+.map-node-marker.gateway {
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5) !important;
+}
+
+.map-node-marker.mobile {
+    box-shadow: 0 3px 8px rgba(52, 152, 219, 0.4) !important;
+}
+
+.map-node-marker.anchor {
+    box-shadow: 0 3px 8px rgba(39, 174, 96, 0.4) !important;
+}
+
+/* Custom scale control styling */
+.custom-scale-control {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 2px solid #333 !important;
+    border-radius: 4px !important;
+    padding: 4px 8px !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    color: #333 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+    pointer-events: none !important;
+    min-width: 80px !important;
+    text-align: center !important;
+}
+
+/* Mobile responsive scale control */
+@media (max-width: 768px) {
+    .custom-scale-control {
+        font-size: 10px !important;
+        padding: 3px 6px !important;
+        min-width: 60px !important;
+    }
+}
+
+/* Mobile responsive adjustments for single toggle */
+@media (max-width: 768px) {
+    .view-toggle-single {
+        padding: 4px 8px;
+        font-size: 9px;
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .view-toggle-single {
+        padding: 3px 6px;
+        font-size: 8px;
+        min-width: 80px;
+    }
+}
+
+/* Custom node markers for map */
+.custom-node-marker-container {
+    background: transparent !important;
+    border: none !important;
+}
+
+.custom-node-marker {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.custom-node-marker:hover {
+    transform: scale(1.1);
+}
+
+.custom-node-marker.gateway {
+    box-shadow: 0 3px 8px rgba(231, 76, 60, 0.4);
+}
+
+.custom-node-marker.standard {
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.4);
+}
+
+/* Ensure existing distance labels for physics view remain unchanged */
+.distance-label:not(.map-distance-label) {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 3px 6px;
+    border-radius: 8px;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--dark-bg);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    pointer-events: none;
 }
 
 .map-container.hidden {

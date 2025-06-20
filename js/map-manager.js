@@ -1,319 +1,787 @@
 /**
  * Map Manager for UWB Position Visualiser
- * Handles OpenStreetMap integration and GPS-based node positioning
+ * Handles OpenStreetMap integration with hybrid GPS/UWB positioning using physics engine
  */
 
 class MapManager {
     constructor() {
         this.map = null;
         this.nodeMarkers = new Map();
+        this.connectionLines = new Map(); // Store connection lines
         this.gpsUtils = new GPSUtils();
         this.gatewayPosition = { lat: 53.4084, lng: -2.9916 }; // Liverpool default
         this.isMapView = false;
         this.mapContainer = null;
         this.visualizer = null; // Reference to the main visualizer
+        this.physicsUpdateInterval = null;
+        this.gpsAnchors = new Map(); // Store GPS-enabled anchor nodes
+        this.autoFitEnabled = true; // Enable automatic map fitting
+        this.lastNodeCount = 0; // Track node count changes for auto-fitting
+        this.lastBounds = null; // Track bounds changes for auto-fitting
+        this.uwbToGpsScale = 1.0; // Scale factor for UWB to GPS conversion (meters per UWB unit)
+        this.autoFitDebounceTimeout = null; // Debounce auto-fit updates
+        this.movementThreshold = 0.00005; // Increased threshold for gentler movement (~5 meters)
+        this.scaleControl = null; // Custom scale control
+        this.physicsToMetersScale = 1.0; // Scale factor to convert physics units to actual meters
     }
 
     /**
-     * Set reference to the main visualizer
-     * @param {UWBVisualizer} visualizer - Main visualizer instance
+     * Initialize the map with OpenStreetMap tiles
      */
-    setVisualizer(visualizer) {
-        this.visualizer = visualizer;
-        console.log('🗺️ MapManager: Visualizer reference set');
-    }
-
-    /**
-     * Initialize the map
-     * @param {string} containerId - Map container element ID
-     */
-    initializeMap(containerId) {
-        this.mapContainer = document.getElementById(containerId);
-        
-        if (!this.mapContainer) {
-            console.error('Map container not found:', containerId);
-            return;
+    initializeMap() {
+        const mapContainer = document.getElementById('mapContainer');
+        if (!mapContainer) {
+            console.error('❌ Map container not found');
+            return false;
         }
 
-        // Initialize Leaflet map
-        this.map = L.map(containerId, {
-            center: [this.gatewayPosition.lat, this.gatewayPosition.lng],
-            zoom: 18,
-            zoomControl: true,
-            attributionControl: true
-        });
+        this.mapContainer = mapContainer;
 
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-        }).addTo(this.map);
+        try {
+            // Initialize Leaflet map
+            this.map = L.map('mapContainer', {
+                center: [this.gatewayPosition.lat, this.gatewayPosition.lng],
+                zoom: 18,
+                zoomControl: true,
+                attributionControl: true,
+                scaleControl: false // Disable default scale, we'll add custom one
+            });
 
-        console.log('🗺️ Map initialized at Liverpool:', this.gatewayPosition);
-        
-        // Update all existing nodes when map is initialized
-        this.updateAllNodesOnMap();
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(this.map);
+
+            // Add custom scale control
+            this.addCustomScaleControl();
+
+            console.log('🗺️ Map initialized successfully');
+            return true;
+
+        } catch (error) {
+            console.error('❌ Failed to initialize map:', error);
+            return false;
+        }
     }
 
     /**
-     * Switch to map view
+     * Add custom scale control to top-right corner
+     */
+    addCustomScaleControl() {
+        if (!this.map) return;
+
+        // Create custom scale control
+        const ScaleControl = L.Control.extend({
+            onAdd: function(map) {
+                const container = L.DomUtil.create('div', 'custom-scale-control');
+                container.style.cssText = `
+                    background: rgba(255, 255, 255, 0.9);
+                    border: 2px solid #333;
+                    border-radius: 4px;
+                    padding: 4px 8px;
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    font-weight: bold;
+                    color: #333;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                    pointer-events: none;
+                    min-width: 80px;
+                    text-align: center;
+                `;
+                
+                this._container = container;
+                this._map = map;
+                
+                // Update scale on map events
+                map.on('zoomend moveend', this._updateScale, this);
+                this._updateScale();
+                
+                return container;
+            },
+
+            onRemove: function(map) {
+                map.off('zoomend moveend', this._updateScale, this);
+            },
+
+            _updateScale: function() {
+                if (!this._map || !this._container) return;
+
+                const bounds = this._map.getBounds();
+                const centerLat = bounds.getCenter().lat;
+                
+                // Calculate meters per pixel at current zoom and latitude
+                const zoom = this._map.getZoom();
+                const metersPerPixel = 40075016.686 * Math.cos(centerLat * Math.PI / 180) / Math.pow(2, zoom + 8);
+                
+                // Create scale line for 100 pixels
+                const scalePixels = 100;
+                const scaleMeters = metersPerPixel * scalePixels;
+                
+                // Format scale distance
+                let scaleText, scaleDistance;
+                if (scaleMeters >= 1000) {
+                    scaleDistance = Math.round(scaleMeters / 100) / 10;
+                    scaleText = `${scaleDistance} km`;
+                } else if (scaleMeters >= 1) {
+                    scaleDistance = Math.round(scaleMeters);
+                    scaleText = `${scaleDistance} m`;
+                } else {
+                    scaleDistance = Math.round(scaleMeters * 100);
+                    scaleText = `${scaleDistance} cm`;
+                }
+                
+                // Update container with scale line and text
+                this._container.innerHTML = `
+                    <div style="border-bottom: 3px solid #333; width: ${scalePixels}px; margin: 0 auto 2px auto;"></div>
+                    <div>${scaleText}</div>
+                `;
+            }
+        });
+
+        // Add scale control to top-right
+        this.scaleControl = new ScaleControl({ position: 'topright' });
+        this.scaleControl.addTo(this.map);
+    }
+
+    /**
+     * Show map view and hide physics canvas
      */
     showMapView() {
         if (!this.map) {
-            this.initializeMap('mapContainer');
+            if (!this.initializeMap()) {
+                console.error('❌ Failed to initialize map for map view');
+                return;
+            }
         }
-        
+
         this.isMapView = true;
-        this.mapContainer.classList.remove('hidden');
         
-        // Refresh map size after showing
+        // Show map container
+        if (this.mapContainer) {
+            this.mapContainer.classList.remove('hidden');
+        }
+
+        // Invalidate map size to ensure proper rendering
         setTimeout(() => {
             if (this.map) {
                 this.map.invalidateSize();
                 this.updateAllNodesOnMap();
-                this.centerOnNodes();
+                this.startPhysicsPositioning();
+                
+                // Auto-fit map to show all nodes after a short delay
+                setTimeout(() => {
+                    this.fitMapToNodes();
+                }, 500);
             }
         }, 100);
+
+        console.log('🗺️ Map view activated');
     }
 
     /**
-     * Switch to physics view
+     * Hide map view
      */
     hideMapView() {
         this.isMapView = false;
+        
         if (this.mapContainer) {
             this.mapContainer.classList.add('hidden');
+        }
+
+        this.stopPhysicsPositioning();
+        console.log('🗺️ Map view deactivated');
+    }
+
+    /**
+     * Set reference to the main visualizer
+     */
+    setVisualizer(visualizer) {
+        this.visualizer = visualizer;
+        console.log('🗺️ Visualizer reference set in MapManager');
+    }
+
+    /**
+     * Start physics-based positioning updates for map view
+     */
+    startPhysicsPositioning() {
+        if (this.physicsUpdateInterval) {
+            clearInterval(this.physicsUpdateInterval);
+        }
+
+        // Update positions every 200ms for gentler map updates
+        this.physicsUpdateInterval = setInterval(() => {
+            this.updatePhysicsBasedPositions();
+        }, 200);
+
+        console.log('🗺️ Physics positioning started for map view');
+    }
+
+    /**
+     * Stop physics-based positioning updates
+     */
+    stopPhysicsPositioning() {
+        if (this.physicsUpdateInterval) {
+            clearInterval(this.physicsUpdateInterval);
+            this.physicsUpdateInterval = null;
+        }
+        
+        // Clear any pending auto-fit
+        if (this.autoFitDebounceTimeout) {
+            clearTimeout(this.autoFitDebounceTimeout);
+            this.autoFitDebounceTimeout = null;
+        }
+        
+        console.log('🗺️ Physics positioning stopped');
+    }
+
+    /**
+     * Update node positions using hybrid GPS/Physics approach
+     */
+    updatePhysicsBasedPositions() {
+        if (!this.visualizer || !this.visualizer.nodes) return;
+
+        // Step 1: Identify and position GPS anchor nodes (absolute positioning)
+        this.updateGPSAnchors();
+        
+        // Step 2: Use physics engine to position UWB-only nodes relative to GPS anchors
+        this.updateUWBNodesWithPhysics();
+        
+        // Step 3: Update connection lines between nodes
+        this.updateConnectionLines();
+        
+        // Step 4: Auto-fit map if nodes have moved significantly (debounced)
+        if (this.autoFitEnabled && this.shouldAutoFit()) {
+            this.debouncedAutoFit();
         }
     }
 
     /**
-     * Update gateway GPS position
-     * @param {number} lat - Latitude
-     * @param {number} lng - Longitude
+     * Debounced auto-fit to prevent excessive map movements
      */
-    updateGatewayPosition(lat, lng) {
-        if (!this.gpsUtils.isValidGPS(lat, lng)) {
-            console.error('Invalid GPS coordinates:', lat, lng);
+    debouncedAutoFit() {
+        if (this.autoFitDebounceTimeout) {
+            clearTimeout(this.autoFitDebounceTimeout);
+        }
+        
+        this.autoFitDebounceTimeout = setTimeout(() => {
+            this.fitMapToNodes();
+            this.autoFitDebounceTimeout = null;
+        }, 2000); // 2 second debounce for gentler movement
+    }
+
+    /**
+     * Check if auto-fit should be triggered based on node movement
+     */
+    shouldAutoFit() {
+        if (this.nodeMarkers.size !== this.lastNodeCount) {
+            this.lastNodeCount = this.nodeMarkers.size;
+            return true;
+        }
+
+        // Check if nodes have moved significantly
+        if (this.nodeMarkers.size > 0) {
+            const currentBounds = this.getNodeBounds();
+            if (!this.lastBounds || this.boundsChanged(this.lastBounds, currentBounds)) {
+                this.lastBounds = currentBounds;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get bounds of all current nodes
+     */
+    getNodeBounds() {
+        if (this.nodeMarkers.size === 0) return null;
+
+        let minLat = Infinity, maxLat = -Infinity;
+        let minLng = Infinity, maxLng = -Infinity;
+
+        this.nodeMarkers.forEach(marker => {
+            const pos = marker.getLatLng();
+            minLat = Math.min(minLat, pos.lat);
+            maxLat = Math.max(maxLat, pos.lat);
+            minLng = Math.min(minLng, pos.lng);
+            maxLng = Math.max(maxLng, pos.lng);
+        });
+
+        return { minLat, maxLat, minLng, maxLng };
+    }
+
+    /**
+     * Check if bounds have changed significantly (increased threshold for gentler movement)
+     */
+    boundsChanged(oldBounds, newBounds) {
+        if (!oldBounds || !newBounds) return true;
+
+        return Math.abs(oldBounds.minLat - newBounds.minLat) > this.movementThreshold ||
+               Math.abs(oldBounds.maxLat - newBounds.maxLat) > this.movementThreshold ||
+               Math.abs(oldBounds.minLng - newBounds.minLng) > this.movementThreshold ||
+               Math.abs(oldBounds.maxLng - newBounds.maxLng) > this.movementThreshold;
+    }
+
+    /**
+     * Update GPS anchor nodes with absolute positioning
+     */
+    updateGPSAnchors() {
+        if (!this.visualizer || !this.visualizer.nodes) return;
+
+        this.visualizer.nodes.forEach((node, nodeId) => {
+            // Check if node has GPS coordinates (gateway or GPS-enabled nodes)
+            if (node.gps || (nodeId === 'B5A4' && this.gatewayPosition)) {
+                const gpsCoords = node.gps || this.gatewayPosition;
+                
+                // Store as GPS anchor
+                this.gpsAnchors.set(nodeId, {
+                    lat: gpsCoords.lat,
+                    lng: gpsCoords.lng,
+                    nodeId: nodeId
+                });
+
+                // Update marker position on map
+                this.updateNodeOnMap(nodeId, node);
+            }
+        });
+    }
+
+    /**
+     * Update UWB-only nodes using physics engine relative to GPS anchors
+     */
+    updateUWBNodesWithPhysics() {
+        if (!this.visualizer || !this.visualizer.physics || this.gpsAnchors.size === 0) return;
+
+        // Get physics positions for all nodes using available API
+        let physicsNodes = new Map();
+        
+        try {
+            // Access physics positions directly from visualizer nodes (they have x,y from physics)
+            if (this.visualizer.nodes) {
+                this.visualizer.nodes.forEach((node, nodeId) => {
+                    if (node.x !== undefined && node.y !== undefined) {
+                        physicsNodes.set(nodeId, {
+                            x: node.x,
+                            y: node.y
+                        });
+                    }
+                });
+            } else {
+                console.warn('🗺️ No physics positions available for map positioning');
+                return;
+            }
+        } catch (error) {
+            console.error('🗺️ Error accessing physics positions:', error);
+            return;
+        }
+        
+        if (physicsNodes.size === 0) {
+            console.warn('🗺️ No physics nodes found for positioning');
+            return;
+        }
+        
+        // Find a reference GPS anchor (preferably gateway)
+        let referenceAnchor = this.gpsAnchors.get('B5A4') || this.gpsAnchors.values().next().value;
+        if (!referenceAnchor) return;
+
+        // Get reference node's physics position
+        const referencePhysicsPos = physicsNodes.get(referenceAnchor.nodeId);
+        if (!referencePhysicsPos) {
+            console.warn(`🗺️ No physics position found for reference anchor ${referenceAnchor.nodeId}`);
             return;
         }
 
-        this.gatewayPosition = { lat, lng };
-        
-        if (this.map) {
-            this.map.setView([lat, lng], this.map.getZoom());
+        // Calculate the physics-to-meters scale based on known distances
+        this.calculatePhysicsScale(physicsNodes);
+
+        // Update non-GPS nodes relative to reference anchor
+        this.visualizer.nodes.forEach((node, nodeId) => {
+            if (!this.gpsAnchors.has(nodeId)) {
+                const physicsPos = physicsNodes.get(nodeId);
+                if (physicsPos) {
+                    // Calculate relative offset from reference anchor
+                    const deltaXPhysics = physicsPos.x - referencePhysicsPos.x;
+                    const deltaYPhysics = physicsPos.y - referencePhysicsPos.y;
+                    
+                    // Convert physics units to actual meters using calculated scale
+                    const deltaXMeters = deltaXPhysics * this.physicsToMetersScale * this.uwbToGpsScale;
+                    const deltaYMeters = deltaYPhysics * this.physicsToMetersScale * this.uwbToGpsScale;
+
+                    // Convert physics offset to GPS coordinates
+                    const newGPS = this.gpsUtils.offsetGPS(
+                        referenceAnchor.lat,
+                        referenceAnchor.lng,
+                        deltaXMeters,
+                        deltaYMeters
+                    );
+
+                    // Update node with calculated GPS position
+                    const updatedNode = {
+                        ...node,
+                        gps: newGPS
+                    };
+
+                    this.updateNodeOnMap(nodeId, updatedNode);
+                }
+            }
+        });
+    }
+
+    /**
+     * Calculate the scale factor from physics units to actual meters
+     */
+    calculatePhysicsScale(physicsNodes) {
+        if (!this.visualizer || !this.visualizer.connections || this.visualizer.connections.size === 0) {
+            return;
         }
 
-        console.log('🗺️ Gateway position updated:', this.gatewayPosition);
+        let totalScaleRatio = 0;
+        let scaleCount = 0;
+
+        // Compare physics distances with actual measured distances
+        this.visualizer.connections.forEach((connection, connectionKey) => {
+            const [nodeId1, nodeId2] = connectionKey.split('-');
+            const physicsPos1 = physicsNodes.get(nodeId1);
+            const physicsPos2 = physicsNodes.get(nodeId2);
+            
+            if (physicsPos1 && physicsPos2 && connection.distance) {
+                // Calculate physics distance
+                const physicsDistance = Math.sqrt(
+                    Math.pow(physicsPos2.x - physicsPos1.x, 2) + 
+                    Math.pow(physicsPos2.y - physicsPos1.y, 2)
+                );
+                
+                if (physicsDistance > 0.1) { // Avoid division by very small numbers
+                    // Calculate scale: actual_meters / physics_units
+                    const scaleRatio = connection.distance / physicsDistance;
+                    totalScaleRatio += scaleRatio;
+                    scaleCount++;
+                }
+            }
+        });
+
+        if (scaleCount > 0) {
+            const newScale = totalScaleRatio / scaleCount;
+            // Smooth the scale changes to avoid jumpy behavior
+            this.physicsToMetersScale = this.physicsToMetersScale * 0.9 + newScale * 0.1;
+            
+            console.log(`🗺️ Physics scale updated: ${this.physicsToMetersScale.toFixed(3)} meters/physics-unit`);
+        }
+    }
+
+    /**
+     * Update connection lines between nodes with distance labels
+     */
+    updateConnectionLines() {
+        if (!this.map || !this.isMapView || !this.visualizer) return;
+
+        // Clear existing connection lines
+        this.clearConnectionLines();
+
+        // Get connections from visualizer
+        if (!this.visualizer.connections) return;
+
+        this.visualizer.connections.forEach((connection, connectionKey) => {
+            const [nodeId1, nodeId2] = connectionKey.split('-');
+            
+            // Get markers for both nodes
+            const marker1 = this.nodeMarkers.get(nodeId1);
+            const marker2 = this.nodeMarkers.get(nodeId2);
+            
+            if (marker1 && marker2) {
+                const pos1 = marker1.getLatLng();
+                const pos2 = marker2.getLatLng();
+                
+                // Create line between nodes
+                const line = L.polyline([pos1, pos2], {
+                    color: '#3498db',
+                    weight: 2,
+                    opacity: 0.7,
+                    dashArray: '5, 5'
+                }).addTo(this.map);
+                
+                // Calculate midpoint for distance label
+                const midLat = (pos1.lat + pos2.lat) / 2;
+                const midLng = (pos1.lng + pos2.lng) / 2;
+                
+                // Create distance label with improved styling
+                const distance = connection.distance || 0;
+                const distanceLabel = L.divIcon({
+                    className: 'map-distance-label',
+                    html: `<div class="distance-text">${distance.toFixed(2)}m</div>`,
+                    iconSize: [50, 20],
+                    iconAnchor: [25, 10]
+                });
+                
+                const distanceMarker = L.marker([midLat, midLng], { 
+                    icon: distanceLabel,
+                    interactive: false
+                }).addTo(this.map);
+                
+                // Store line and label for cleanup
+                const connectionId = `${nodeId1}-${nodeId2}`;
+                this.connectionLines.set(connectionId, {
+                    line: line,
+                    label: distanceMarker
+                });
+            }
+        });
         
-        // Update all nodes when gateway position changes
-        this.updateAllNodesOnMap();
+        console.log(`🗺️ Updated ${this.connectionLines.size} connection lines on map`);
+    }
+
+    /**
+     * Clear all connection lines from the map
+     */
+    clearConnectionLines() {
+        this.connectionLines.forEach((connection, connectionId) => {
+            if (this.map) {
+                this.map.removeLayer(connection.line);
+                this.map.removeLayer(connection.label);
+            }
+        });
+        this.connectionLines.clear();
+    }
+
+    /**
+     * Fit map view to show all nodes with 80% coverage of available space (gentler animation)
+     */
+    fitMapToNodes() {
+        if (!this.map || !this.isMapView || this.nodeMarkers.size === 0) return;
+
+        try {
+            // Create a feature group from all node markers
+            const markerArray = Array.from(this.nodeMarkers.values());
+            const group = new L.featureGroup(markerArray);
+            
+            // Get bounds of all markers
+            const bounds = group.getBounds();
+            
+            // Calculate padding to achieve 80% coverage
+            const mapSize = this.map.getSize();
+            const paddingX = Math.max(30, mapSize.x * 0.1); // 10% padding on each side
+            const paddingY = Math.max(30, mapSize.y * 0.1);
+            
+            // Fit bounds with padding and gentler animation
+            this.map.fitBounds(bounds, {
+                padding: [paddingY, paddingX],
+                maxZoom: 20, // Allow closer zoom for indoor positioning
+                animate: true,
+                duration: 1.5, // Slower, gentler animation
+                easeLinearity: 0.1 // Smoother easing
+            });
+            
+            console.log(`🗺️ Map fitted to ${this.nodeMarkers.size} nodes with 80% coverage (gentle animation)`);
+            
+        } catch (error) {
+            console.error('🗺️ Error fitting map to nodes:', error);
+        }
     }
 
     /**
      * Update all nodes from the visualizer on the map
      */
     updateAllNodesOnMap() {
-        if (!this.map || !this.isMapView || !this.visualizer) return;
+        if (!this.visualizer || !this.visualizer.nodes || !this.map) return;
 
-        // Clear existing markers
-        this.clearAllNodes();
+        this.visualizer.nodes.forEach((node, nodeId) => {
+            this.updateNodeOnMap(nodeId, node);
+        });
 
-        // Add all nodes from the visualizer
-        if (this.visualizer.nodes) {
-            this.visualizer.nodes.forEach((node, nodeId) => {
-                this.updateNodeOnMap(node);
-            });
+        console.log(`🗺️ Updated ${this.visualizer.nodes.size} nodes on map`);
+        
+        // Auto-fit map after updating all nodes (debounced)
+        if (this.autoFitEnabled && this.nodeMarkers.size > 0) {
+            this.debouncedAutoFit();
         }
-
-        // Center map on all nodes
-        setTimeout(() => this.centerOnNodes(), 200);
     }
 
     /**
-     * Add or update a node on the map
-     * @param {Object} node - Node data with id, position, type, etc.
+     * Get node styling to match physics view (DOUBLED SIZES)
      */
-    updateNodeOnMap(node) {
+    getNodeStyling(nodeId, node) {
+        const isGateway = nodeId === 'B5A4' || node.type === 'gateway';
+        const isMobile = nodeId.startsWith('T') && nodeId.length === 4; // Mobile tags like T001, T002, etc.
+        
+        let nodeType, backgroundColor, borderColor, size, fontSize, typeLabel;
+        
+        if (isGateway) {
+            nodeType = 'gateway';
+            backgroundColor = '#e74c3c'; // Red for gateway (matches physics view)
+            borderColor = '#c0392b';
+            size = 60; // DOUBLED from 30
+            fontSize = '12px'; // Increased font size
+            typeLabel = 'GW';
+        } else if (isMobile) {
+            nodeType = 'mobile';
+            backgroundColor = '#3498db'; // Blue for mobile tags (matches physics view)
+            borderColor = '#2980b9';
+            size = 50; // DOUBLED from 25
+            fontSize = '11px'; // Increased font size
+            typeLabel = 'T';
+        } else {
+            nodeType = 'anchor';
+            backgroundColor = '#27ae60'; // Green for anchors (matches physics view)
+            borderColor = '#229954';
+            size = 50; // DOUBLED from 25
+            fontSize = '11px'; // Increased font size
+            typeLabel = 'A';
+        }
+        
+        return {
+            nodeType,
+            backgroundColor,
+            borderColor,
+            size,
+            fontSize,
+            typeLabel
+        };
+    }
+
+    /**
+     * Update a single node on the map
+     */
+    updateNodeOnMap(nodeId, node) {
         if (!this.map || !this.isMapView) return;
 
-        const nodeId = node.id;
-        let lat, lng;
+        // Determine GPS coordinates
+        let gpsCoords = node.gps;
+        if (!gpsCoords && nodeId === 'B5A4') {
+            gpsCoords = this.gatewayPosition;
+        }
 
-        // Determine position based on available data
-        if (node.gps && node.gps.lat && node.gps.lng) {
-            // Node has GPS coordinates - use absolute positioning
-            lat = node.gps.lat;
-            lng = node.gps.lng;
-        } else if (node.x !== undefined && node.y !== undefined) {
-            // Node has UWB coordinates - convert to GPS relative to gateway
-            const gpsPos = this.gpsUtils.localToGPS(
-                node.x, node.y,
-                this.gatewayPosition.lat, this.gatewayPosition.lng
-            );
-            lat = gpsPos.lat;
-            lng = gpsPos.lng;
-        } else {
-            // No position data available
-            return;
+        if (!gpsCoords || !this.gpsUtils.isValidGPS(gpsCoords.lat, gpsCoords.lng)) {
+            return; // Skip nodes without valid GPS coordinates
         }
 
         // Create or update marker
         if (this.nodeMarkers.has(nodeId)) {
-            // Update existing marker
+            // Update existing marker position
             const marker = this.nodeMarkers.get(nodeId);
-            marker.setLatLng([lat, lng]);
-            this.updateMarkerPopup(marker, node);
+            marker.setLatLng([gpsCoords.lat, gpsCoords.lng]);
         } else {
-            // Create new marker
-            const marker = this.createNodeMarker(node, lat, lng);
-            this.nodeMarkers.set(nodeId, marker);
-            marker.addTo(this.map);
-        }
-    }
+            // Get node styling to match physics view (with doubled sizes)
+            const styling = this.getNodeStyling(nodeId, node);
 
-    /**
-     * Create a marker for a node with physics-style appearance
-     * @param {Object} node - Node data
-     * @param {number} lat - Latitude
-     * @param {number} lng - Longitude
-     * @returns {L.Marker} Leaflet marker
-     */
-    createNodeMarker(node, lat, lng) {
-        // Determine node type and styling to match physics view
-        let isGateway = false;
-        let isStale = false;
-        
-        // Check if this is a gateway node
-        if (node.type === 'gateway' || node.id === 'B5A4' || 
-            (node.gps && node.gps.lat && node.gps.lng)) {
-            isGateway = true;
-        }
-        
-        // Check if node is stale
-        if (node.lastUpdate) {
-            const now = Date.now();
-            const staleTimeout = 30000; // 30 seconds default
-            isStale = (now - node.lastUpdate) > staleTimeout;
-        }
-
-        // Create custom icon that matches physics view styling
-        const size = isGateway ? 60 : 50;
-        const fontSize = isGateway ? '9px' : '9px';
-        const label = isGateway ? 'GW' : 'T';
-        
-        let backgroundColor, boxShadow;
-        if (isStale) {
-            backgroundColor = '#95a5a6'; // Stale color
-            boxShadow = '0 2px 4px rgba(149, 165, 166, 0.3)';
-        } else if (isGateway) {
-            backgroundColor = '#e74c3c'; // Gateway red
-            boxShadow = '0 6px 16px rgba(231, 76, 60, 0.5)';
-        } else {
-            backgroundColor = '#3498db'; // Standard blue
-            boxShadow = '0 4px 12px rgba(52, 152, 219, 0.5)';
-        }
-
-        const customIcon = L.divIcon({
-            className: 'custom-node-marker',
-            html: `
-                <div style="
-                    position: relative;
-                    width: ${size}px;
-                    height: ${size}px;
-                    background: radial-gradient(circle at 30% 30%, ${backgroundColor}, ${this.darkenColor(backgroundColor, 20)});
-                    border: 2px solid rgba(255, 255, 255, 0.3);
+            // Create custom HTML marker with node ID and proper styling
+            const markerHtml = `
+                <div class="map-node-marker ${styling.nodeType}" style="
+                    width: ${styling.size}px;
+                    height: ${styling.size}px;
+                    background: radial-gradient(circle at 30% 30%, ${styling.backgroundColor}dd, ${styling.backgroundColor}, ${styling.borderColor});
+                    border: 3px solid rgba(255, 255, 255, 0.8);
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: ${fontSize};
+                    font-size: ${styling.fontSize};
                     font-weight: bold;
                     color: white;
-                    box-shadow: ${boxShadow};
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+                    position: relative;
                     cursor: pointer;
-                    z-index: 10;
-                    opacity: ${isStale ? '0.6' : '1'};
+                    transition: transform 0.2s ease;
                 ">
-                    ${node.id}
+                    ${nodeId}
                     <div style="
                         position: absolute;
-                        top: -12px;
+                        top: -18px;
                         left: 50%;
                         transform: translateX(-50%);
-                        font-size: 7px;
-                        color: ${backgroundColor};
+                        font-size: 9px;
+                        color: ${styling.backgroundColor};
                         font-weight: bold;
                         background: white;
-                        padding: 1px 3px;
-                        border-radius: 2px;
-                    ">${label}</div>
+                        padding: 2px 4px;
+                        border-radius: 3px;
+                        border: 1px solid ${styling.backgroundColor};
+                    ">${styling.typeLabel}</div>
                 </div>
-            `,
-            iconSize: [size, size],
-            iconAnchor: [size/2, size/2]
+            `;
+
+            const customIcon = L.divIcon({
+                className: 'map-node-marker-container',
+                html: markerHtml,
+                iconSize: [styling.size, styling.size],
+                iconAnchor: [styling.size/2, styling.size/2]
+            });
+
+            const marker = L.marker([gpsCoords.lat, gpsCoords.lng], {
+                icon: customIcon
+            }).addTo(this.map);
+
+            // Add popup with node information
+            const popupContent = `
+                <div style="text-align: center; font-family: Arial, sans-serif;">
+                    <strong style="font-size: 16px; color: ${styling.backgroundColor};">${nodeId}</strong><br>
+                    <span style="font-size: 14px;">${styling.nodeType === 'gateway' ? '🚪 Gateway' : styling.nodeType === 'mobile' ? '📱 Mobile Tag' : '⚓ Anchor'}</span><br>
+                    <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                        Lat: ${gpsCoords.lat.toFixed(6)}<br>
+                        Lng: ${gpsCoords.lng.toFixed(6)}<br>
+                        Scale: ${this.physicsToMetersScale.toFixed(3)} m/unit
+                    </div>
+                </div>
+            `;
+            marker.bindPopup(popupContent);
+
+            this.nodeMarkers.set(nodeId, marker);
+        }
+    }
+
+    /**
+     * Update gateway GPS position
+     */
+    updateGatewayPosition(lat, lng) {
+        this.gatewayPosition = { lat, lng };
+
+        if (this.map) {
+            // Update gateway marker if it exists
+            if (this.nodeMarkers.has('B5A4')) {
+                const marker = this.nodeMarkers.get('B5A4');
+                marker.setLatLng([lat, lng]);
+            }
+            
+            // Auto-fit map to new gateway position and all nodes (debounced)
+            this.debouncedAutoFit();
+        }
+
+        console.log(`🗺️ Gateway position updated to: ${lat}, ${lng}`);
+    }
+
+    /**
+     * Set UWB to GPS scale factor
+     * @param {number} scale - Scale factor (meters per UWB unit)
+     */
+    setUWBScale(scale) {
+        this.uwbToGpsScale = Math.max(0.1, Math.min(10.0, scale));
+        console.log(`🗺️ UWB to GPS scale set to: ${this.uwbToGpsScale}`);
+        
+        // Trigger immediate position update with new scale
+        if (this.isMapView) {
+            this.updatePhysicsBasedPositions();
+        }
+    }
+
+    /**
+     * Clear all nodes from the map
+     */
+    clearAllNodes() {
+        this.nodeMarkers.forEach((marker, nodeId) => {
+            if (this.map) {
+                this.map.removeLayer(marker);
+            }
         });
-
-        const marker = L.marker([lat, lng], { icon: customIcon });
-        this.updateMarkerPopup(marker, node);
+        this.nodeMarkers.clear();
+        this.gpsAnchors.clear();
+        this.lastNodeCount = 0;
+        this.lastBounds = null;
         
-        return marker;
-    }
-
-    /**
-     * Darken a color by a percentage
-     * @param {string} color - Hex color
-     * @param {number} percent - Percentage to darken
-     * @returns {string} Darkened hex color
-     */
-    darkenColor(color, percent) {
-        const num = parseInt(color.replace("#", ""), 16);
-        const amt = Math.round(2.55 * percent);
-        const R = (num >> 16) - amt;
-        const G = (num >> 8 & 0x00FF) - amt;
-        const B = (num & 0x0000FF) - amt;
-        return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-            (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-            (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
-    }
-
-    /**
-     * Update marker popup content
-     * @param {L.Marker} marker - Leaflet marker
-     * @param {Object} node - Node data
-     */
-    updateMarkerPopup(marker, node) {
-        const hasGPS = node.gps && node.gps.lat && node.gps.lng;
-        const positionSource = hasGPS ? 'GPS Absolute' : 'UWB Relative';
-        const isGateway = node.type === 'gateway' || node.id === 'B5A4' || hasGPS;
+        // Reset physics scale
+        this.physicsToMetersScale = 1.0;
         
-        const popupContent = `
-            <div style="font-family: 'Segoe UI', sans-serif; font-size: 12px; min-width: 200px;">
-                <div style="font-weight: bold; color: ${isGateway ? '#e74c3c' : '#3498db'}; margin-bottom: 8px;">
-                    ${node.id} ${isGateway ? '(Gateway)' : '(Tag)'}
-                </div>
-                <div style="margin-bottom: 4px;">
-                    <strong>Position Source:</strong> ${positionSource}
-                </div>
-                ${hasGPS ? 
-                    `<div style="margin-bottom: 4px;">
-                        <strong>GPS:</strong> ${node.gps.lat.toFixed(6)}, ${node.gps.lng.toFixed(6)}
-                    </div>` :
-                    `<div style="margin-bottom: 4px;">
-                        <strong>UWB:</strong> ${node.x?.toFixed(2) || 'N/A'}m, ${node.y?.toFixed(2) || 'N/A'}m
-                    </div>`
-                }
-                <div style="margin-bottom: 4px;">
-                    <strong>Last Update:</strong> ${new Date(node.lastUpdate || Date.now()).toLocaleTimeString()}
-                </div>
-                ${node.connections ? 
-                    `<div style="font-size: 10px; color: #666; margin-top: 8px;">
-                        Connected to ${node.connections.size || 0} other nodes
-                    </div>` : ''
-                }
-            </div>
-        `;
-        
-        marker.bindPopup(popupContent);
+        // Also clear connection lines
+        this.clearConnectionLines();
     }
 
     /**
@@ -328,70 +796,104 @@ class MapManager {
             }
             this.nodeMarkers.delete(nodeId);
         }
-    }
-
-    /**
-     * Clear all nodes from the map
-     */
-    clearAllNodes() {
-        this.nodeMarkers.forEach((marker, nodeId) => {
-            if (this.map) {
-                this.map.removeLayer(marker);
+        
+        // Also remove from GPS anchors if it was one
+        this.gpsAnchors.delete(nodeId);
+        
+        // Remove any connection lines involving this node
+        const connectionsToRemove = [];
+        this.connectionLines.forEach((connection, connectionId) => {
+            if (connectionId.includes(nodeId)) {
+                connectionsToRemove.push(connectionId);
             }
         });
-        this.nodeMarkers.clear();
+        
+        connectionsToRemove.forEach(connectionId => {
+            const connection = this.connectionLines.get(connectionId);
+            if (this.map && connection) {
+                this.map.removeLayer(connection.line);
+                this.map.removeLayer(connection.label);
+            }
+            this.connectionLines.delete(connectionId);
+        });
+        
+        // Auto-fit map after node removal
+        if (this.autoFitEnabled && this.nodeMarkers.size > 0) {
+            this.debouncedAutoFit();
+        }
     }
 
     /**
-     * Center map on all nodes
+     * Center map on all nodes (legacy method - now uses fitMapToNodes)
      */
     centerOnNodes() {
-        if (!this.map || this.nodeMarkers.size === 0) return;
+        this.fitMapToNodes();
+    }
 
-        const markers = Array.from(this.nodeMarkers.values());
-        if (markers.length === 1) {
-            // Single node - center on it with appropriate zoom
-            const marker = markers[0];
-            this.map.setView(marker.getLatLng(), 18);
-        } else if (markers.length > 1) {
-            // Multiple nodes - fit bounds
-            const group = new L.featureGroup(markers);
-            this.map.fitBounds(group.getBounds().pad(0.1));
-        }
+    /**
+     * Enable or disable automatic map fitting
+     * @param {boolean} enabled - Whether to enable auto-fitting
+     */
+    setAutoFit(enabled) {
+        this.autoFitEnabled = enabled;
+        console.log(`🗺️ Auto-fit ${enabled ? 'enabled' : 'disabled'}`);
     }
 
     /**
      * Get current map bounds
-     * @returns {Object} Map bounds
      */
     getMapBounds() {
         if (!this.map) return null;
-        
-        const bounds = this.map.getBounds();
+        return this.map.getBounds();
+    }
+
+    /**
+     * Check if map is currently visible
+     */
+    isMapVisible() {
+        return this.isMapView && this.map !== null;
+    }
+
+    /**
+     * Get map statistics
+     */
+    getMapStats() {
         return {
-            north: bounds.getNorth(),
-            south: bounds.getSouth(),
-            east: bounds.getEast(),
-            west: bounds.getWest()
+            initialized: !!this.map,
+            visible: this.isMapView,
+            nodeCount: this.nodeMarkers.size,
+            gpsAnchors: this.gpsAnchors.size,
+            connectionLines: this.connectionLines.size,
+            center: this.map ? this.map.getCenter() : null,
+            zoom: this.map ? this.map.getZoom() : null,
+            autoFitEnabled: this.autoFitEnabled,
+            uwbScale: this.uwbToGpsScale,
+            physicsScale: this.physicsToMetersScale
         };
     }
 
     /**
-     * Handle node updates from the visualizer
-     * @param {Object} node - Updated node data
+     * Cleanup when destroyed
      */
-    onNodeUpdate(node) {
-        if (this.isMapView) {
-            this.updateNodeOnMap(node);
+    destroy() {
+        this.stopPhysicsPositioning();
+        this.clearAllNodes();
+        this.clearConnectionLines();
+        
+        // Clear auto-fit timeout
+        if (this.autoFitDebounceTimeout) {
+            clearTimeout(this.autoFitDebounceTimeout);
         }
-    }
-
-    /**
-     * Handle node removal from the visualizer
-     * @param {string} nodeId - ID of removed node
-     */
-    onNodeRemove(nodeId) {
-        this.removeNodeFromMap(nodeId);
+        
+        // Remove scale control
+        if (this.scaleControl && this.map) {
+            this.map.removeControl(this.scaleControl);
+        }
+        
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+        }
     }
 }
 

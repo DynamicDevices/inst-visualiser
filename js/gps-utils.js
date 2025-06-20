@@ -57,6 +57,19 @@ class GPSUtils {
     }
 
     /**
+     * Offset GPS coordinates by X,Y meters (assuming local coordinate system)
+     * @param {number} lat - Original latitude
+     * @param {number} lng - Original longitude
+     * @param {number} deltaX - X offset in meters (East positive)
+     * @param {number} deltaY - Y offset in meters (North positive)
+     * @returns {object} - New GPS coordinates {lat, lng}
+     */
+    offsetGPS(lat, lng, deltaX, deltaY) {
+        // Use the existing localToGPS method with the reference point as the original coordinates
+        return this.localToGPS(deltaX, deltaY, lat, lng);
+    }
+
+    /**
      * Calculate distance between two GPS coordinates
      * @param {number} lat1 - First latitude
      * @param {number} lng1 - First longitude

@@ -52,7 +52,7 @@
                     <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
                 </svg>
             </div>
-            <h1>UWB Position Visualiser v3.9</h1>
+            <h1>UWB Position Visualiser v4.0</h1>
             <div class="status">
                 <div class="status-indicator" id="statusIndicator"></div>
                 <span id="statusText">Disconnected</span>
@@ -141,6 +141,15 @@
                             📍 Default: Liverpool City Centre, UK
                         </div>
                         <button class="btn" id="updateGatewayGPS">Update Gateway Position</button>
+                        
+                        <!-- UWB Scale Control -->
+                        <div class="input-group" style="margin-top: 12px;">
+                            <label>UWB Scale Factor: <span id="uwbScaleValue">1.0</span></label>
+                            <input type="range" id="uwbScaleSlider" min="0.1" max="5.0" value="1.0" step="0.1">
+                            <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
+                                📏 Adjusts UWB distance scaling for map display (0.1-5.0)
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -265,13 +274,13 @@
                     </div>
                     <div class="control-group-content collapsed">
                         <div style="font-size: 10px; color: #34495e; line-height: 1.4; background: rgba(52, 152, 219, 0.1); padding: 8px; border-radius: 4px; border-left: 3px solid var(--primary-color);">
-                            <strong style="color: var(--primary-color);">v3.9 - GPS & Mapping Support</strong><br>
+                            <strong style="color: var(--primary-color);">v4.0 - Enhanced Map Visualization</strong><br>
                             • <strong>INST Project</strong>: Instantly Networked Smart Triage<br>
                             • <strong>Mission</strong>: Real-time positioning and tracking<br>
                             • <strong>Funding</strong>: ESA & UKSA BASS Programme<br>
                             • <strong>Technology</strong>: UWB precision positioning + GPS<br>
                             • <strong>Architecture</strong>: Hybrid GPS/UWB positioning<br>
-                            • <strong>New Feature</strong>: OpenStreetMap integration<br>
+                            • <strong>New Feature</strong>: Enhanced map visualization<br>
                             • <strong>GPS Support</strong>: Absolute positioning capability<br>
                             • <strong>Configurable Tags</strong>: 1-10 mobile tags<br>
                             • <strong>Touch-Optimised</strong>: Tablet-friendly interface<br>
@@ -299,8 +308,9 @@
             <div class="visualization-header">
                 <h3>📍 Node Positioning</h3>
                 <div class="view-controls">
-                    <button class="view-toggle active" id="physicsView" title="Physics View">🔬 Physics</button>
-                    <button class="view-toggle" id="mapView" title="Map View">🗺️ Map</button>
+                    <button class="view-toggle-single" id="viewToggle" data-view="physics" title="Toggle between Physics and Map view">
+                        🗺️ Map View
+                    </button>
                     <button class="maximize-toggle" id="maximizeVisualization" title="Maximise Display">⛶</button>
                 </div>
             </div>
