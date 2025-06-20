@@ -66,7 +66,7 @@
             </div>
             <div class="controls-content" id="controlsContent">
                 
-                <!-- MQTT Connection Section (renamed and moved to top) -->
+                <!-- MQTT Connection Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="mqtt">
                         <h3>📡 MQTT Connection</h3>
@@ -90,7 +90,7 @@
                     </div>
                 </div>
 
-                <!-- Simulation Mode Section (moved below MQTT Connection) -->
+                <!-- Simulation Mode Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="simulation">
                         <h3>🎭 Simulation Mode</h3>
@@ -100,29 +100,18 @@
                         <div class="input-group">
                             <label>Update Interval: <span id="simulationRateValue">1</span>s</label>
                             <input type="range" id="simulationRateSlider" min="1" max="60" value="1" step="1">
-                            <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
-                                ℹ️ Controls how often simulated data is published (1-60 seconds)
-                            </div>
                         </div>
                         <div class="input-group">
                             <label>Tag Count: <span id="tagCountValue">3</span></label>
                             <input type="range" id="tagCountSlider" min="1" max="10" value="3" step="1">
-                            <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
-                                🏷️ Number of mobile tags to simulate (1-10)
-                            </div>
                         </div>
                         <button class="btn success" id="startSimulation">Start Simulation</button>
                         <button class="btn secondary" id="stopSimulation" disabled>Stop Simulation</button>
-                        <div style="font-size: 9px; color: #7f8c8d; line-height: 1.3; margin-top: 4px;">
-                            💡 Simulates 1 GPS-enabled gateway (Liverpool), 3 anchors, and configurable mobile tags with realistic movement and 5cm measurement noise
-                        </div>
-                        <div class="simulation-status" id="simulationStatus" style="font-size: 9px; color: #34495e; margin-top: 4px; font-weight: 500;">
-                            🎭 Simulation: Ready
-                        </div>
+                        <div class="simulation-status" id="simulationStatus">🎭 Simulation: Ready</div>
                     </div>
                 </div>
 
-                <!-- GPS & Mapping Section (single instance only) -->
+                <!-- GPS & Mapping Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="gps">
                         <h3>🌍 GPS & Mapping</h3>
@@ -137,23 +126,16 @@
                             <label>Gateway GPS Longitude:</label>
                             <input type="number" id="gatewayLng" value="-2.9916" step="0.0001" placeholder="-2.9916">
                         </div>
-                        <div style="font-size: 9px; color: #7f8c8d; margin-top: 4px;">
-                            📍 Default: Liverpool City Centre, UK
-                        </div>
                         <button class="btn" id="updateGatewayGPS">Update Gateway Position</button>
                         
-                        <!-- UWB Scale Control -->
                         <div class="input-group" style="margin-top: 12px;">
                             <label>UWB Scale Factor: <span id="uwbScaleValue">1.0</span></label>
                             <input type="range" id="uwbScaleSlider" min="0.1" max="5.0" value="1.0" step="0.1">
-                            <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
-                                📏 Adjusts UWB distance scaling for map display (0.1-5.0)
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Actions Section -->
+                <!-- Quick Actions Section - UPDATED -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="quick">
                         <h3>⚡ Quick Actions</h3>
@@ -163,6 +145,7 @@
                         <button class="btn success" id="centerNodes">Centre Display</button>
                         <button class="btn" id="clearNodes">Clear All Nodes</button>
                         <button class="btn secondary" id="resetPhysics">Reset Physics</button>
+                        <button class="btn secondary" id="resetStats">Reset Statistics</button>
                         <div class="input-group" style="margin-top: 8px;">
                             <label>
                                 <input type="checkbox" id="showAccuracy" checked> Show Distance Accuracy
@@ -171,6 +154,16 @@
                         <div class="input-group">
                             <label>
                                 <input type="checkbox" id="enablePhysics" checked> Enable Physics Simulation
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label>
+                                <input type="checkbox" id="debugMode"> Debug Mode
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label>
+                                <input type="checkbox" id="showBoundingBox"> Show Bounding Box
                             </label>
                         </div>
                     </div>
@@ -190,9 +183,6 @@
                         <div class="input-group">
                             <label>Node Removal Timeout: <span id="removalTimeoutValue">30</span>s</label>
                             <input type="range" id="removalTimeoutSlider" min="10" max="180" value="30" step="10">
-                            <div style="font-size: 9px; color: #7f8c8d; margin-top: 2px;">
-                                Total: <span id="totalTimeoutValue">60</span>s
-                            </div>
                         </div>
                         <div class="input-group">
                             <label>Display Scale: <span id="scaleValue">120</span>px/m</label>
@@ -220,84 +210,22 @@
                             <label>Node Mass: <span id="massValue">0.2</span></label>
                             <input type="range" id="massSlider" min="0.05" max="1.0" value="0.2" step="0.05">
                         </div>
-                        <div style="font-size: 9px; color: #7f8c8d; line-height: 1.3; margin-top: 4px;">
-                            💡 High-performance mode: High spring strength, low damping, light mass for responsive positioning
-                        </div>
                     </div>
                 </div>
 
-                <!-- Device Control Section -->
+                <!-- Advanced Settings Section - NEW -->
                 <div class="control-group">
-                    <div class="control-group-header" data-section="device">
-                        <h3>📱 Device Control</h3>
+                    <div class="control-group-header" data-section="advanced">
+                        <h3>🔧 Advanced Settings</h3>
                         <button class="collapse-toggle collapsed">▶</button>
                     </div>
                     <div class="control-group-content collapsed">
                         <div class="input-group">
-                            <label>Update Rate: <span id="rateLimitValue">5</span>s</label>
-                            <input type="range" id="rateLimitSlider" min="1" max="60" value="5" step="1">
-                            <div style="font-size: 9px; color: #7f8c8d; margin-top: 3px;">
-                                ℹ️ Controls device update frequency
-                            </div>
+                            <label>Rate Limit: <span id="rateLimitValue">1</span>s</label>
+                            <input type="range" id="rateLimitSlider" min="1" max="10" value="1" step="1">
                         </div>
-                    </div>
-                </div>
-
-                <!-- Debug Tools Section -->
-                <div class="control-group">
-                    <div class="control-group-header" data-section="debug">
-                        <h3>🐛 Debug Tools</h3>
-                        <button class="collapse-toggle collapsed">▶</button>
-                    </div>
-                    <div class="control-group-content collapsed">
-                        <div class="debug-toggle">
-                            <input type="checkbox" id="debugMode">
-                            <label for="debugMode" class="debug-toggle-button"></label>
-                            <label for="debugMode" class="debug-toggle-label">Debug Logging</label>
-                        </div>
-                        <div class="debug-toggle">
-                            <input type="checkbox" id="showBoundingBox">
-                            <label for="showBoundingBox" class="debug-toggle-button"></label>
-                            <label for="showBoundingBox" class="debug-toggle-label">Show Boundaries</label>
-                        </div>
-                        <div style="font-size: 9px; color: #7f8c8d; margin-top: 4px;">
-                            🔍 Shows detailed system information and coverage area dimensions
-                        </div>
-                    </div>
-                </div>
-
-                <!-- INST Project Info Section -->
-                <div class="control-group">
-                    <div class="control-group-header" data-section="version">
-                        <h3>ℹ️ INST Project Info</h3>
-                        <button class="collapse-toggle collapsed">▶</button>
-                    </div>
-                    <div class="control-group-content collapsed">
-                        <div style="font-size: 10px; color: #34495e; line-height: 1.4; background: rgba(52, 152, 219, 0.1); padding: 8px; border-radius: 4px; border-left: 3px solid var(--primary-color);">
-                            <strong style="color: var(--primary-color);">v4.0 - Enhanced Map Visualization</strong><br>
-                            • <strong>INST Project</strong>: Instantly Networked Smart Triage<br>
-                            • <strong>Mission</strong>: Real-time positioning and tracking<br>
-                            • <strong>Funding</strong>: ESA & UKSA BASS Programme<br>
-                            • <strong>Technology</strong>: UWB precision positioning + GPS<br>
-                            • <strong>Architecture</strong>: Hybrid GPS/UWB positioning<br>
-                            • <strong>New Feature</strong>: Enhanced map visualization<br>
-                            • <strong>GPS Support</strong>: Absolute positioning capability<br>
-                            • <strong>Configurable Tags</strong>: 1-10 mobile tags<br>
-                            • <strong>Touch-Optimised</strong>: Tablet-friendly interface<br>
-                            • <strong>Network Ready</strong>: MQTT integration support<br>
-                            • <strong>Real-Time</strong>: Live positioning updates<br><br>
-                            
-                            <strong>Hybrid Positioning System:</strong><br>
-                            GPS: Absolute positioning | UWB: Relative positioning<br>
-                            Gateway: Liverpool (53.4084, -2.9916)<br><br>
-                            
-                            <strong>Simulation Features:</strong><br>
-                            • Realistic UWB measurement noise (5cm)<br>
-                            • Mobile tag movement patterns (1-10 tags)<br>
-                            • Configurable update intervals (1-60 seconds)<br>
-                            • GPS-enabled gateway + 3 anchors<br><br>
-                            
-                            <strong style="color: var(--primary-color);">"Precision positioning with global context"</strong>
+                        <div class="input-group">
+                            <label>Total Timeout: <span id="totalTimeoutValue">60</span>s</label>
                         </div>
                     </div>
                 </div>
@@ -328,15 +256,56 @@
             </div>
             <div class="console-content hidden" id="consoleContent"></div>
         </div>
+
+        <!-- Statistics Panel - NEW -->
+        <div class="stats-panel" id="statsPanel">
+            <div class="stats-header">
+                <h3>📊 Statistics</h3>
+            </div>
+            <div class="stats-content">
+                <div class="stat-item">
+                    <span class="stat-label">Nodes:</span>
+                    <span class="stat-value" id="nodeCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Connections:</span>
+                    <span class="stat-value" id="connectionCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Messages:</span>
+                    <span class="stat-value" id="messageCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Area:</span>
+                    <span class="stat-value" id="totalArea">0×0m</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Last Update:</span>
+                    <span class="stat-value" id="lastMessageTime">Never</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Application Scripts -->
+    <!-- Core utilities MUST load first -->
+    <script src="js/core/config.js"></script>
+    <script src="js/core/event-bus.js"></script>
+
+    <!-- Existing core files -->
     <script src="js/physics.js"></script>
     <script src="js/mqtt.js"></script>
     <script src="js/gps-utils.js"></script>
-    <script src="js/map-manager.js"></script>
+
+    <!-- Map modules (load before visualizer) -->
+    <script src="js/map/map-markers.js"></script>
+    <script src="js/map/map-scaling.js"></script>
+    <script src="js/map/map-manager-core.js"></script>
+
+    <!-- Simulation and visualization -->
     <script src="js/mqtt-simulator.js"></script>
     <script src="js/visualizer.js"></script>
+
+    <!-- Application initialization (MUST be last) -->
     <script src="js/app.js"></script>
 </body>
 </html>
