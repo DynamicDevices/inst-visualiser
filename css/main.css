@@ -1076,6 +1076,138 @@ body {
     }
 }
 
+/* Map container styles */
+.map-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.map-container.hidden {
+    display: none;
+}
+
+/* View control buttons */
+.view-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.view-toggle {
+    background: var(--secondary-color);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.view-toggle:hover {
+    background: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.view-toggle.active {
+    background: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Custom marker styles for Leaflet */
+.custom-node-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Leaflet popup customization */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.leaflet-popup-content {
+    margin: 12px 16px;
+    line-height: 1.4;
+}
+
+/* Enhanced control group styles for new GPS section */
+.control-group[data-section="gps"] .control-group-content {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(52, 152, 219, 0.1));
+    border-left: 3px solid #2ecc71;
+}
+
+.control-group[data-section="display"] .control-group-content {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(52, 73, 94, 0.1));
+    border-left: 3px solid #9b59b6;
+}
+
+/* Radio button styling for display mode */
+input[type="radio"] {
+    margin-right: 8px;
+    accent-color: var(--primary-color);
+}
+
+/* Enhanced visualization header */
+.visualization-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.visualization-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Map loading indicator */
+.map-container::before {
+    content: "Loading map...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #666;
+    z-index: 1000;
+    display: none;
+}
+
+.map-container.loading::before {
+    display: block;
+}
+
+/* Mobile-First Responsive Design */
+@media (max-width: 768px) {
+    body {
+        font-size: 12px;
+    }
+
+    .view-controls {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .view-toggle {
+        padding: 4px 6px;
+        font-size: 12px;
+    }
+
+    .control-group-content input[type="number"] {
+        font-size: 14px;
+    }
+
 @media (max-width: 480px) {
     .container {
         gap: 2px;

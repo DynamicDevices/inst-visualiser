@@ -20,17 +20,17 @@ class UWBSimulator {
         this.publishRate = 1.0; // Hz (default: every 1 second)
         this.timeOffset = 0.0;
         
-        // Define node positions in coordinate system (metres)
+        // Define node positions in coordinate system (metres) and GPS coordinates
         this.nodes = {
-            "B5A4": { x: 0.0, y: 0.0, type: 'gateway' },      // Gateway at origin
+            "B5A4": { x: 0.0, y: 0.0, type: 'gateway', lat: 53.4084, lon: -2.9916 }, // Gateway at origin (Liverpool)
             "R001": { x: 3.0, y: 2.0, type: 'anchor' },       // Room 1
-            "R002": { x: 1.5, y: 4.0, type: 'anchor' },       // Room 2  
+            "R002": { x: 1.5, y: 4.0, type: 'anchor' },       // Room 2
             "R003": { x: 5.0, y: 3.5, type: 'anchor' },       // Room 3
-            "T001": { x: 2.0, y: 2.5, type: 'mobile' },       // Mobile tag 1
         };
-        
-        // Movement parameters for mobile tags
-        this.mobileTags = ["T001"];
+
+        // Initialize mobile tags (configurable 1-10)
+        this.mobileTags = [];
+        this.initializeMobileTags(1); // Default to 1 tag
         this.noiseStddev = 0.05; // 5cm standard deviation
         
         // Statistics
@@ -286,6 +286,26 @@ class UWBSimulator {
     }
     
     /**
+     * Initialize mobile tags
+     */
+    initializeMobileTags(count) {
+        count = Math.max(1, Math.min(10, count)); // Clamp between 1-10 tags
+        this.mobileTags = [];
+
+        for (let i = 1; i <= count; i++) {
+            const tagId = `T${i.toString().padStart(3,'0')}`;
+            this.nodes[tagId] = {
+                x: 2.0 + Math.random(),
+                y: 2.5 + Math.random(),
+                type: 'mobile'
+            };
+            this.mobileTags.push(tagId);
+        }
+
+        console.log(`🏷️ Initialized ${count} mobile tags`);
+    }
+
+    /**
      * Reset simulation state
      */
     reset() {
@@ -293,10 +313,11 @@ class UWBSimulator {
         this.timeOffset = 0.0;
         this.messagesPublished = 0;
         this.startTime = null;
-        
-        // Reset mobile tag positions
-        this.nodes["T001"] = { x: 2.0, y: 2.5, type: 'mobile' };
-        
+
+        // Reinitialize mobile tags
+        const tagCount = this.mobileTags.length;
+        this.initializeMobileTags(tagCount);
+
         console.log('🔄 Simulation reset');
     }
     
