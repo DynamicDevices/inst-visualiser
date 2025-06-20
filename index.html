@@ -287,34 +287,68 @@
         </div>
     </div>
 
-    <!-- Core utilities MUST load first -->
-    <script src="js/core/config.js"></script>
-    <script src="js/core/event-bus.js"></script>
+<!-- Core utilities MUST load first -->
+<script src="js/core/config.js"></script>
+<script src="js/core/event-bus.js"></script>
 
-    <!-- Existing core files -->
-    <script src="js/physics.js"></script>
-    <script src="js/mqtt.js"></script>
-    <script src="js/gps-utils.js"></script>
+<!-- Existing core files -->
+<script src="js/physics.js"></script>
+<script src="js/mqtt.js"></script>
+<script src="js/gps-utils.js"></script>
 
-    <!-- Map modules -->
-    <script src="js/map/map-markers.js"></script>
-    <script src="js/map/map-scaling.js"></script>
-    <script src="js/map/map-manager-core.js"></script>
+<!-- Map modules -->
+<script src="js/map/map-markers.js"></script>
+<script src="js/map/map-scaling.js"></script>
+<script src="js/map/map-manager-core.js"></script>
 
-    <!-- Visualizer modules (load in dependency order) -->
-    <script src="js/visualizer/visualizer-nodes.js"></script>
-    <script src="js/visualizer/visualizer-connections.js"></script>
-    <script src="js/visualizer/visualizer-physics.js"></script>
-    <script src="js/visualizer/visualizer-ui.js"></script>
-    <script src="js/visualizer/visualizer-mobile.js"></script>
-    <script src="js/visualizer/visualizer-stats.js"></script>
-    <script src="js/visualizer/visualizer-logging.js"></script>
-    <script src="js/visualizer/visualizer-core.js"></script>
+<!-- Visualizer modules -->
+<script src="js/visualizer/visualizer-nodes.js"></script>
+<script src="js/visualizer/visualizer-connections.js"></script>
+<script src="js/visualizer/visualizer-physics.js"></script>
+<script src="js/visualizer/visualizer-ui.js"></script>
+<script src="js/visualizer/visualizer-mobile.js"></script>
+<script src="js/visualizer/visualizer-stats.js"></script>
+<script src="js/visualizer/visualizer-logging.js"></script>
+<script src="js/visualizer/visualizer-core.js"></script>
 
-    <!-- Simulation and remaining files -->
-    <script src="js/mqtt-simulator.js"></script>
+<!-- App modules (load in dependency order) -->
+<script src="js/app/app-simulation.js"></script>
+<script src="js/app/app-gps.js"></script>
+<script src="js/app/app-views.js"></script>
+<script src="js/app/app-controls.js"></script>
+<script src="js/app/app-utils.js"></script>
+<script src="js/app/app-core.js"></script>
 
-    <!-- Application initialization (MUST be last) -->
-    <script src="js/app.js"></script>
+<!-- Simulation -->
+<script src="js/mqtt-simulator.js"></script>
+
+<!-- New modular application initialization -->
+<script>
+// Global app instance
+let appCore;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        appCore = new AppCore();
+        await appCore.initialize();
+        
+        // Make global references available for compatibility
+        window.visualizer = appCore.getVisualizer();
+        window.uwbSimulator = appCore.getSimulationManager()?.getSimulator();
+        window.mapManager = appCore.getGPSManager()?.getMapManager();
+        window.gpsUtils = appCore.getGPSManager()?.getGPSUtils();
+        window.currentView = appCore.getViewManager()?.getCurrentView();
+        
+        // Legacy function compatibility
+        window.toggleView = () => appCore.getViewManager()?.toggleView();
+        window.switchToPhysicsView = () => appCore.getViewManager()?.switchToPhysicsView();
+        window.switchToMapView = () => appCore.getViewManager()?.switchToMapView();
+        window.updateGatewayGPS = () => appCore.getGPSManager()?.updateGatewayGPS();
+        
+    } catch (error) {
+        console.error('❌ Failed to initialize application:', error);
+    }
+});
+</script>
 </body>
 </html>
