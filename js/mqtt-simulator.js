@@ -17,13 +17,18 @@ class UWBSimulator {
         this.mqttManager = mqttManager;
         this.running = false;
         this.intervalId = null;
-        this.publishInterval = 1; // Default 1 second (changed from publishRate)
+        this.publishInterval = 1; // Default 1 second
         this.timeOffset = 0.0;
         this.tagCount = 3; // Default 3 tags
 
         // Define node positions in coordinate system (metres) and GPS coordinates
         this.nodes = {
-            "B5A4": { x: 0.0, y: 0.0, type: 'gateway', lat: 53.4084, lon: -2.9916 }, // Gateway at origin (Liverpool)
+            "B5A4": {
+                x: 0.0,
+                y: 0.0,
+                type: 'gateway',
+                gps: { lat: 53.4084, lng: -2.9916 } // Gateway has GPS coordinates
+            },
             "R001": { x: 3.0, y: 2.0, type: 'anchor' },    // Room 1
             "R002": { x: 1.5, y: 4.0, type: 'anchor' },    // Room 2
             "R003": { x: 5.0, y: 3.5, type: 'anchor' },    // Room 3
@@ -275,6 +280,22 @@ class UWBSimulator {
             this.intervalId = setInterval(() => {
                 this.publishDistances();
             }, intervalMs);
+        }
+    }
+
+    /**
+     * Update gateway GPS coordinates
+     * @param {number} lat - Latitude
+     * @param {number} lon - Longitude
+     * @param {number} alt - Altitude in meters
+     */
+    updateGatewayGPS(lat, lng, alt = 25) {
+        if (this.nodes["B5A4"]) {
+            this.nodes["B5A4"].gps = { lat, lng };
+            if (alt !== undefined) {
+                this.nodes["B5A4"].alt = alt;
+            }
+            console.log(`🎭 Simulator: Gateway GPS updated to ${lat}, ${lng}, ${alt}m`);
         }
     }
 

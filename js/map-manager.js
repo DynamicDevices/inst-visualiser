@@ -11,6 +11,16 @@ class MapManager {
         this.gatewayPosition = { lat: 53.4084, lng: -2.9916 }; // Liverpool default
         this.isMapView = false;
         this.mapContainer = null;
+        this.visualizer = null; // Reference to the main visualizer
+    }
+
+    /**
+     * Set reference to the main visualizer
+     * @param {UWBVisualizer} visualizer - Main visualizer instance
+     */
+    setVisualizer(visualizer) {
+        this.visualizer = visualizer;
+        console.log('🗺️ MapManager: Visualizer reference set');
     }
 
     /**
@@ -39,7 +49,10 @@ class MapManager {
             maxZoom: 19
         }).addTo(this.map);
 
-        console.log('Map initialized at Liverpool:', this.gatewayPosition);
+        console.log('🗺️ Map initialized at Liverpool:', this.gatewayPosition);
+        
+        // Update all existing nodes when map is initialized
+        this.updateAllNodesOnMap();
     }
 
     /**
@@ -57,6 +70,8 @@ class MapManager {
         setTimeout(() => {
             if (this.map) {
                 this.map.invalidateSize();
+                this.updateAllNodesOnMap();
+                this.centerOnNodes();
             }
         }, 100);
     }
@@ -88,7 +103,30 @@ class MapManager {
             this.map.setView([lat, lng], this.map.getZoom());
         }
 
-        console.log('Gateway position updated:', this.gatewayPosition);
+        console.log('🗺️ Gateway position updated:', this.gatewayPosition);
+        
+        // Update all nodes when gateway position changes
+        this.updateAllNodesOnMap();
+    }
+
+    /**
+     * Update all nodes from the visualizer on the map
+     */
+    updateAllNodesOnMap() {
+        if (!this.map || !this.isMapView || !this.visualizer) return;
+
+        // Clear existing markers
+        this.clearAllNodes();
+
+        // Add all nodes from the visualizer
+        if (this.visualizer.nodes) {
+            this.visualizer.nodes.forEach((node, nodeId) => {
+                this.updateNodeOnMap(node);
+            });
+        }
+
+        // Center map on all nodes
+        setTimeout(() => this.centerOnNodes(), 200);
     }
 
     /**
@@ -134,51 +172,85 @@ class MapManager {
     }
 
     /**
-     * Create a marker for a node
+     * Create a marker for a node with physics-style appearance
      * @param {Object} node - Node data
      * @param {number} lat - Latitude
      * @param {number} lng - Longitude
      * @returns {L.Marker} Leaflet marker
      */
     createNodeMarker(node, lat, lng) {
-        // Determine marker color based on node type
-        let color = '#3498db'; // Default blue
-        let icon = '📍';
+        // Determine node type and styling to match physics view
+        let isGateway = false;
+        let isStale = false;
         
-        if (node.type === 'gateway') {
-            color = '#e74c3c'; // Red for gateway
-            icon = '🏠';
-        } else if (node.type === 'anchor') {
-            color = '#f39c12'; // Orange for anchors
-            icon = '⚓';
-        } else if (node.type === 'tag') {
-            color = '#2ecc71'; // Green for tags
-            icon = '🏷️';
+        // Check if this is a gateway node
+        if (node.type === 'gateway' || node.id === 'B5A4' || 
+            (node.gps && node.gps.lat && node.gps.lng)) {
+            isGateway = true;
+        }
+        
+        // Check if node is stale
+        if (node.lastUpdate) {
+            const now = Date.now();
+            const staleTimeout = 30000; // 30 seconds default
+            isStale = (now - node.lastUpdate) > staleTimeout;
         }
 
-        // Create custom icon
+        // Create custom icon that matches physics view styling
+        const size = isGateway ? 60 : 50;
+        const fontSize = isGateway ? '9px' : '9px';
+        const label = isGateway ? 'GW' : 'T';
+        
+        let backgroundColor, boxShadow;
+        if (isStale) {
+            backgroundColor = '#95a5a6'; // Stale color
+            boxShadow = '0 2px 4px rgba(149, 165, 166, 0.3)';
+        } else if (isGateway) {
+            backgroundColor = '#e74c3c'; // Gateway red
+            boxShadow = '0 6px 16px rgba(231, 76, 60, 0.5)';
+        } else {
+            backgroundColor = '#3498db'; // Standard blue
+            boxShadow = '0 4px 12px rgba(52, 152, 219, 0.5)';
+        }
+
         const customIcon = L.divIcon({
             className: 'custom-node-marker',
             html: `
                 <div style="
-                    background-color: ${color};
-                    border: 2px solid white;
+                    position: relative;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: radial-gradient(circle at 30% 30%, ${backgroundColor}, ${this.darkenColor(backgroundColor, 20)});
+                    border: 2px solid rgba(255, 255, 255, 0.3);
                     border-radius: 50%;
-                    width: 30px;
-                    height: 30px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 10px;
+                    font-size: ${fontSize};
                     font-weight: bold;
                     color: white;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    box-shadow: ${boxShadow};
+                    cursor: pointer;
+                    z-index: 10;
+                    opacity: ${isStale ? '0.6' : '1'};
                 ">
                     ${node.id}
+                    <div style="
+                        position: absolute;
+                        top: -12px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        font-size: 7px;
+                        color: ${backgroundColor};
+                        font-weight: bold;
+                        background: white;
+                        padding: 1px 3px;
+                        border-radius: 2px;
+                    ">${label}</div>
                 </div>
             `,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            iconSize: [size, size],
+            iconAnchor: [size/2, size/2]
         });
 
         const marker = L.marker([lat, lng], { icon: customIcon });
@@ -188,23 +260,56 @@ class MapManager {
     }
 
     /**
+     * Darken a color by a percentage
+     * @param {string} color - Hex color
+     * @param {number} percent - Percentage to darken
+     * @returns {string} Darkened hex color
+     */
+    darkenColor(color, percent) {
+        const num = parseInt(color.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = (num >> 16) - amt;
+        const G = (num >> 8 & 0x00FF) - amt;
+        const B = (num & 0x0000FF) - amt;
+        return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+            (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+            (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    }
+
+    /**
      * Update marker popup content
      * @param {L.Marker} marker - Leaflet marker
      * @param {Object} node - Node data
      */
     updateMarkerPopup(marker, node) {
         const hasGPS = node.gps && node.gps.lat && node.gps.lng;
-        const positionSource = hasGPS ? 'GPS' : 'UWB Relative';
+        const positionSource = hasGPS ? 'GPS Absolute' : 'UWB Relative';
+        const isGateway = node.type === 'gateway' || node.id === 'B5A4' || hasGPS;
         
         const popupContent = `
-            <div style="font-family: monospace; font-size: 12px;">
-                <strong>${node.id}</strong> (${node.type || 'unknown'})<br>
-                <strong>Position:</strong> ${positionSource}<br>
+            <div style="font-family: 'Segoe UI', sans-serif; font-size: 12px; min-width: 200px;">
+                <div style="font-weight: bold; color: ${isGateway ? '#e74c3c' : '#3498db'}; margin-bottom: 8px;">
+                    ${node.id} ${isGateway ? '(Gateway)' : '(Tag)'}
+                </div>
+                <div style="margin-bottom: 4px;">
+                    <strong>Position Source:</strong> ${positionSource}
+                </div>
                 ${hasGPS ? 
-                    `<strong>GPS:</strong> ${node.gps.lat.toFixed(6)}, ${node.gps.lng.toFixed(6)}<br>` :
-                    `<strong>UWB:</strong> ${node.x?.toFixed(2) || 'N/A'}m, ${node.y?.toFixed(2) || 'N/A'}m<br>`
+                    `<div style="margin-bottom: 4px;">
+                        <strong>GPS:</strong> ${node.gps.lat.toFixed(6)}, ${node.gps.lng.toFixed(6)}
+                    </div>` :
+                    `<div style="margin-bottom: 4px;">
+                        <strong>UWB:</strong> ${node.x?.toFixed(2) || 'N/A'}m, ${node.y?.toFixed(2) || 'N/A'}m
+                    </div>`
                 }
-                <strong>Last Update:</strong> ${new Date(node.lastUpdate || Date.now()).toLocaleTimeString()}
+                <div style="margin-bottom: 4px;">
+                    <strong>Last Update:</strong> ${new Date(node.lastUpdate || Date.now()).toLocaleTimeString()}
+                </div>
+                ${node.connections ? 
+                    `<div style="font-size: 10px; color: #666; margin-top: 8px;">
+                        Connected to ${node.connections.size || 0} other nodes
+                    </div>` : ''
+                }
             </div>
         `;
         
@@ -243,8 +348,16 @@ class MapManager {
     centerOnNodes() {
         if (!this.map || this.nodeMarkers.size === 0) return;
 
-        const group = new L.featureGroup(Array.from(this.nodeMarkers.values()));
-        this.map.fitBounds(group.getBounds().pad(0.1));
+        const markers = Array.from(this.nodeMarkers.values());
+        if (markers.length === 1) {
+            // Single node - center on it with appropriate zoom
+            const marker = markers[0];
+            this.map.setView(marker.getLatLng(), 18);
+        } else if (markers.length > 1) {
+            // Multiple nodes - fit bounds
+            const group = new L.featureGroup(markers);
+            this.map.fitBounds(group.getBounds().pad(0.1));
+        }
     }
 
     /**
@@ -261,6 +374,24 @@ class MapManager {
             east: bounds.getEast(),
             west: bounds.getWest()
         };
+    }
+
+    /**
+     * Handle node updates from the visualizer
+     * @param {Object} node - Updated node data
+     */
+    onNodeUpdate(node) {
+        if (this.isMapView) {
+            this.updateNodeOnMap(node);
+        }
+    }
+
+    /**
+     * Handle node removal from the visualizer
+     * @param {string} nodeId - ID of removed node
+     */
+    onNodeRemove(nodeId) {
+        this.removeNodeFromMap(nodeId);
     }
 }
 
