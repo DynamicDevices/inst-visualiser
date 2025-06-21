@@ -89,7 +89,9 @@ class MapManager {
             this.addTileLayerSelector();
             this.addAutoZoomToggle();
             this.addDistanceLabelToggle();
-
+            this.addBoundingBoxToggle();
+            this.addForceCenterButton();
+            
             console.log('🗺️ Map initialized successfully with max zoom 25');
             eventBus.emit('map-initialized', { map: this.map });
             return true;
@@ -101,99 +103,98 @@ class MapManager {
     }
 
     /**
-     * Initialize all available tile layers (removed offline option)
+     * Initialize all available tile layers (with both Wikimedia and OSM France)
      */
     initializeTileLayers() {
         // Standard OpenStreetMap tiles
         this.tileLayers.standard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
-            maxZoom: 19,
-            errorTileUrl: this.createFallbackTile('No Data')
+            maxZoom: 19
         });
 
         // Google Satellite
         this.tileLayers.satellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
             attribution: '© Google',
             maxZoom: 25,
-            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-            errorTileUrl: this.createFallbackTile('No Imagery')
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
 
         // Google Hybrid (satellite + labels)
         this.tileLayers.hybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
             attribution: '© Google',
             maxZoom: 25,
-            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-            errorTileUrl: this.createFallbackTile('No Imagery')
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
 
         // CartoDB Positron (clean, minimal)
         this.tileLayers.positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap © CartoDB',
             maxZoom: 20,
-            subdomains: 'abcd',
-            errorTileUrl: this.createFallbackTile('No Data')
+            subdomains: 'abcd'
         });
 
         // CartoDB Dark Matter
         this.tileLayers.dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap © CartoDB',
             maxZoom: 20,
-            subdomains: 'abcd',
-            errorTileUrl: this.createFallbackTile('No Data', '#333')
+            subdomains: 'abcd'
         });
 
         // OpenTopoMap
         this.tileLayers.topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)',
             maxZoom: 17,
-            subdomains: 'abc',
-            errorTileUrl: this.createFallbackTile('No Topo')
+            subdomains: 'abc'
         });
 
         // Stamen Toner (high contrast)
         this.tileLayers.toner = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}{r}.png', {
             attribution: 'Map tiles by Stamen Design, CC BY 3.0 — Map data © OpenStreetMap contributors',
             maxZoom: 20,
-            subdomains: 'abcd',
-            errorTileUrl: this.createFallbackTile('No Data')
+            subdomains: 'abcd'
         });
 
         // Esri World Imagery
         this.tileLayers.esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-            maxZoom: 19,
-            errorTileUrl: this.createFallbackTile('No Imagery')
+            maxZoom: 19
         });
 
-        // Wikimedia Maps (fallback layer - most reliable)
-        this.tileLayers.wikimedia = L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors, Wikimedia maps',
-            maxZoom: 19,
-            errorTileUrl: this.createFallbackTile('Fallback')
+       // Wikimedia Maps (updated working URL - preferred fallback)
+        this.tileLayers.wikimedia = L.tileLayer('https://maps.wikimedia.org/osm/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors, Wikimedia Foundation',
+            maxZoom: 19
         });
 
         // Set up error handling for all layers
         Object.keys(this.tileLayers).forEach(layerType => {
             this.tileLayers[layerType].on('tileerror', (e) => {
+                console.warn(`🗺️ Tile error for ${layerType}:`, e);
                 this.handleTileError(layerType, e);
             });
+
+            this.tileLayers[layerType].on('tileload', () => {
+                // Reset error count on successful load
+                const errorKey = `${layerType}_${this.map ? this.map.getZoom() : 0}`;
+                if (this.tileLoadErrors.has(errorKey)) {
+                    this.tileLoadErrors.delete(errorKey);
+                }
+            });
+
+            this.tileLayers[layerType].on('loading', () => {
+                console.log(`🗺️ Loading tiles for ${layerType}`);
+            });
+
+            this.tileLayers[layerType].on('load', () => {
+                console.log(`🗺️ Finished loading tiles for ${layerType}`);
+            });
         });
+
+        console.log('🗺️ Initialized tile layers:', Object.keys(this.tileLayers));
     }
 
     /**
-     * Create a fallback tile (simplified grey tile for errors only)
-     */
-    createFallbackTile(text = '', bgColor = '#f0f0f0', textColor = '#999') {
-        const svg = `<svg width="256" height="256" xmlns="http://www.w3.org/2000/svg">
-            <rect width="256" height="256" fill="${bgColor}"/>
-            <text x="128" y="128" text-anchor="middle" dy=".3em" font-family="Arial" font-size="10" fill="${textColor}">${text}</text>
-        </svg>`;
-        return 'data:image/svg+xml;base64,' + btoa(svg);
-    }
-
-    /**
-     * Get tile layer options for dropdown (removed offline option)
+     * Get tile layer options for dropdown (with Wikimedia back)
      */
     getTileLayerOptions() {
         return {
@@ -204,13 +205,12 @@ class MapManager {
             'dark': { name: '⚫ Dark', description: 'Dark theme' },
             'topo': { name: '🏔️ Topographic', description: 'Topographic map' },
             'toner': { name: '🔲 High Contrast', description: 'Black and white' },
-            'esri': { name: '🌐 Esri Imagery', description: 'Esri satellite imagery' },
-            'wikimedia': { name: '📖 Wikimedia', description: 'Reliable fallback tiles' }
+            'esri': { name: '🌐 Esri Imagery', description: 'Esri satellite imagery' }
         };
     }
 
     /**
-     * Add tile layer selector dropdown
+     * Add tile layer selector dropdown with debugging
      */
     addTileLayerSelector() {
         if (!this.map) return;
@@ -244,10 +244,11 @@ class MapManager {
                     select.appendChild(option);
                 });
 
-                // Handle selection change
+                // Handle selection change with debugging
                 L.DomEvent.on(select, 'change', function(e) {
                     L.DomEvent.stopPropagation(e);
                     const selectedType = e.target.value;
+                    console.log(`🗺️ Dropdown changed to: ${selectedType}`);
                     mapManager.switchToTileLayer(selectedType, false);
                 });
 
@@ -467,14 +468,14 @@ class MapManager {
         const maxZoom = currentLayer?.options?.maxZoom || 18;
 
         // Auto-switch to high-zoom capable layer at high zoom levels
-        if (currentZoom > maxZoom && !['satellite', 'hybrid', 'wikimedia'].includes(this.tileLayerType)) {
+        if (currentZoom > maxZoom && !['satellite', 'hybrid'].includes(this.tileLayerType)) {
             console.log(`🗺️ Auto-switching to satellite view at zoom ${currentZoom} (current max: ${maxZoom})`);
             this.switchToTileLayer('satellite', true);
         }
     }
 
     /**
-     * Handle tile loading errors with Wikimedia fallback
+     * Handle tile loading errors with Wikimedia as preferred fallback
      */
     handleTileError(layerType, errorEvent) {
         const zoom = this.map ? this.map.getZoom() : 0;
@@ -486,29 +487,33 @@ class MapManager {
         }
         this.tileLoadErrors.set(errorKey, this.tileLoadErrors.get(errorKey) + 1);
 
-        // If tiles are consistently failing, switch to Wikimedia (most reliable)
-        if (this.tileLoadErrors.get(errorKey) > 5 && this.autoSwitchEnabled && 
-            layerType === this.tileLayerType && layerType !== 'wikimedia') {
-            console.log(`🗺️ ${layerType} tiles failing at zoom ${zoom}, switching to Wikimedia fallback`);
-            this.switchToTileLayer('wikimedia', true);
-        }
-        // If current layer is failing, try satellite as intermediate fallback
-        else if (this.tileLoadErrors.get(errorKey) > 3 && this.autoSwitchEnabled && 
-                 layerType === this.tileLayerType && layerType !== 'satellite' && layerType !== 'wikimedia') {
-            console.log(`🗺️ ${layerType} tiles failing at zoom ${zoom}, auto-switching to satellite`);
-            this.switchToTileLayer('satellite', true);
+        const errorCount = this.tileLoadErrors.get(errorKey);
+        
+        // Only switch if we're currently using the failing layer and auto-switch is enabled
+        if (this.autoSwitchEnabled && layerType === this.tileLayerType) {
+            // If tiles are failing, try satellite as fallback
+            if (errorCount > 5 && layerType !== 'satellite') {
+                console.log(`🗺️ ${layerType} tiles failing at zoom ${zoom}, auto-switching to satellite`);
+                this.switchToTileLayer('satellite', true);
+            }
         }
     }
 
     /**
-     * Switch to specific tile layer
+     * Switch to specific tile layer with debugging
      */
     switchToTileLayer(layerType, isAutoSwitch = false) {
-        if (!this.map || !this.tileLayers[layerType] || layerType === this.tileLayerType) return;
+        if (!this.map || !this.tileLayers[layerType] || layerType === this.tileLayerType) {
+            console.log(`🗺️ Switch blocked: map=${!!this.map}, layer exists=${!!this.tileLayers[layerType]}, same layer=${layerType === this.tileLayerType}`);
+            return;
+        }
+
+        console.log(`🗺️ Switching from ${this.tileLayerType} to ${layerType}${isAutoSwitch ? ' (auto)' : ''}`);
 
         // Remove current layer
         if (this.currentTileLayer) {
             this.map.removeLayer(this.currentTileLayer);
+            console.log(`🗺️ Removed current layer: ${this.tileLayerType}`);
         }
 
         // Switch to new layer
@@ -516,15 +521,27 @@ class MapManager {
         this.currentTileLayer = this.tileLayers[layerType];
         this.wasAutoSwitched = isAutoSwitch;
 
-        // Add new layer
-        this.currentTileLayer.addTo(this.map);
+        // Add new layer with error handling
+        try {
+            this.currentTileLayer.addTo(this.map);
+            console.log(`🗺️ Added new layer: ${layerType}`);
+            
+            // Update dropdown selection
+            this.updateTileSelector();
 
-        // Update dropdown selection
-        this.updateTileSelector();
-
-        const switchType = isAutoSwitch ? 'Auto-switched' : 'Switched';
-        const layerName = this.getTileLayerOptions()[layerType]?.name || layerType;
-        console.log(`🗺️ ${switchType} to ${layerName}`);
+            const switchType = isAutoSwitch ? 'Auto-switched' : 'Switched';
+            const layerName = this.getTileLayerOptions()[layerType]?.name || layerType;
+            console.log(`🗺️ ${switchType} to ${layerName}`);
+            
+        } catch (error) {
+            console.error(`🗺️ Error adding tile layer ${layerType}:`, error);
+            
+            // If this layer fails to load, try Wikimedia as last resort
+            if (layerType !== 'wikimedia' && this.autoSwitchEnabled) {
+                console.log(`🗺️ Falling back to Wikimedia due to layer error`);
+                setTimeout(() => this.switchToTileLayer('wikimedia', true), 1000);
+            }
+        }
     }
 
     /**
@@ -1071,13 +1088,148 @@ class MapManager {
     }
 
     /**
+     * Add bounding box toggle control
+     */
+    addBoundingBoxToggle() {
+        if (!this.map) return;
+
+        const mapManager = this;
+
+        // Create bounding box toggle control
+        const BoundingBoxToggleControl = L.Control.extend({
+            onAdd: function(map) {
+                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom bounding-box-control');
+
+                const button = L.DomUtil.create('a', 'bounding-box-toggle', container);
+                button.href = '#';
+                button.title = mapManager.markers.showBoundingBox ? 'Hide Bounding Box' : 'Show Bounding Box';
+                button.innerHTML = mapManager.markers.showBoundingBox ? '📦' : '📋';
+                button.style.backgroundColor = mapManager.markers.showBoundingBox ? '#e8f5e8' : '#f5f5f5';
+                button.style.width = '30px';
+                button.style.height = '30px';
+                button.style.lineHeight = '30px';
+                button.style.textAlign = 'center';
+                button.style.textDecoration = 'none';
+                button.style.color = '#333';
+                button.style.fontSize = '16px';
+                button.style.cursor = 'pointer';
+
+                L.DomEvent.on(button, 'click', function(e) {
+                    L.DomEvent.stopPropagation(e);
+                    L.DomEvent.preventDefault(e);
+                    mapManager.toggleBoundingBox();
+                });
+
+                L.DomEvent.disableClickPropagation(container);
+
+                return container;
+            }
+        });
+
+        this.boundingBoxToggleControl = new BoundingBoxToggleControl({ position: 'topright' });
+        this.boundingBoxToggleControl.addTo(this.map);
+
+        console.log('🗺️ Bounding box toggle added to map');
+    }
+
+    /**
+     * Add force center button control
+     */
+    addForceCenterButton() {
+        if (!this.map) return;
+
+        const mapManager = this;
+
+        const ForceCenterControl = L.Control.extend({
+            onAdd: function(map) {
+                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom force-center-control');
+
+                const button = L.DomUtil.create('a', 'force-center-button', container);
+                button.href = '#';
+                button.title = 'Force Center and Scale';
+                button.innerHTML = '🎯';
+                button.style.width = '30px';
+                button.style.height = '30px';
+                button.style.lineHeight = '30px';
+                button.style.textAlign = 'center';
+                button.style.textDecoration = 'none';
+                button.style.color = '#333';
+                button.style.fontSize = '16px';
+                button.style.cursor = 'pointer';
+
+                L.DomEvent.on(button, 'click', function(e) {
+                    L.DomEvent.stopPropagation(e);
+                    L.DomEvent.preventDefault(e);
+                    mapManager.forceCenterAndScale();
+                });
+
+                L.DomEvent.disableClickPropagation(container);
+
+                return container;
+            }
+        });
+
+        this.forceCenterControl = new ForceCenterControl({ position: 'topright' });
+        this.forceCenterControl.addTo(this.map);
+
+        console.log('🗺️ Force center button added to map');
+    }
+
+    /**
+     * Toggle bounding box visibility
+     */
+    toggleBoundingBox() {
+        this.markers.toggleBoundingBox();
+        this.updateBoundingBoxToggle();
+    }
+
+    /**
+     * Update bounding box toggle button appearance
+     */
+    updateBoundingBoxToggle() {
+        if (!this.boundingBoxToggleControl) return;
+
+        const button = this.boundingBoxToggleControl.getContainer().querySelector('.bounding-box-toggle');
+        if (button) {
+            button.innerHTML = this.markers.showBoundingBox ? '📦' : '📋';
+            button.title = this.markers.showBoundingBox ? 'Hide Bounding Box (Currently: ON)' : 'Show Bounding Box (Currently: OFF)';
+            button.style.backgroundColor = this.markers.showBoundingBox ? '#e8f5e8' : '#f5f5f5';
+        }
+    }
+
+    /**
+     * Force center and scale map to nodes
+     */
+    forceCenterAndScale() {
+        if (!this.map || !this.isMapView || this.markers.nodeMarkers.size === 0) return;
+
+        // Temporarily enable auto-fit
+        const wasAutoFitEnabled = this.autoFitEnabled;
+        this.autoFitEnabled = true;
+
+        // Force immediate fit
+        this.fitMapToNodes();
+
+        // Restore original auto-fit setting
+        this.autoFitEnabled = wasAutoFitEnabled;
+
+        console.log('🗺️ Forced center and scale');
+    }
+
+    /**
      * Cleanup
      */
     destroy() {
         this.stopPhysicsPositioning();
         this.clearAllNodes();
         this.scaling.removeScaleControl();
-        
+
+        // Clear bounding box
+        if (this.boundingBoxLayer) {
+            this.boundingBoxLayer.clearLayers();
+            this.map.removeLayer(this.boundingBoxLayer);
+        }
+
         // Remove tile selector control
         if (this.tileSelectorControl && this.map) {
             this.map.removeControl(this.tileSelectorControl);
@@ -1092,7 +1244,21 @@ class MapManager {
         if (this.distanceLabelToggleControl && this.map) {
             this.map.removeControl(this.distanceLabelToggleControl);
         }
+
+        if (this.boundingBoxToggleControl && this.map) {
+            this.map.removeControl(this.boundingBoxToggleControl);
+        }
         
+        // Remove force center control
+        if (this.forceCenterControl && this.map) {
+            this.map.removeControl(this.forceCenterControl);
+        }
+        
+        // Remove force center control
+        if (this.forceCenterControl && this.map) {
+            this.map.removeControl(this.forceCenterControl);
+        }
+
         if (this.map) {
             this.map.remove();
             this.map = null;

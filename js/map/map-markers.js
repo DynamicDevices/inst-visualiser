@@ -9,6 +9,9 @@ class MapMarkerManager {
         this.nodeMarkers = new Map();
         this.connectionLines = new Map();
         this.showDistanceLabels = true; // Default to showing labels
+        this.showBoundingBox = false; // Default to hiding bounding box
+        this.boundingBoxRect = null;
+        this.boundingBoxLabels = [];
     }
 
     /**
@@ -321,6 +324,7 @@ class MapMarkerManager {
         });
         this.nodeMarkers.clear();
         this.clearConnectionLines();
+        this.removeBoundingBox();
     }
 
     /**
@@ -361,7 +365,7 @@ class MapMarkerManager {
     getStats() {
         let gpsMarkers = 0;
         let derivedMarkers = 0;
-        
+
         this.nodeMarkers.forEach((marker, nodeId) => {
             // Check if this is a GPS marker by looking at the marker's class
             const markerElement = marker.getElement();
@@ -377,9 +381,162 @@ class MapMarkerManager {
             gpsMarkers: gpsMarkers,
             derivedMarkers: derivedMarkers,
             connectionLines: this.connectionLines.size,
-            showDistanceLabels: this.showDistanceLabels
+            showDistanceLabels: this.showDistanceLabels,
+            showBoundingBox: this.showBoundingBox
         };
     }
+
+    /**
+     * Toggle bounding box visibility
+     */
+    toggleBoundingBox() {
+        this.showBoundingBox = !this.showBoundingBox;
+
+        if (this.showBoundingBox) {
+            this.updateBoundingBox();
+        } else {
+            this.removeBoundingBox();
+        }
+
+        console.log(`🗺️ Bounding box ${this.showBoundingBox ? 'enabled' : 'disabled'}`);
+        eventBus.emit('bounding-box-toggled', { enabled: this.showBoundingBox });
+    }
+
+    /**
+     * Update bounding box around all nodes
+     */
+    updateBoundingBox() {
+        if (!this.mapManager.map || !this.mapManager.isMapView || !this.showBoundingBox) return;
+
+        // Remove existing bounding box
+        this.removeBoundingBox();
+
+        if (this.nodeMarkers.size < 2) return; // Need at least 2 nodes for a meaningful box
+
+        // Calculate bounds
+        let minLat = Infinity, maxLat = -Infinity;
+        let minLng = Infinity, maxLng = -Infinity;
+
+        this.nodeMarkers.forEach(marker => {
+            const pos = marker.getLatLng();
+            minLat = Math.min(minLat, pos.lat);
+            maxLat = Math.max(maxLat, pos.lat);
+            minLng = Math.min(minLng, pos.lng);
+            maxLng = Math.max(maxLng, pos.lng);
+        });
+
+        // Add some padding (5% of the range)
+        const latRange = maxLat - minLat;
+        const lngRange = maxLng - minLng;
+        const latPadding = latRange * 0.05;
+        const lngPadding = lngRange * 0.05;
+
+        minLat -= latPadding;
+        maxLat += latPadding;
+        minLng -= lngPadding;
+        maxLng += lngPadding;
+
+        // Create bounding box rectangle
+        const bounds = [[minLat, minLng], [maxLat, maxLng]];
+        this.boundingBoxRect = L.rectangle(bounds, {
+            color: '#ff7800',
+            weight: 2,
+            fillOpacity: 0.1,
+            dashArray: '5, 5'
+        }).addTo(this.mapManager.map);
+
+        // Calculate distances in meters
+        const widthMeters = this.mapManager.gpsUtils.calculateDistance(minLat, minLng, minLat, maxLng);
+        const heightMeters = this.mapManager.gpsUtils.calculateDistance(minLat, minLng, maxLat, minLng);
+
+        // Add distance labels
+        this.addBoundingBoxLabels(minLat, maxLat, minLng, maxLng, widthMeters, heightMeters);
+
+        console.log(`🗺️ Bounding box updated: ${widthMeters.toFixed(1)}m × ${heightMeters.toFixed(1)}m`);
+    }
+
+    /**
+     * Add distance labels to bounding box
+     */
+    addBoundingBoxLabels(minLat, maxLat, minLng, maxLng, widthMeters, heightMeters) {
+        this.boundingBoxLabels = [];
+
+        // Width label (bottom center)
+        const widthLabelPos = [minLat, (minLng + maxLng) / 2];
+        const widthLabel = L.divIcon({
+            className: 'bounding-box-label',
+            html: `<div style="
+                background: rgba(255, 120, 0, 0.9);
+                color: white;
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 11px;
+                font-weight: bold;
+                text-align: center;
+                white-space: nowrap;
+            ">${widthMeters.toFixed(1)}m</div>`,
+            iconSize: [60, 20],
+            iconAnchor: [30, 10]
+        });
+
+        const widthMarker = L.marker(widthLabelPos, {
+            icon: widthLabel,
+            interactive: false
+        }).addTo(this.mapManager.map);
+        this.boundingBoxLabels.push(widthMarker);
+
+        // Height label (left center, rotated)
+        const heightLabelPos = [(minLat + maxLat) / 2, minLng];
+        const heightLabel = L.divIcon({
+            className: 'bounding-box-label',
+            html: `<div style="
+                background: rgba(255, 120, 0, 0.9);
+                color: white;
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 11px;
+                font-weight: bold;
+                text-align: center;
+                white-space: nowrap;
+                transform: rotate(-90deg);
+            ">${heightMeters.toFixed(1)}m</div>`,
+            iconSize: [60, 20],
+            iconAnchor: [30, 10]
+        });
+
+        const heightMarker = L.marker(heightLabelPos, {
+            icon: heightLabel,
+            interactive: false
+        }).addTo(this.mapManager.map);
+        this.boundingBoxLabels.push(heightMarker);
+    }
+
+    /**
+     * Remove bounding box
+     */
+    removeBoundingBox() {
+        if (this.boundingBoxRect) {
+            this.mapManager.map.removeLayer(this.boundingBoxRect);
+            this.boundingBoxRect = null;
+        }
+
+        if (this.boundingBoxLabels) {
+            this.boundingBoxLabels.forEach(label => {
+                this.mapManager.map.removeLayer(label);
+            });
+            this.boundingBoxLabels = [];
+        }
+    }
 }
+
+// After the original updateConnectionLines method
+const originalUpdateConnectionLines = MapMarkerManager.prototype.updateConnectionLines;
+MapMarkerManager.prototype.updateConnectionLines = function(connections) {
+    originalUpdateConnectionLines.call(this, connections);
+
+    if (this.showBoundingBox) {
+        this.updateBoundingBox();
+    }
+};
 
 window.MapMarkerManager = MapMarkerManager;
