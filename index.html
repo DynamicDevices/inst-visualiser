@@ -65,7 +65,34 @@
                 <button class="controls-toggle" id="toggleControls">Hide</button>
             </div>
             <div class="controls-content" id="controlsContent">
-                
+            
+            <!-- Move the statistics section back to the controls panel -->
+            <div class="control-group" data-section="statistics">
+                <div class="control-group-header">
+                    <h3>📊 System Statistics</h3>
+                    <button class="collapse-toggle" onclick="toggleControlGroup('statistics')">▼</button>
+                </div>
+                <div class="control-group-content" id="statisticsContent">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Nodes</div>
+                            <div class="stat-value" id="nodeCount">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Connections</div>
+                            <div class="stat-value" id="connectionCount">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Messages</div>
+                            <div class="stat-value" id="messageCount">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Accuracy</div>
+                            <div class="stat-value" id="accuracyRate">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
                 <!-- MQTT Connection Section -->
                 <div class="control-group">
                     <div class="control-group-header" data-section="mqtt">
@@ -257,34 +284,6 @@
             <div class="console-content hidden" id="consoleContent"></div>
         </div>
 
-        <!-- Statistics Panel - NEW -->
-        <div class="stats-panel" id="statsPanel">
-            <div class="stats-header">
-                <h3>📊 Statistics</h3>
-            </div>
-            <div class="stats-content">
-                <div class="stat-item">
-                    <span class="stat-label">Nodes:</span>
-                    <span class="stat-value" id="nodeCount">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Connections:</span>
-                    <span class="stat-value" id="connectionCount">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Messages:</span>
-                    <span class="stat-value" id="messageCount">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Area:</span>
-                    <span class="stat-value" id="totalArea">0×0m</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Last Update:</span>
-                    <span class="stat-value" id="lastMessageTime">Never</span>
-                </div>
-            </div>
-        </div>
     </div>
 
 <!-- Core utilities MUST load first -->
