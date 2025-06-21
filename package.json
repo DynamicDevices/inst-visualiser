@@ -1,14 +1,17 @@
 {
   "name": "inst-visualiser-uwb",
-  "version": "3.0.0",
-  "description": "Ultra-fast UWB (Ultra-Wideband) position visualiser with real-time physics simulation and MQTT device control",
+  "version": "4.0.0",
+  "description": "Ultra-fast UWB (Ultra-Wideband) casualty position visualiser with real-time physics simulation for emergency services and mass casualty incident response",
   "main": "index.html",
   "scripts": {
     "start": "python -m http.server 8080",
     "serve": "python3 -m http.server 8080",
     "dev": "npx live-server --port=8080 --open=/",
     "test": "echo \"Open index.html in browser or use npm run serve\"",
-    "validate": "html5validator index.html"
+    "validate": "html5validator index.html",
+    "lint": "echo \"Linting HTML and CSS...\" && html5validator index.html",
+    "deploy": "gh-pages -d .",
+    "build": "echo \"Static site - no build step required\""
   },
   "repository": {
     "type": "git",
@@ -18,6 +21,7 @@
     "uwb",
     "ultra-wideband",
     "positioning",
+    "visualisation",
     "visualization",
     "mqtt",
     "real-time",
@@ -29,13 +33,25 @@
     "wireless",
     "tracking",
     "location",
-    "dynamic-devices"
+    "dynamic-devices",
+    "inst-project",
+    "emergency-response",
+    "triage",
+    "satellite-communication",
+    "operational-environment",
+    "tablet-optimised"
   ],
   "author": {
     "name": "Dynamic Devices Ltd",
     "email": "info@dynamicdevices.co.uk",
     "url": "https://www.dynamicdevices.co.uk"
   },
+  "contributors": [
+    {
+      "name": "INST Project Team",
+      "url": "https://github.com/DynamicDevices/inst-visualiser/contributors"
+    }
+  ],
   "license": "GPL-3.0",
   "licenses": [
     {
@@ -48,34 +64,57 @@
   },
   "homepage": "https://dynamicdevices.github.io/inst-visualiser/",
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
   },
   "browserslist": [
-    "last 2 versions",
+    "last 3 versions",
     "> 1%",
-    "not dead"
+    "not dead",
+    "not ie <= 11"
   ],
   "devDependencies": {
     "live-server": "^1.2.2",
-    "html5validator": "^0.4.2"
+    "html5validator": "^0.4.2",
+    "gh-pages": "^6.1.1"
   },
   "files": [
     "index.html",
     "README.md",
     "LICENSE",
-    "resources/"
+    "css/",
+    "js/",
+    "resources/",
+    "examples/",
+    "docs/"
   ],
   "config": {
     "default_mqtt_host": "mqtt.dynamicdevices.co.uk",
     "default_mqtt_port": 8083,
-    "default_topic": "uwb/positions"
+    "default_topic": "uwb/positions",
+    "default_physics_config": {
+      "spring_strength": 2.0,
+      "damping_factor": 0.6,
+      "node_mass": 0.2,
+      "distance_scale": 100
+    }
   },
-  "funding": {
-    "type": "individual",
-    "url": "https://www.dynamicdevices.co.uk"
-  },
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://www.dynamicdevices.co.uk"
+    },
+    {
+      "type": "government",
+      "url": "https://www.esa.int/"
+    }
+  ],
   "private": false,
   "publishConfig": {
     "access": "public"
+  },
+  "volta": {
+    "node": "18.19.0",
+    "npm": "10.2.3"
   }
 }

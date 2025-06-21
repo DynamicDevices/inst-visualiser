@@ -1,8 +1,8 @@
-# UWB Position Visualiser v3.5
+# UWB Position Visualiser v4.0
 
 **Part of the INST Project - Instantly Networked Smart Triage**
 
-A real-time visualisation tool for UWB (Ultra-Wideband) positioning data via MQTT featuring advanced spring-mass physics simulation, modular architecture, and touch-optimised UX design for positioning applications and system monitoring.
+A real-time visualisation tool for UWB (Ultra-Wideband) casualty positioning data via MQTT featuring advanced spring-mass physics simulation, modular architecture, and touch-optimised UX design for emergency services and mass casualty incident response.
 
 ![UWB Position Visualiser Demo](resources/demo-pic.png)
 
@@ -40,159 +40,168 @@ Ultra-Wideband technology forms the **precision positioning backbone** of the IN
 - **Minimal interference** with other communication systems
 - **Real-time performance** with microsecond timing precision
 
-### UWB in Applications
+### UWB in Emergency Response
 
-In positioning applications, **knowing exactly where each element is located provides significant operational advantages**. The UWB positioning system enables:
+In mass casualty incidents, **knowing exactly where each casualty is located provides critical advantages for emergency services**:
 
-#### 🏥 **Monitoring**
-- **Spatial mapping** - visualise distribution of tracked elements across operational zones
-- **Priority routing** - direct personnel to most important locations first
-- **Resource allocation** - deploy teams based on real positioning data
+1. **Real-time Casualty Tracking**: Monitor casualty locations with centimetre precision during triage and treatment
+2. **Multi-agency Coordination**: Enable precise positioning data for police, ambulance, and fire service coordination
+3. **Resource Allocation**: Track emergency personnel and equipment deployment in real-time
+4. **Situational Awareness**: Maintain accurate operational picture even in GPS-denied environments
+5. **Safety Monitoring**: Track first responders in hazardous or complex incident environments
 
-#### 🚑 **Coordinated Operations** 
-- **Unified situational picture** - all teams see the same real-time data
-- **Avoid duplication** - prevent multiple teams responding to same location
-- **Coverage gaps** - identify areas that may have been missed
+## ✨ Features v4.0
 
-#### 📍 **Precision in Complex Environments**
-- **GPS-denied environments** - works inside buildings, underground locations
-- **Obstacle navigation** - track positions even when landmarks are obscured
-- **24/7 operations** - position tracking independent of visibility conditions
+### **🚀 Core Emergency Response Capabilities**
+- **Real-time Casualty Visualisation**: Live casualty positioning updates via MQTT with sub-second latency
+- **Advanced Physics Engine**: Spring-mass system for natural casualty and responder positioning
+- **Multi-device Support**: Handle hundreds of simultaneous casualty and responder tracking devices
+- **Triage Status Integration**: Visual feedback for casualty priority and treatment status
 
-## 📱 Touch-First Interface (v3.5)
+### **📱 Emergency Services Tablet Deployment (NEW in v4.0)**
+- **Field-Ready Design**: Optimised layout for emergency service tablet deployment
+- **Portrait/Landscape Support**: Adaptive interface for different operational orientations
+- **Touch Gestures**: Natural interaction for rapid casualty assessment and coordination
+- **Incident Command Mode**: Maximise visualisation area for incident command displays
 
-The visualiser is optimised for operations with a **touch-friendly, field-ready interface** and **modular architecture**:
+### **🔧 Enhanced System Configuration**
+- **Modular Architecture**: Improved maintainability with separated MQTT, physics, and visualisation components
+- **Flexible MQTT Settings**: Support for SSL/TLS, authentication, and custom broker configurations
+- **Physics Tuning**: Adjustable spring constants, damping, and mass parameters
+- **Visual Customisation**: Configurable node styles, colours, and labelling options
 
-🎯 **Operations UX:**
-- **Compact Controls**: Greatly reduced control panel size, prioritising positioning display  
-- **Critical Information Priority**: Position and status data prominently displayed
-- **Touch-Friendly Operations**: Larger tap targets, gesture support
-- **Prioritised Visualisation**: Node positions take 80%+ of screen space
-- **Rapid Assessment Sections**: Quick-access essential controls
-- **Field-Ready Display**: High contrast, readable in various lighting conditions
-- **Command Centre Mode**: Full-screen tactical display for operational command
+### **🚨 Emergency Response Features**
+- **Satellite Communication Ready**: Designed for satellite-uplinked MQTT data streams when terrestrial networks fail
+- **Resilient Connectivity**: Automatic reconnection and offline mode capabilities for incident environments
+- **Multi-Screen Support**: Deploy across multiple displays for incident command centres
+- **Casualty Report Export**: Save casualty positioning data and incident screenshots for post-incident analysis
 
-📱 **Response Features:**
-- **Maximise Mode**: Full-screen positioning tracking for optimal situation awareness (⛶ button)
-- **Auto-Collapse**: Non-essential settings collapse automatically to save space
-- **System Branding**: Clear visual identity for operational use
-- **Touch Gestures**: Pinch, zoom, and tap interactions for rapid field use
-- **Orientation Support**: Adapts layout for portrait and landscape tablets
-- **Battery Optimisation**: Efficient rendering for extended field operations
+### **📊 Emergency Response Analytics & Monitoring**
+- **Real-time Casualty Statistics**: Live casualty counts, triage status, and response metrics
+- **Movement Tracking**: Casualty and responder movement analysis for coordination
+- **Coverage Analysis**: Visual incident area boundaries and emergency service positioning zones
+- **Operational Health Monitoring**: Connection status, data quality, and system performance for critical operations
 
-⚡ **High-Performance Physics System (v3.1+):**
-- **Spring Constant**: 2.0 (100x stronger) for lightning-fast positioning response  
-- **Minimal Damping**: 0.6 (allows maximum sustained motion for dynamic situations)
-- **Ultra-Light Mass**: 0.2 (near-instant response to changing positions)
-- **Extreme Forces**: All boundary, repulsion, and centring forces increased 100x
-- **Result**: Nodes position ~100x faster for real-time situational awareness
+## 🚀 Quick Start Guide
 
-🏗️ **Modular Architecture (v3.5):**
-- **Separated MQTT Management**: Dedicated MQTTManager class for better code organisation
-- **Improved Maintainability**: Clear separation of concerns between visualisation and networking
-- **Enhanced Debugging**: Easier to trace MQTT-specific issues
-- **Better Code Quality**: Individual components can be developed and maintained independently
-- **Code Reusability**: MQTT functionality can be reused in other projects
+### **Emergency Deployment**
+1. **Open the Visualiser**: Visit [https://dynamicdevices.github.io/inst-visualiser/](https://dynamicdevices.github.io/inst-visualiser/)
+2. **Test with Simulation**: Click `Start Simulation` to see demo casualty positioning data
+3. **Configure MQTT**: Set your emergency communications broker details and topic in the Connection Settings
+4. **Start Casualty Tracking**: Click `Connect` to begin real-time casualty positioning visualisation
 
-## 🚑 Getting Started
+### **Local Development Setup**
+```bash
+# Clone the repository
+git clone https://github.com/DynamicDevices/inst-visualiser.git
+cd inst-visualiser
 
-### **Quick Demo (Touch & Desktop)**
-1. Visit the [live demo](https://dynamicdevices.github.io/inst-visualiser/)
-2. **On Tablet**: Tap "Connect" to see the field-optimised interface
-3. **Desktop Command Centre**: Click to see advanced physics positioning
-4. **Tactical Display**: Use the ⛶ button for full-screen positioning view
-5. **System Assessment**: Tap section headers to access detailed operational controls
+# Start local development server
+npm start
+# or
+python -m http.server 8080
 
-### **Operations Workflow**
-1. **Connect to Network**: Tap "📡 MQTT Connection" → Configure for operational systems → "Connect"
-2. **Monitor Positions**: Tracked items appear with status indicators
-3. **Tactical View**: Tap ⛶ for full-screen situational awareness optimised for operational command
-4. **Rapid Response**: Access essential functions via "⚡ Quick Actions" section
-5. **Live Operations**: Real-time statistics show tracking count, coverage, and system health
+# Open browser to http://localhost:8080
+```
 
-## 🚨 Operations Control Panel
+### **Integration with Your System**
+```bash
+# Install MQTT client for data publishing
+pip install paho-mqtt
 
-### **📊 Live System Statistics** (Always Visible)
-- **Nodes**: Active positioning devices
-- **Connections**: Position measurements between devices
-- **Updates**: Total position updates received from field
-- **Coverage Area**: Physical operational zone dimensions in metres
-- **Last Update**: Timestamp of latest position data
+# Use the example publisher
+python examples/mqtt-live-publisher.py /dev/ttyUSB0
+```
 
-### **📡 Network Connection** (Touch-Optimised)
-- **System Broker**: Pre-configured network (touch-friendly input)
-- **Network Port**: WebSocket port for system communications (typically 8083 for secure)
-- **Position Data Topic**: MQTT topic for real-time positioning
-- **Auto-collapse**: Panel auto-hides after successful connection to network
+## 🔧 MQTT Configuration & Data Format
 
-### **⚡ Quick Actions** (Priority Controls)
-- **Centre Display**: Re-centre display for optimal operational overview
-- **Clear All Data**: Remove all positioning data (system reset)
-- **Reset Physics**: Zero all velocities for fresh positioning calculations
-- **Show Distance Accuracy**: Toggle ✓/⚠/❌ symbols for distance accuracy indicators
-- **Enable Physics Simulation**: Toggle high-performance positioning for dynamic situations
+### **Connection Settings**
+- **Broker**: Your MQTT broker hostname (e.g., `mqtt.yourdomain.com`)
+- **Port**: WebSocket port (typically `8083` for WSS, `8080` for WS)
+- **Topic**: MQTT topic for positioning messages (e.g., `uwb/positions`)
+- **Authentication**: Optional username/password authentication
+- **SSL/TLS**: Secure connection support for operational environments
 
-### **⚙️ Display Settings** (Collapsible)
-- **Node Stale Timeout**: Mark devices as offline after N seconds without updates
-- **Remove Timeout**: Remove offline devices after additional time
-- **Distance Scale**: Adjust metres-to-pixels ratio for operational zone size (50-250px/m)
-
-### **🔬 Physics Tuning** (System Optimised)
-- **Spring Strength**: 0.5-10.0 (default: 2.0 for responsive positioning)
-- **Damping Factor**: 0.3-0.9 (default: 0.6 for maximum motion tracking)
-- **Node Mass**: 0.05-1.0 (default: 0.2 for responsive position updates)
-
-### **🚨 Debug Tools** (Operational Command)
-- **System Logging**: Detailed network connection messages
-- **Coverage Boundaries**: Visual outline with operational zone dimensions
-
-## 📊 Positioning Data Format
-
-The visualiser expects JSON arrays containing positioning measurements:
+### **Casualty Positioning Data Format**
+The visualiser expects JSON arrays containing casualty and responder positioning measurements:
 
 ```json
 [
-  ["NODE-001", "ANCHOR-A", 1.5],
-  ["NODE-002", "ANCHOR-A", 2.1], 
-  ["NODE-003", "ANCHOR-B", 2.8]
+  ["A001", "A002", 3.0],
+  ["A002", "A003", 4.0],
+  ["A001", "A003", 5.0]
 ]
 ```
 
-**Positioning Data Format Details:**
-- **Array of arrays**: Each sub-array = one position measurement
-- **Three elements**: `[device_id, anchor_id, distance_in_metres]`
-- **String device IDs**: System device codes (e.g., "NODE-001", "ANCHOR-A")
-- **Numeric distances**: Positive numbers in metres for precise positioning
-- **Gateway detection**: Device "B5A4" automatically styled as system gateway (red)
+**Emergency Response Data Format Details:**
+- **Array of arrays**: Each sub-array represents one casualty or responder position measurement
+- **Three elements**: `[device_id, reference_point_id, distance_in_metres]`
+- **String IDs**: Emergency service codes (e.g., "A001", "A002", "B5A4")
+- **Numeric distances**: Positive numbers in metres for precise casualty positioning
+- **Command Post detection**: Device "B5A4" automatically styled as incident command post (red)
 
-## 📱 Touch Device Usage
+### **Advanced MQTT Features**
+- **QoS Support**: Quality of Service levels 0, 1, and 2
+- **Retained Messages**: Support for MQTT retained positioning messages
+- **Last Will Testament**: Graceful disconnection handling
+- **Topic Wildcards**: Subscribe to multiple positioning topics using wildcards
 
-### **Portrait Mode (Tablets)**
-- Compact title bar preserves screen space for positioning display
-- Controls panel limited to essential functions, positioning view gets majority of screen
-- Use maximise button (⛶) for full-screen tactical situational awareness
-- Swipe up in controls to access advanced system settings
-- Essential statistics remain visible for rapid situation assessment
+## 📱 Tablet & Touch Device Optimisation
 
-### **Landscape Mode (Command Centre Tablets)**
-- Controls appear on left, positioning takes majority of screen
-- Better for detailed operational management and coordination
-- All system sections accessible without scrolling
-- Ideal for operational command briefings and coordination
+### **Portrait Mode (Field Emergency Tablets)**
+- Compact title bar preserves screen space for casualty positioning display
+- Controls panel limited to essential functions, casualty view gets majority of screen
+- Use maximise button (⛶) for full-screen incident command situational awareness
+- Swipe up in controls to access advanced emergency system settings
+- Essential casualty statistics remain visible for rapid situation assessment
+
+### **Landscape Mode (Incident Command Tablets)**
+- Controls appear on left, casualty positioning takes majority of screen
+- Better for detailed incident management and multi-agency coordination
+- All emergency system sections accessible without scrolling
+- Ideal for incident command briefings and emergency service coordination
 
 ### **Touch Interactions**
 - **Tap**: Activate essential controls and toggle important settings
-- **Tap & Hold**: Important buttons provide haptic feedback for field use
+- **Long Press**: Important buttons provide haptic feedback for field use
 - **Tap Section Headers**: Expand/collapse system control groups
 - **Tap ⛶**: Toggle full-screen positioning tracking mode
 
 ### **Field Performance on Touch Devices**
-- **System Optimisation**: Physics adjusts for tablet performance
+- **System Optimisation**: Physics adjusts automatically for tablet performance
 - **Battery Efficient**: Reduced animation when on battery power for extended operations
 - **Touch Responsiveness**: 60fps interactions maintained for essential operations
 - **Memory Management**: Automatic cleanup optimised for long operational sessions
 
-## 🛰️ System Architecture
+## ⚙️ System Configuration
+
+### **🌐 MQTT Connection Settings**
+- **Broker Host**: MQTT broker address (default: `mqtt.dynamicdevices.co.uk`)
+- **Port**: WebSocket port (8083 for secure, 8080 for standard)
+- **Topic**: Data topic path (default: `uwb/positions`)
+- **Auto-reconnect**: Automatic connection recovery after network interruptions
+- **Connection Timeout**: Configurable timeout for operational reliability
+
+### **📏 Physics & Display Settings**
+- **Distance Scale**: Adjust metres-to-pixels ratio for operational zone size (50-250px/m)
+- **Spring Strength**: 0.5-10.0 (default: 2.0 for responsive positioning)
+- **Damping Factor**: 0.3-0.9 (default: 0.6 for optimal motion tracking)
+- **Node Mass**: 0.05-1.0 (default: 0.2 for responsive position updates)
+- **Update Rate**: Position calculation frequency (default: 60fps)
+
+### **🎨 Visual Customisation**
+- **Node Colours**: Customisable colour schemes for different device types
+- **Connection Styles**: Adjustable line thickness and opacity for distance indicators
+- **Labels**: Show/hide device IDs, distances, and system information
+- **Grid Overlay**: Optional positioning grid for precise coordinate reference
+
+### **🔍 Debug & Analysis Tools**
+- **System Logging**: Detailed network connection and data processing messages
+- **Coverage Boundaries**: Visual outline with operational zone dimensions
+- **Performance Monitor**: Real-time FPS, memory usage, and update statistics
+- **Data Export**: CSV export of positioning data for offline analysis
+
+## 🛰️ System Architecture & Data Flow
 
 ```
 Satellite Network ←→ Ground Station ←→ MQTT Broker ←→ UWB Visualiser
@@ -200,19 +209,19 @@ Satellite Network ←→ Ground Station ←→ MQTT Broker ←→ UWB Visualiser
    INST Devices ←→ UWB Positioning Network ←→ Operational Teams
 ```
 
-### Data Flow in Scenarios
+### Emergency Response Data Flow
 
-1. **INST devices** track positions via UWB
-2. **UWB anchor networks** triangulate precise positions  
-3. **Satellite uplinks** relay data when terrestrial networks are unavailable
-4. **MQTT message broker** (`mqtt.dynamicdevices.co.uk`) distributes real-time updates
-5. **Visualisation interface** provides live tactical picture to operational commanders
+1. **INST devices** track casualty and responder positions via UWB ranging
+2. **UWB anchor networks** triangulate precise casualty positions using multilateration
+3. **Satellite uplinks** relay casualty data when terrestrial networks are unavailable
+4. **MQTT message broker** (`mqtt.dynamicdevices.co.uk`) distributes real-time casualty updates
+5. **Visualisation interface** provides live casualty picture to incident commanders and emergency services
 
-### Modular Architecture (v3.5)
+### Modular Architecture (v4.0)
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   UWBVisualizer │◄──►│   MQTTManager   │◄──►│ SpringMassSystem │
+│   UWBVisualiser │◄──►│   MQTTManager   │◄──►│ SpringMassSystem │
 │                 │    │                 │    │                 │
 │ • Node Display  │    │ • Connection    │    │ • Physics Sim   │
 │ • UI Controls   │    │ • Message Parse │    │ • Force Calc    │
@@ -256,144 +265,126 @@ if (window.systemUtils) {
     
     // Get current system statistics
     console.log('System Stats:', systemUtils.getSystemStats());
-    
-    // Quick actions
-    systemUtils.maximiseDisplay();        // Full-screen positioning tracking
-    systemUtils.centreNodes();           // Re-centre operational display
-    systemUtils.toggleControls();        // Show/hide advanced controls
 }
 ```
 
-### **MQTT Manager Configuration**
-```javascript
-// Access separated MQTT functionality
-if (window.visualizer && window.visualizer.mqttManager) {
-    const mqtt = window.visualizer.mqttManager;
-    
-    // Connection status
-    console.log('MQTT Connected:', mqtt.isConnected());
-    
-    // Manual connection control
-    mqtt.connect();
-    mqtt.disconnect();
-    
-    // Send rate limit commands
-    mqtt.publishRateLimitCommand(10);
-}
+### **Integration Examples**
+```python
+# Python MQTT Publisher for Emergency Response
+import paho.mqtt.client as mqtt
+import json
+
+# Sample casualty positioning data (matches simulation engine)
+casualty_data = [
+    ["B5A4", "R001", 2.5],    # Command post to room 1
+    ["B5A4", "R002", 4.2],    # Command post to room 2  
+    ["B5A4", "R003", 3.8],    # Command post to room 3
+    ["R001", "R002", 3.1],    # Between rooms
+    ["R001", "R003", 2.9],    # Between rooms
+    ["R002", "R003", 5.7]     # Between rooms
+]
+
+# Publish to emergency services visualiser
+client = mqtt.Client()
+client.connect("mqtt.dynamicdevices.co.uk", 8083)
+client.publish("uwb/positions", json.dumps(casualty_data))
 ```
 
-## 🌟 Features
+## 🚀 Browser Compatibility & Performance
 
-### **Performance Optimised**
-- **60 FPS physics simulation** optimised for tablet processors
-- **Touch-responsive controls** with haptic feedback for field use
-- **Automatic scaling** maintains optimal operational zone coverage
-- **Battery-efficient rendering** with adaptive frame rates for extended operations
-- **Memory management** with automatic cleanup for long operational sessions
-- **Modular architecture** reduces memory footprint and improves performance
+### **Supported Browsers**
+| Browser | Version | Performance | Touch Support |
+|---------|---------|-------------|---------------|
+| **Chrome** | 90+ | Excellent | Full |
+| **Firefox** | 88+ | Very Good | Full |
+| **Safari** | 14+ | Very Good | Full |
+| **Edge** | 90+ | Excellent | Full |
+| **Samsung Browser** | 14+ | Good | Full |
 
-### **Device Compatibility**
-| Device | Layout | Optimisations |
-|--------|--------|---------------|
-| Tablet Portrait | Stacked | Compact controls, maximise tactical mode |
-| Tablet Landscape | Side-by-side | Full controls, wide positioning view |
-| Command Centre Display | Hybrid | Best tactical awareness |
-| Desktop Command | Traditional | Full management features |
+### **Performance Optimisation**
+- **Hardware Acceleration**: Uses WebGL when available for smooth animations
+- **Memory Management**: Automatic cleanup of old positioning data
+- **Battery Optimisation**: Reduced frame rate on battery-powered devices
+- **Network Efficiency**: Message batching and compression for satellite links
 
-### **Browser Compatibility**
-| Browser | Touch | Desktop | Touch Support | Advanced Mode |
-|---------|-------|---------|---------------|---------------|
-| Chrome  | ✅    | ✅      | ✅           | ✅            |
-| Safari  | ✅    | ✅      | ✅           | ✅            |
-| Firefox | ✅    | ✅      | ✅           | ⚠️            |
-| Edge    | ✅    | ✅      | ✅           | ✅            |
+### **Device Recommendations**
+- **Tablets**: iPad (9th gen+), Samsung Galaxy Tab S7+, Microsoft Surface Pro
+- **Phones**: For quick status checks, full functionality available
+- **Desktop**: Chrome or Firefox for development and command centre deployment
+- **Embedded**: Works on embedded Linux systems with modern browsers
 
-### **Accessibility Features**
-- **High contrast mode** support for various lighting conditions
-- **Large touch targets** meet accessibility guidelines
-- **Voice control** compatibility on tablets
-- **Screen reader** support for all controls
-- **Reduced motion** preference respected during operations
+## 📚 Integration & Development
 
-## 📁 Project Structure
+### **Hardware Integration Examples**
+- **Serial UWB Devices**: Python scripts for UART data publishing
+- **Arduino/ESP32**: Real-time data forwarding to MQTT
+- **ROS Integration**: Bridge for robotic and autonomous systems
+- **PLCs**: Industrial automation integration examples
 
+### **API Documentation**
+- **MQTT Message Format**: JSON schema and validation
+- **WebSocket API**: Direct browser integration without MQTT
+- **RESTful Endpoints**: For system status and configuration
+- **JavaScript API**: Embed visualiser in custom applications
+
+### **Development Tools**
+```bash
+# Development server with hot reload
+npm run dev
+
+# Validate HTML structure
+npm run validate
+
+# Deploy to GitHub Pages
+npm run deploy
+
+# Run integration tests
+npm test
 ```
-inst-visualiser/
-├── index.html              # Responsive main application
-├── css/
-│   └── main.css            # Responsive CSS with touch-first design
-├── js/
-│   ├── physics.js          # Ultra-fast physics engine for real-time positioning tracking
-│   ├── mqtt.js             # Separated MQTT management for better organisation
-│   ├── visualizer.js       # Core visualisation functionality
-│   └── app.js              # Touch-aware application init
-├── resources/
-│   └── demo-pic.png        # Interface screenshot
-└── README.md               # This documentation
-```
 
-## 🚨 Troubleshooting
+## 🛠️ Troubleshooting & Support
 
 ### **Common Issues**
+- **Connection Problems**: Check MQTT broker accessibility and WebSocket support
+- **Performance Issues**: Adjust physics settings for device capabilities
+- **Touch Responsiveness**: Ensure touch events aren't blocked by other elements
+- **Data Format Errors**: Validate JSON structure and numeric values
 
-**Touch Not Responsive During Operations**
-- ✅ **Clear tablet cache** and reload application
-- ✅ **Check network settings**: Ensure satellite/WiFi connectivity
-- ✅ **Disable tablet sleep mode**: Essential for continuous operations
-- ✅ **Check tablet battery**: Low power may affect touch sensitivity
+### **Debug Tools**
+- Open browser console for detailed connection logs
+- Use network tab to monitor MQTT message traffic
+- Check system statistics panel for performance metrics
+- Enable verbose logging for detailed troubleshooting
 
-**Network Connection Issues**
-- ✅ **Test INST satellite connection**: Verify satellite link is operational
-- ✅ **Check network settings**: Verify broker access
-- ✅ **Verify WebSocket support**: Networks require WebSocket capability
+### **Performance Tuning**
+- Reduce update frequency for lower-powered devices
+- Adjust physics parameters for system responsiveness
+- Limit maximum number of displayed nodes
+- Use connection filtering for high-traffic environments
 
-**Performance Issues During Operations**
-- ✅ **Close non-essential applications**: Free up tablet resources for positioning tracking
-- ✅ **Use latest browser**: Update browser for optimal performance
-- ✅ **Reduce position update frequency**: Lower MQTT rate if network is stressed
-- ✅ **Disable debug mode**: Turn off debug logging for better performance
+## 📄 Licensing & Legal
 
-### **Essential MQTT Issues**
-- ✅ **Test connection**: Try "Connect" button and check network console
-- ✅ **Check broker settings**: Verify network configuration
-- ✅ **Verify WebSocket support**: Networks require WebSocket capability
-- ✅ **MQTT Manager debug**: Use `window.visualizer.mqttManager` to inspect connection state
+### **Open Source Licensing**
+This project is licensed under the **GNU General Public Licence v3.0**. This means:
 
-## 🏆 System Recognition
+**You are free to:**
+- ✅ Use commercially in your organisation
+- ✅ Modify and adapt for your requirements
+- ✅ Distribute to colleagues and partners
+- ✅ Use privately within your organisation
 
-### **Funding and Partnership:**
-- **European Space Agency (ESA)** - Technology development funding
-- **UK Space Agency (UKSA)** - National preparedness support  
-- **Business Applications and Space Solutions Programme (BASS)** - System deployment
+**Under the conditions:**
+- 📄 Include the licence and copyright notice
+- 📄 State changes made to the original code
+- 📄 Disclose source code of modified versions
+- 📄 Use the same GPL v3.0 licence for derivative works
 
-### **Evaluation Partners:**
-- **Greater Manchester Local Resilience Forum** - Real-world validation
-- **Technical organisations** - System optimisation consulting
-
-## 🎯 Version History
-
-- **v3.5**: Modular Architecture with separated MQTT management for better code organisation
-- **v3.4**: Positioning with refined interface and terminology
-- **v3.3**: Emergency Response Integration with correct INST project information
-- **v3.2**: Touch-Optimised UX with compact controls, small title bar, prioritised positioning visualisation
-- **v3.1**: High-Performance Physics Mode with 100x speed optimisation for real-time positioning response  
-- **v3.0**: Advanced spring-mass physics system for positioning
-- **v2.x**: Basic physics simulation for positioning scenarios
-- **v1.x**: Simple positioning algorithms
-
-## 📄 Licence & Copyright
-
-**Copyright (C) Dynamic Devices Ltd 2025**
-
-This program is free software: you can redistribute it and/or modify it under the terms of the **GNU General Public License as published by the Free Software Foundation, either version 3 of the Licence, or (at your option) any later version.**
-
-This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**. See the GNU General Public Licence for more details.
-
-You should have received a copy of the GNU General Public Licence along with this program. If not, see **<https://www.gnu.org/licenses/>**.
+For the complete licence terms, see the [LICENSE](LICENSE) file.
+If not, see **<https://www.gnu.org/licenses/>**.
 
 ### **Commercial Licensing**
-For use cases requiring proprietary licensing or services support, contact Dynamic Devices Ltd:
-- 📧 **Services Sales**: [services@dynamicdevices.co.uk](mailto:services@dynamicdevices.co.uk)
+For use cases requiring proprietary licensing or emergency services support, contact Dynamic Devices Ltd:
+- 📧 **Emergency Services Sales**: [info@dynamicdevices.co.uk](mailto:info@dynamicdevices.co.uk)
 - 🌐 **Website**: [https://www.dynamicdevices.co.uk](https://www.dynamicdevices.co.uk)
 
 ### **Open Source Contributions**
@@ -401,28 +392,28 @@ We welcome contributions to the INST Positioning Project! All contributions must
 
 ## 📞 Support & Contact
 
-### **INST Project Support**
-- 📧 **Technical Support**: [inst-support@dynamicdevices.co.uk](mailto:inst-support@dynamicdevices.co.uk)
+### **INST Emergency Response Support**
+- 📧 **Technical Support**: [info@dynamicdevices.co.uk](mailto:info@dynamicdevices.co.uk)
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/DynamicDevices/inst-visualiser/issues)
 - 📖 **Documentation**: [INST Project Wiki](https://github.com/DynamicDevices/inst-visualiser/wiki)
 - 🌐 **Company Website**: [Dynamic Devices Ltd](https://www.dynamicdevices.co.uk)
 
-### **Services**
-- **Custom Development**: Bespoke positioning solutions
-- **Integration Services**: System integration and deployment
-- **Training & Consulting**: Technology training and implementation guidance  
-- **Hardware Supply**: Complete UWB hardware kits and development systems
+### **Emergency Services**
+- **Custom Development**: Bespoke casualty tracking solutions for emergency services
+- **Integration Services**: System integration and emergency response deployment
+- **Training & Consulting**: Emergency response technology training and implementation guidance  
+- **Hardware Supply**: Complete UWB hardware kits for mass casualty incident response
 
-### **24/7 Operations Support**
-- **Support Hotline**: Available during major operations
-- **Remote Monitoring**: Proactive system monitoring and resolution
-- **Rapid Deployment**: On-site technical assistance for major operational requirements
+### **24/7 Emergency Operations Support**
+- **Support Hotline**: Available during major incident operations
+- **Remote Monitoring**: Proactive system monitoring and resolution during critical incidents
+- **Rapid Deployment**: On-site technical assistance for major emergency response operations
 
 ## 📄 Licence
 
 GNU General Public Licence v3.0 - see [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🙏 Acknowledgements
 
 ### **INST Project Team**
 - **Dynamic Devices Ltd** for INST Project vision and UWB expertise
@@ -443,18 +434,18 @@ GNU General Public Licence v3.0 - see [LICENSE](LICENSE) file for details.
 
 ---
 
-⭐ **Star this repository if you find it helpful for positioning!**
+⭐ **Star this repository if you find it helpful for emergency response and casualty tracking!**
 
-*Made with ❤️ for positioning and the technology community by **Dynamic Devices Ltd***
+*Made with ❤️ for emergency services and mass casualty incident response by **Dynamic Devices Ltd***
 
-🚨 *Now optimised for tablets - precise positioning anywhere, anytime!*  
-🛰️ *Part of the INST Project - advancing positioning technology*  
-🏗️ *v3.5: Modular architecture for better maintainability*
+🚨 *Now optimised for tablets - precise casualty tracking anywhere, anytime!*  
+🛰️ *Part of the INST Project - advancing emergency response technology*  
+🏗️ *v4.0: Enhanced modular architecture with improved tablet support for emergency services*
 
 **Copyright (C) Dynamic Devices Ltd 2025 - Licensed under GPLv3**
 
 ---
 
-*The INST UWB Position Visualiser - Technology serving precision positioning.*
+*The INST UWB Casualty Position Visualiser - Technology serving emergency response.*
 
-**"Precision positioning made simple"**
+**"Precision casualty tracking made simple"**
