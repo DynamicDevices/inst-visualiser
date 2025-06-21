@@ -595,6 +595,48 @@ body {
     transform: scale(1.05);
 }
 
+/* GPS marker animation */
+@keyframes gps-pulse {
+    0% {
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.6), 0 4px 12px rgba(0,0,0,0.4);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(255, 0, 0, 0.8), 0 4px 12px rgba(0,0,0,0.4);
+    }
+    100% {
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.6), 0 4px 12px rgba(0,0,0,0.4);
+    }
+}
+
+.map-node-marker.gps-absolute {
+    border-color: #ff0000 !important;
+}
+
+.map-node-marker.gps-absolute:hover {
+    transform: scale(1.2);
+}
+
+/* Distance label styling */
+.map-distance-label {
+    background: transparent !important;
+    border: none !important;
+}
+
+.distance-text {
+    white-space: nowrap;
+    text-shadow: 1px 1px 1px rgba(255,255,255,0.8);
+}
+
+/* Map controls styling */
+.leaflet-control-custom {
+    margin-bottom: 5px !important;
+}
+
+.distance-label-control {
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
     .view-controls {
