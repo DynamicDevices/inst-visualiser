@@ -682,6 +682,73 @@ body {
     border-radius: 2px;
 }
 
+.node.mobile {
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle at 30% 30%, #58d68d, #27ae60, #1e8449);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.5);
+}
+
+.node.anchor {
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle at 30% 30%, #5dade2, #3498db, #2874a6);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.5);
+}
+
+.node.mobile::before {
+    content: 'T';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 7px;
+    color: #27ae60;
+    font-weight: bold;
+    background: white;
+    padding: 1px 3px;
+    border-radius: 2px;
+}
+
+.node.anchor::before {
+    content: 'R';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 7px;
+    color: #3498db;
+    font-weight: bold;
+    background: white;
+    padding: 1px 3px;
+    border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+    .node.mobile,
+    .node.anchor {
+        width: 35px;
+        height: 35px;
+        font-size: 7px;
+    }
+
+    .node.mobile::before,
+    .node.anchor::before {
+        top: -8px;
+        font-size: 5px;
+        padding: 1px 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    .node.mobile,
+    .node.anchor {
+        width: 30px;
+        height: 30px;
+        font-size: 6px;
+    }
+}
+
 .node.stale {
     background: var(--stale-color) !important;
     opacity: 0.6;
