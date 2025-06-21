@@ -1,0 +1,422 @@
+name: CI/CD - UWB Visualiser v4.0
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run weekly dependency security check
+    - cron: '0 0 * * 0'
+
+env:
+  NODE_VERSION: '18.x'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ===============================================
+  # CODE QUALITY & VALIDATION
+  # ===============================================
+  
+  validate:
+    name: 🔍 Code Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        npm ci
+        npm install -g html5validator stylelint eslint
+        
+    - name: 🌐 HTML Validation
+      run: |
+        echo "🔍 Validating HTML structure..."
+        html5validator --root . --match "*.html" --verbose
+        
+    - name: 🎨 CSS Linting
+      run: |
+        echo "🔍 Linting CSS files..."
+        npx stylelint "css/**/*.css" --formatter verbose
+        
+    - name: ⚡ JavaScript Linting
+      run: |
+        echo "🔍 Linting JavaScript files..."
+        npx eslint "js/**/*.js" --format table
+        
+    - name: 📊 Check File Sizes
+      run: |
+        echo "📊 Checking asset file sizes..."
+        find . -name "*.css" -exec wc -c {} + | sort -n
+        find . -name "*.js" -exec wc -c {} + | sort -n
+        
+    - name: 🔒 Security Audit
+      run: |
+        echo "🔒 Running security audit..."
+        npm audit --audit-level high
+        
+  # ===============================================
+  # BROWSER COMPATIBILITY TESTING
+  # ===============================================
+  
+  browser-test:
+    name: 🌐 Browser Compatibility Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    strategy:
+      matrix:
+        browser: [chrome, firefox, edge]
+        
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        npm ci
+        npm install -g playwright
+        npx playwright install --with-deps ${{ matrix.browser }}
+        
+    - name: 🚀 Start Test Server
+      run: |
+        npm start &
+        sleep 5
+        curl -f http://localhost:8080 || exit 1
+        
+    - name: 🧪 Run Browser Tests
+      run: |
+        echo "🧪 Testing in ${{ matrix.browser }}..."
+        npx playwright test --browser=${{ matrix.browser }} tests/browser-tests.js
+        
+    - name: 📊 Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: test-results-${{ matrix.browser }}
+        path: test-results/
+        
+  # ===============================================
+  # MQTT INTEGRATION TESTING
+  # ===============================================
+  
+  mqtt-test:
+    name: 📡 MQTT Integration Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    services:
+      mosquitto:
+        image: eclipse-mosquitto:latest
+        ports:
+          - 1883:1883
+          - 9001:9001
+        options: >-
+          --health-cmd "mosquitto_pub -h localhost -t test -m 'health check'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+          
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: 📦 Install Python Dependencies
+      run: |
+        pip install paho-mqtt numpy pytest
+        
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📦 Install Node Dependencies
+      run: npm ci
+      
+    - name: 🚀 Start Application Server
+      run: |
+        npm start &
+        sleep 5
+        
+    - name: 📡 Test MQTT Publisher
+      run: |
+        echo "📡 Testing MQTT data publisher..."
+        cd examples
+        timeout 30s python mqtt-live-publisher.py --test-mode --mqtt-broker localhost || true
+        
+    - name: 🧪 MQTT Integration Tests
+      run: |
+        echo "🧪 Running MQTT integration tests..."
+        python -m pytest tests/test_mqtt_integration.py -v
+        
+  # ===============================================
+  # PERFORMANCE TESTING
+  # ===============================================
+  
+  performance:
+    name: ⚡ Performance Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        npm ci
+        npm install -g lighthouse
+        
+    - name: 🚀 Start Server
+      run: |
+        npm start &
+        sleep 5
+        
+    - name: 🔥 Lighthouse Performance Audit
+      run: |
+        echo "🔥 Running Lighthouse performance audit..."
+        lighthouse http://localhost:8080 \
+          --chrome-flags="--headless --no-sandbox" \
+          --output=json \
+          --output-path=./lighthouse-report.json \
+          --preset=desktop
+          
+    - name: 📊 Performance Budget Check
+      run: |
+        echo "📊 Checking performance metrics..."
+        node -e "
+          const report = require('./lighthouse-report.json');
+          const scores = report.lhr.categories;
+          
+          console.log('Performance Scores:');
+          console.log('Performance:', Math.round(scores.performance.score * 100));
+          console.log('Accessibility:', Math.round(scores.accessibility.score * 100));
+          console.log('Best Practices:', Math.round(scores['best-practices'].score * 100));
+          console.log('SEO:', Math.round(scores.seo.score * 100));
+          
+          // Fail if performance is below 85
+          if (scores.performance.score < 0.85) {
+            console.error('❌ Performance score below threshold!');
+            process.exit(1);
+          }
+          
+          console.log('✅ Performance tests passed!');
+        "
+        
+    - name: 📤 Upload Performance Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: lighthouse-report
+        path: lighthouse-report.json
+        
+  # ===============================================
+  # BUILD & MINIFICATION
+  # ===============================================
+  
+  build:
+    name: 🏗️ Build Application
+    runs-on: ubuntu-latest
+    needs: [validate, browser-test, mqtt-test]
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        npm ci
+        npm install -g terser clean-css-cli html-minifier
+        
+    - name: 🗂️ Create Build Directory
+      run: mkdir -p dist
+      
+    - name: 🎨 Minify CSS
+      run: |
+        echo "🎨 Minifying CSS files..."
+        cleancss -o dist/main.min.css css/main.css
+        echo "Original size: $(wc -c < css/main.css) bytes"
+        echo "Minified size: $(wc -c < dist/main.min.css) bytes"
+        
+    - name: ⚡ Minify JavaScript
+      run: |
+        echo "⚡ Minifying JavaScript files..."
+        terser js/visualizer.js -o dist/visualizer.min.js -c -m
+        echo "Original size: $(wc -c < js/visualizer.js) bytes"
+        echo "Minified size: $(wc -c < dist/visualizer.min.js) bytes"
+        
+    - name: 🌐 Minify HTML
+      run: |
+        echo "🌐 Minifying HTML..."
+        html-minifier --collapse-whitespace \
+          --remove-comments \
+          --remove-optional-tags \
+          --remove-redundant-attributes \
+          --remove-script-type-attributes \
+          --remove-tag-whitespace \
+          --use-short-doctype \
+          --minify-css true \
+          --minify-js true \
+          -o dist/index.html index.html
+          
+    - name: 📋 Copy Assets
+      run: |
+        echo "📋 Copying additional assets..."
+        cp -r examples/ dist/
+        cp -r docs/ dist/
+        cp README.md LICENSE dist/
+        [ -d resources/ ] && cp -r resources/ dist/ || echo "No resources directory"
+        
+    - name: 📊 Build Report
+      run: |
+        echo "📊 Build Summary:"
+        echo "├── CSS: $(wc -c < dist/main.min.css) bytes"
+        echo "├── JS:  $(wc -c < dist/visualizer.min.js) bytes"
+        echo "├── HTML: $(wc -c < dist/index.html) bytes"
+        echo "└── Total build size: $(du -sh dist | cut -f1)"
+        
+    - name: 📤 Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: dist/
+        retention-days: 30
+        
+  # ===============================================
+  # SECURITY SCANNING
+  # ===============================================
+  
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🔍 CodeQL Analysis
+      uses: github/codeql-action/init@v3
+      with:
+        languages: javascript
+        
+    - name: 🏗️ Autobuild
+      uses: github/codeql-action/autobuild@v3
+      
+    - name: 📊 CodeQL Analysis Results
+      uses: github/codeql-action/analyze@v3
+      
+    - name: 🔒 Dependency Vulnerability Scan
+      run: |
+        npm audit --audit-level moderate
+        
+  # ===============================================
+  # DEPLOYMENT TO GITHUB PAGES
+  # ===============================================
+  
+  deploy:
+    name: 🚀 Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [build, performance, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 📥 Download Build Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+        path: dist/
+        
+    - name: 🔧 Setup GitHub Pages
+      uses: actions/configure-pages@v4
+      
+    - name: 📦 Upload Pages Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: dist/
+        
+    - name: 🚀 Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      
+    - name: 🎉 Deployment Success
+      run: |
+        echo "🎉 Successfully deployed to GitHub Pages!"
+        echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
+        
+  # ===============================================
+  # NOTIFICATION & REPORTING
+  # ===============================================
+  
+  notify:
+    name: 📢 Build Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: always()
+    
+    steps:
+    - name: 📊 Build Status Report
+      run: |
+        echo "📊 CI/CD Pipeline Summary:"
+        echo "├── Validation: ${{ needs.validate.result }}"
+        echo "├── Browser Tests: ${{ needs.browser-test.result }}"
+        echo "├── MQTT Tests: ${{ needs.mqtt-test.result }}"
+        echo "├── Performance: ${{ needs.performance.result }}"
+        echo "├── Build: ${{ needs.build.result }}"
+        echo "├── Security: ${{ needs.security.result }}"
+        echo "└── Deploy: ${{ needs.deploy.result }}"
+        
+    - name: 📧 Success Notification
+      if: needs.deploy.result == 'success'
+      run: |
+        echo "✅ UWB Visualiser v4.0 successfully deployed!"
+        echo "🌐 Live at: https://dynamicdevices.github.io/inst-visualiser/"
+        
+    - name: ❌ Failure Notification
+      if: failure()
+      run: |
+        echo "❌ CI/CD Pipeline failed!"
+        echo "Please check the logs above for details."
