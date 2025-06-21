@@ -28,11 +28,11 @@ class VisualizerNodeManager {
     createNode(nodeId) {
         const isGateway = nodeId === 'B5A4' || nodeId.includes('GW') || nodeId.includes('gateway');
         const isMobile = nodeId.startsWith('T') && nodeId.length === 4;
-        
+
         let nodeType = 'standard';
         if (isGateway) nodeType = 'gateway';
         else if (isMobile) nodeType = 'mobile';
-        
+
         const node = {
             id: nodeId,
             x: 0,
@@ -47,16 +47,17 @@ class VisualizerNodeManager {
             lastUpdate: Date.now(),
             isStale: false,
             isRemoved: false,
-            hasInitialPosition: false
+            hasInitialPosition: false,
+            gps: null // GPS coordinates if available
         };
-        
+
         this.visualizer.nodes.set(nodeId, node);
-        
-        eventBus.emit('node-created', { 
-            nodeId, 
+
+        eventBus.emit('node-created', {
+            nodeId,
             type: nodeType,
             isGateway,
-            isMobile 
+            isMobile
         });
     }
 
@@ -203,13 +204,35 @@ class VisualizerNodeManager {
     getStats() {
         const activeNodes = this.getActiveNodes();
         const staleNodes = activeNodes.filter(node => node.isStale);
-        
+
         return {
             total: this.visualizer.nodes.size,
             active: activeNodes.length,
             stale: staleNodes.length,
             removed: this.visualizer.nodes.size - activeNodes.length
         };
+    }
+
+    /**
+     * Update node with GPS coordinates
+     */
+    updateNodeGPS(nodeId, gpsCoords, isAbsolute = true) {
+        const node = this.visualizer.nodes.get(nodeId);
+        if (node) {
+            node.gps = {
+                lat: gpsCoords.lat,
+                lng: gpsCoords.lng,
+                accuracy: gpsCoords.accuracy || null,
+                derived: !isAbsolute,
+                timestamp: Date.now()
+            };
+
+            eventBus.emit('node-gps-updated', {
+                nodeId,
+                gps: node.gps,
+                isAbsolute
+            });
+        }
     }
 }
 

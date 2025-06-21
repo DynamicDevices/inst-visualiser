@@ -13,7 +13,7 @@ class MapManager {
         this.visualizer = null;
         this.physicsUpdateInterval = null;
         this.gpsAnchors = new Map();
-        this.autoFitEnabled = true; // Auto-zoom to fit nodes
+        this.autoFitEnabled = true;
         this.lastNodeCount = 0;
         this.lastBounds = null;
         this.autoFitDebounceTimeout = null;
@@ -46,6 +46,10 @@ class MapManager {
 
         eventBus.on('physics-scale-updated', (data) => {
             // Scale has been updated, positions may need refreshing
+        });
+
+        eventBus.on('visualization-maximized', (data) => {
+            this.handleVisualizationMaximize(data.maximized);
         });
     }
 
@@ -84,6 +88,7 @@ class MapManager {
             this.scaling.addCustomScaleControl();
             this.addTileLayerSelector();
             this.addAutoZoomToggle();
+            this.addDistanceLabelToggle();
 
             console.log('🗺️ Map initialized successfully with max zoom 25');
             eventBus.emit('map-initialized', { map: this.map });
@@ -96,14 +101,14 @@ class MapManager {
     }
 
     /**
-     * Initialize all available tile layers
+     * Initialize all available tile layers (removed offline option)
      */
     initializeTileLayers() {
         // Standard OpenStreetMap tiles
         this.tileLayers.standard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 19,
-            errorTileUrl: this.createGreyTile('No Data')
+            errorTileUrl: this.createFallbackTile('No Data')
         });
 
         // Google Satellite
@@ -111,7 +116,7 @@ class MapManager {
             attribution: '© Google',
             maxZoom: 25,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-            errorTileUrl: this.createGreyTile('No Imagery')
+            errorTileUrl: this.createFallbackTile('No Imagery')
         });
 
         // Google Hybrid (satellite + labels)
@@ -119,7 +124,7 @@ class MapManager {
             attribution: '© Google',
             maxZoom: 25,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-            errorTileUrl: this.createGreyTile('No Imagery')
+            errorTileUrl: this.createFallbackTile('No Imagery')
         });
 
         // CartoDB Positron (clean, minimal)
@@ -127,7 +132,7 @@ class MapManager {
             attribution: '© OpenStreetMap © CartoDB',
             maxZoom: 20,
             subdomains: 'abcd',
-            errorTileUrl: this.createGreyTile('No Data')
+            errorTileUrl: this.createFallbackTile('No Data')
         });
 
         // CartoDB Dark Matter
@@ -135,7 +140,7 @@ class MapManager {
             attribution: '© OpenStreetMap © CartoDB',
             maxZoom: 20,
             subdomains: 'abcd',
-            errorTileUrl: this.createGreyTile('No Data', '#333')
+            errorTileUrl: this.createFallbackTile('No Data', '#333')
         });
 
         // OpenTopoMap
@@ -143,7 +148,7 @@ class MapManager {
             attribution: '© OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)',
             maxZoom: 17,
             subdomains: 'abc',
-            errorTileUrl: this.createGreyTile('No Topo')
+            errorTileUrl: this.createFallbackTile('No Topo')
         });
 
         // Stamen Toner (high contrast)
@@ -151,53 +156,44 @@ class MapManager {
             attribution: 'Map tiles by Stamen Design, CC BY 3.0 — Map data © OpenStreetMap contributors',
             maxZoom: 20,
             subdomains: 'abcd',
-            errorTileUrl: this.createGreyTile('No Data')
+            errorTileUrl: this.createFallbackTile('No Data')
         });
 
         // Esri World Imagery
         this.tileLayers.esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
             maxZoom: 19,
-            errorTileUrl: this.createGreyTile('No Imagery')
+            errorTileUrl: this.createFallbackTile('No Imagery')
         });
 
-        // Wikimedia Maps
+        // Wikimedia Maps (fallback layer - most reliable)
         this.tileLayers.wikimedia = L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap contributors, Wikimedia maps',
             maxZoom: 19,
-            errorTileUrl: this.createGreyTile('No Data')
-        });
-
-        // Grey background fallback (always available)
-        this.tileLayers.grey = L.tileLayer(this.createGreyTile('Offline Mode'), {
-            attribution: 'Offline Mode',
-            maxZoom: 25,
-            minZoom: 1
+            errorTileUrl: this.createFallbackTile('Fallback')
         });
 
         // Set up error handling for all layers
         Object.keys(this.tileLayers).forEach(layerType => {
-            if (layerType !== 'grey') {
-                this.tileLayers[layerType].on('tileerror', (e) => {
-                    this.handleTileError(layerType, e);
-                });
-            }
+            this.tileLayers[layerType].on('tileerror', (e) => {
+                this.handleTileError(layerType, e);
+            });
         });
     }
 
     /**
-     * Create a grey tile with optional text
+     * Create a fallback tile (simplified grey tile for errors only)
      */
-    createGreyTile(text = '', bgColor = '#f5f5f5', textColor = '#999') {
+    createFallbackTile(text = '', bgColor = '#f0f0f0', textColor = '#999') {
         const svg = `<svg width="256" height="256" xmlns="http://www.w3.org/2000/svg">
             <rect width="256" height="256" fill="${bgColor}"/>
-            <text x="128" y="128" text-anchor="middle" dy=".3em" font-family="Arial" font-size="12" fill="${textColor}">${text}</text>
+            <text x="128" y="128" text-anchor="middle" dy=".3em" font-family="Arial" font-size="10" fill="${textColor}">${text}</text>
         </svg>`;
         return 'data:image/svg+xml;base64,' + btoa(svg);
     }
 
     /**
-     * Get tile layer options for dropdown
+     * Get tile layer options for dropdown (removed offline option)
      */
     getTileLayerOptions() {
         return {
@@ -209,8 +205,7 @@ class MapManager {
             'topo': { name: '🏔️ Topographic', description: 'Topographic map' },
             'toner': { name: '🔲 High Contrast', description: 'Black and white' },
             'esri': { name: '🌐 Esri Imagery', description: 'Esri satellite imagery' },
-            'wikimedia': { name: '📖 Wikimedia', description: 'Wikimedia maps' },
-            'grey': { name: '📶 Offline', description: 'Grey background' }
+            'wikimedia': { name: '📖 Wikimedia', description: 'Reliable fallback tiles' }
         };
     }
 
@@ -319,6 +314,53 @@ class MapManager {
     }
 
     /**
+     * Add distance label toggle control
+     */
+    addDistanceLabelToggle() {
+        if (!this.map) return;
+
+        const mapManager = this;
+
+        // Create distance label toggle control
+        const DistanceLabelToggleControl = L.Control.extend({
+            onAdd: function(map) {
+                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom distance-label-control');
+                
+                const button = L.DomUtil.create('a', 'distance-label-toggle', container);
+                button.href = '#';
+                button.title = mapManager.markers.showDistanceLabels ? 'Hide Distance Labels' : 'Show Distance Labels';
+                button.innerHTML = mapManager.markers.showDistanceLabels ? '📏' : '📐';
+                button.style.backgroundColor = mapManager.markers.showDistanceLabels ? '#e8f5e8' : '#f5f5f5';
+                button.style.width = '30px';
+                button.style.height = '30px';
+                button.style.lineHeight = '30px';
+                button.style.textAlign = 'center';
+                button.style.textDecoration = 'none';
+                button.style.color = '#333';
+                button.style.fontSize = '16px';
+                button.style.cursor = 'pointer';
+
+                L.DomEvent.on(button, 'click', function(e) {
+                    L.DomEvent.stopPropagation(e);
+                    L.DomEvent.preventDefault(e);
+                    mapManager.toggleDistanceLabels();
+                });
+
+                // Prevent map interaction when clicking the button
+                L.DomEvent.disableClickPropagation(container);
+
+                return container;
+            }
+        });
+
+        // Add control to map (below auto-zoom toggle)
+        this.distanceLabelToggleControl = new DistanceLabelToggleControl({ position: 'topright' });
+        this.distanceLabelToggleControl.addTo(this.map);
+        
+        console.log('🗺️ Distance label toggle added to map');
+    }
+
+    /**
      * Toggle auto-zoom functionality
      */
     toggleAutoZoom() {
@@ -355,34 +397,43 @@ class MapManager {
     }
 
     /**
-     * Enable auto-zoom
+     * Toggle distance label visibility
      */
-    enableAutoZoom() {
-        if (!this.autoFitEnabled) {
-            this.autoFitEnabled = true;
-            this.updateAutoZoomToggle();
-            console.log('🗺️ Auto-zoom enabled');
-            eventBus.emit('auto-zoom-toggled', { enabled: true });
+    toggleDistanceLabels() {
+        this.markers.toggleDistanceLabels();
+        this.updateDistanceLabelToggle();
+    }
+
+    /**
+     * Update distance label toggle button appearance
+     */
+    updateDistanceLabelToggle() {
+        if (!this.distanceLabelToggleControl) return;
+
+        const button = this.distanceLabelToggleControl.getContainer().querySelector('.distance-label-toggle');
+        if (button) {
+            button.innerHTML = this.markers.showDistanceLabels ? '📏' : '📐';
+            button.title = this.markers.showDistanceLabels ? 'Hide Distance Labels (Currently: ON)' : 'Show Distance Labels (Currently: OFF)';
+            button.style.backgroundColor = this.markers.showDistanceLabels ? '#e8f5e8' : '#f5f5f5';
         }
     }
 
     /**
-     * Disable auto-zoom
+     * Handle visualization maximize/restore
      */
-    disableAutoZoom() {
-        if (this.autoFitEnabled) {
-            this.autoFitEnabled = false;
-            this.updateAutoZoomToggle();
+    handleVisualizationMaximize(isMaximized) {
+        if (!this.map || !this.isMapView) return;
+
+        // Delay to allow CSS transitions to complete
+        setTimeout(() => {
+            this.map.invalidateSize();
             
-            // Cancel any pending auto-fit
-            if (this.autoFitDebounceTimeout) {
-                clearTimeout(this.autoFitDebounceTimeout);
-                this.autoFitDebounceTimeout = null;
+            if (this.autoFitEnabled && this.markers.nodeMarkers.size > 0) {
+                this.fitMapToNodes();
             }
             
-            console.log('🗺️ Auto-zoom disabled');
-            eventBus.emit('auto-zoom-toggled', { enabled: false });
-        }
+            console.log(`🗺️ Map resized for ${isMaximized ? 'maximized' : 'normal'} view`);
+        }, 300);
     }
 
     /**
@@ -416,14 +467,14 @@ class MapManager {
         const maxZoom = currentLayer?.options?.maxZoom || 18;
 
         // Auto-switch to high-zoom capable layer at high zoom levels
-        if (currentZoom > maxZoom && !['satellite', 'hybrid', 'grey'].includes(this.tileLayerType)) {
+        if (currentZoom > maxZoom && !['satellite', 'hybrid', 'wikimedia'].includes(this.tileLayerType)) {
             console.log(`🗺️ Auto-switching to satellite view at zoom ${currentZoom} (current max: ${maxZoom})`);
             this.switchToTileLayer('satellite', true);
         }
     }
 
     /**
-     * Handle tile loading errors with fallback logic
+     * Handle tile loading errors with Wikimedia fallback
      */
     handleTileError(layerType, errorEvent) {
         const zoom = this.map ? this.map.getZoom() : 0;
@@ -435,14 +486,15 @@ class MapManager {
         }
         this.tileLoadErrors.set(errorKey, this.tileLoadErrors.get(errorKey) + 1);
 
-        // If tiles are consistently failing, switch to grey background
-        if (this.tileLoadErrors.get(errorKey) > 5 && this.autoSwitchEnabled && layerType === this.tileLayerType) {
-            console.log(`🗺️ ${layerType} tiles failing at zoom ${zoom}, switching to grey background`);
-            this.switchToTileLayer('grey', true);
+        // If tiles are consistently failing, switch to Wikimedia (most reliable)
+        if (this.tileLoadErrors.get(errorKey) > 5 && this.autoSwitchEnabled && 
+            layerType === this.tileLayerType && layerType !== 'wikimedia') {
+            console.log(`🗺️ ${layerType} tiles failing at zoom ${zoom}, switching to Wikimedia fallback`);
+            this.switchToTileLayer('wikimedia', true);
         }
-        // If current layer is failing, try satellite as fallback
+        // If current layer is failing, try satellite as intermediate fallback
         else if (this.tileLoadErrors.get(errorKey) > 3 && this.autoSwitchEnabled && 
-                 layerType === this.tileLayerType && layerType !== 'satellite' && layerType !== 'grey') {
+                 layerType === this.tileLayerType && layerType !== 'satellite' && layerType !== 'wikimedia') {
             console.log(`🗺️ ${layerType} tiles failing at zoom ${zoom}, auto-switching to satellite`);
             this.switchToTileLayer('satellite', true);
         }
@@ -487,7 +539,11 @@ class MapManager {
             
             // Visual indication of auto-switch
             if (this.wasAutoSwitched) {
-                select.style.backgroundColor = '#e8f4fd'; // Light blue
+                if (this.tileLayerType === 'wikimedia') {
+                    select.style.backgroundColor = '#ffe6e6'; // Light red for fallback
+                } else {
+                    select.style.backgroundColor = '#e8f4fd'; // Light blue for other auto-switches
+                }
             } else {
                 select.style.backgroundColor = 'white';
             }
@@ -608,28 +664,57 @@ class MapManager {
     }
 
     /**
-     * Update GPS anchor nodes
+     * Update GPS anchor nodes with improved multi-GPS handling
      */
     updateGPSAnchors() {
         if (!this.visualizer || !this.visualizer.nodes) return;
+
+        const previousGPSCount = this.gpsAnchors.size;
 
         this.visualizer.nodes.forEach((node, nodeId) => {
             if (node.gps || (nodeId === 'B5A4' && this.gatewayPosition)) {
                 const gpsCoords = node.gps || this.gatewayPosition;
                 
-                this.gpsAnchors.set(nodeId, {
-                    lat: gpsCoords.lat,
-                    lng: gpsCoords.lng,
-                    nodeId: nodeId
-                });
+                // Validate GPS coordinates
+                if (this.gpsUtils.isValidGPS(gpsCoords.lat, gpsCoords.lng)) {
+                    this.gpsAnchors.set(nodeId, {
+                        lat: gpsCoords.lat,
+                        lng: gpsCoords.lng,
+                        nodeId: nodeId,
+                        timestamp: Date.now(),
+                        accuracy: node.gps?.accuracy || null,
+                        isAbsolute: !node.gps?.derived // Mark as absolute if not derived
+                    });
 
-                this.updateNodeOnMap(nodeId, node);
+                    this.updateNodeOnMap(nodeId, node);
+                } else {
+                    console.warn(`🗺️ Invalid GPS coordinates for node ${nodeId}:`, gpsCoords);
+                }
             }
         });
+
+        // Log GPS anchor changes
+        if (this.gpsAnchors.size !== previousGPSCount) {
+            console.log(`🗺️ GPS anchors updated: ${this.gpsAnchors.size} nodes with GPS coordinates`);
+            this.logGPSAnchors();
+        }
     }
 
     /**
-     * Update UWB nodes with physics
+     * Log current GPS anchors for debugging
+     */
+    logGPSAnchors() {
+        if (this.gpsAnchors.size > 0) {
+            console.log('🗺️ Current GPS anchors:');
+            this.gpsAnchors.forEach((anchor, nodeId) => {
+                const type = anchor.isAbsolute ? 'ABSOLUTE' : 'DERIVED';
+                console.log(`  ${nodeId}: ${anchor.lat.toFixed(6)}, ${anchor.lng.toFixed(6)} (${type})`);
+            });
+        }
+    }
+
+    /**
+     * Update UWB nodes with physics - improved multi-GPS handling
      */
     updateUWBNodesWithPhysics() {
         if (!this.visualizer || !this.visualizer.physics || this.gpsAnchors.size === 0) return;
@@ -637,14 +722,17 @@ class MapManager {
         const physicsNodes = this.getPhysicsNodes();
         if (physicsNodes.size === 0) return;
         
-        const referenceAnchor = this.gpsAnchors.get('B5A4') || this.gpsAnchors.values().next().value;
+        // Select best reference anchor (prefer B5A4, then most recent, then first available)
+        const referenceAnchor = this.selectBestReferenceAnchor();
         if (!referenceAnchor) return;
 
         const referencePhysicsPos = physicsNodes.get(referenceAnchor.nodeId);
         if (!referencePhysicsPos) return;
 
-        this.scaling.calculatePhysicsScale(physicsNodes, this.visualizer.connections);
+        // Calculate physics scale using all available GPS anchors
+        this.scaling.calculatePhysicsScale(physicsNodes, this.visualizer.connections, this.gpsAnchors);
 
+        // Update non-GPS nodes using physics positioning
         this.visualizer.nodes.forEach((node, nodeId) => {
             if (!this.gpsAnchors.has(nodeId)) {
                 const physicsPos = physicsNodes.get(nodeId);
@@ -663,10 +751,88 @@ class MapManager {
                         deltaYMeters
                     );
 
+                    // Mark as derived position
+                    newGPS.derived = true;
+                    newGPS.referenceNode = referenceAnchor.nodeId;
+
                     this.updateNodeOnMap(nodeId, { ...node, gps: newGPS });
                 }
             }
         });
+
+        // Validate GPS consistency if multiple anchors exist
+        if (this.gpsAnchors.size > 1) {
+            this.validateGPSConsistency(physicsNodes);
+        }
+    }
+
+    /**
+     * Select the best reference anchor for coordinate transformation
+     */
+    selectBestReferenceAnchor() {
+        if (this.gpsAnchors.size === 0) return null;
+
+        // Prefer B5A4 (gateway) if available
+        if (this.gpsAnchors.has('B5A4')) {
+            return this.gpsAnchors.get('B5A4');
+        }
+
+        // Otherwise, use the most recently updated GPS anchor
+        let bestAnchor = null;
+        let latestTimestamp = 0;
+
+        this.gpsAnchors.forEach((anchor, nodeId) => {
+            if (anchor.timestamp > latestTimestamp) {
+                latestTimestamp = anchor.timestamp;
+                bestAnchor = anchor;
+            }
+        });
+
+        return bestAnchor;
+    }
+
+    /**
+     * Validate GPS consistency between multiple anchors
+     */
+    validateGPSConsistency(physicsNodes) {
+        if (this.gpsAnchors.size < 2) return;
+
+        const anchors = Array.from(this.gpsAnchors.entries());
+        const referenceAnchor = anchors[0];
+        
+        for (let i = 1; i < anchors.length; i++) {
+            const [nodeId, anchor] = anchors[i];
+            const refPhysics = physicsNodes.get(referenceAnchor[0]);
+            const currentPhysics = physicsNodes.get(nodeId);
+            
+            if (refPhysics && currentPhysics) {
+                // Calculate expected GPS position based on physics
+                const deltaXPhysics = currentPhysics.x - refPhysics.x;
+                const deltaYPhysics = currentPhysics.y - refPhysics.y;
+                
+                const { deltaXMeters, deltaYMeters } = this.scaling.physicsToGPSOffset(
+                    deltaXPhysics, deltaYPhysics
+                );
+
+                const expectedGPS = this.gpsUtils.offsetGPS(
+                    referenceAnchor[1].lat,
+                    referenceAnchor[1].lng,
+                    deltaXMeters,
+                    deltaYMeters
+                );
+
+                // Calculate distance between expected and actual GPS
+                const actualDistance = this.gpsUtils.calculateDistance(
+                    expectedGPS.lat, expectedGPS.lng,
+                    anchor.lat, anchor.lng
+                );
+
+                // Warn if GPS positions are inconsistent (>10m difference)
+                if (actualDistance > 10) {
+                    console.warn(`🗺️ GPS inconsistency detected for ${nodeId}: expected vs actual = ${actualDistance.toFixed(1)}m difference`);
+                }
+            }
+        }
     }
 
     /**
@@ -687,7 +853,7 @@ class MapManager {
     }
 
     /**
-     * Update node on map
+     * Update node on map with GPS detection
      */
     updateNodeOnMap(nodeId, node) {
         if (!this.map || !this.isMapView) return;
@@ -701,20 +867,32 @@ class MapManager {
             return;
         }
 
-        this.markers.updateNodeMarker(nodeId, node, gpsCoords);
+        // Determine if this node has absolute GPS coordinates
+        // A node has absolute GPS if it has GPS coordinates AND they are not marked as derived
+        const hasAbsoluteGPS = gpsCoords && !gpsCoords.derived;
+
+        this.markers.updateNodeMarker(nodeId, node, gpsCoords, hasAbsoluteGPS);
     }
 
     /**
-     * Update all nodes on map
+     * Update all nodes on map with improved GPS handling
      */
     updateAllNodesOnMap() {
         if (!this.visualizer || !this.visualizer.nodes || !this.map) return;
 
+        let gpsNodeCount = 0;
+        let physicsNodeCount = 0;
+
         this.visualizer.nodes.forEach((node, nodeId) => {
+            if (this.gpsAnchors.has(nodeId)) {
+                gpsNodeCount++;
+            } else {
+                physicsNodeCount++;
+            }
             this.updateNodeOnMap(nodeId, node);
         });
 
-        console.log(`🗺️ Updated ${this.visualizer.nodes.size} nodes on map`);
+        console.log(`🗺️ Updated ${this.visualizer.nodes.size} nodes on map (${gpsNodeCount} GPS anchors, ${physicsNodeCount} physics-positioned)`);
         
         if (this.autoFitEnabled && this.markers.nodeMarkers.size > 0) {
             this.debouncedAutoFit();
@@ -863,9 +1041,17 @@ class MapManager {
     }
 
     /**
-     * Get map statistics
+     * Get map statistics with GPS anchor information
      */
     getMapStats() {
+        const gpsAnchors = Array.from(this.gpsAnchors.entries()).map(([nodeId, anchor]) => ({
+            nodeId,
+            lat: anchor.lat,
+            lng: anchor.lng,
+            timestamp: anchor.timestamp,
+            isAbsolute: anchor.isAbsolute
+        }));
+
         return {
             initialized: !!this.map,
             visible: this.isMapView,
@@ -878,6 +1064,7 @@ class MapManager {
             ...this.markers.getStats(),
             ...this.scaling.getStats(),
             gpsAnchors: this.gpsAnchors.size,
+            gpsAnchorDetails: gpsAnchors,
             center: this.map ? this.map.getCenter() : null,
             zoom: this.map ? this.map.getZoom() : null
         };
@@ -899,6 +1086,11 @@ class MapManager {
         // Remove auto-zoom toggle control
         if (this.autoZoomToggleControl && this.map) {
             this.map.removeControl(this.autoZoomToggleControl);
+        }
+        
+        // Remove distance label toggle control
+        if (this.distanceLabelToggleControl && this.map) {
+            this.map.removeControl(this.distanceLabelToggleControl);
         }
         
         if (this.map) {
