@@ -211,9 +211,17 @@
                             <label>Node Removal Timeout: <span id="removalTimeoutValue">30</span>s</label>
                             <input type="range" id="removalTimeoutSlider" min="10" max="180" value="30" step="10">
                         </div>
+                        <div class="input-group" style="display: flex; align-items: center; gap: 8px;">
+                            <label for="autoScaleToggle" style="margin: 0;">Auto Scale</label>
+                            <input type="checkbox" id="autoScaleToggle" checked>
+                        </div>
                         <div class="input-group">
                             <label>Display Scale: <span id="scaleValue">120</span>px/m</label>
-                            <input type="range" id="scaleSlider" min="50" max="250" value="120" step="10">
+                            <input type="range" id="scaleSlider" min="10" max="500" value="120" step="5">
+                        </div>
+                        <div class="input-group zoom-controls">
+                            <button class="btn" id="zoomOut">- Zoom Out</button>
+                            <button class="btn" id="zoomIn">+ Zoom In</button>
                         </div>
                     </div>
                 </div>
