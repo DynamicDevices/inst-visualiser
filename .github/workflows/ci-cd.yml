@@ -46,7 +46,7 @@ jobs:
     - name: 🌐 HTML Validation
       run: |
         echo "🔍 Validating HTML structure..."
-        html5validator --root . --match "*.html" --verbose
+        find . -path "./node_modules" -prune -o -name "*.html" -print | xargs html5validator --verbose
         
     - name: 🎨 CSS Linting
       run: |
