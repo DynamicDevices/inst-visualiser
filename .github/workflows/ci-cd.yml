@@ -32,11 +32,17 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
         
-    - name: 📦 Install Dependencies
-      run: |
-        npm ci
-        npm install -g html5validator stylelint eslint
-        
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 📦 Install Node Dependencies
+      run: npm ci
+
+    - name: 📦 Install Python html5validator
+      run: pip install html5validator
+
     - name: 🌐 HTML Validation
       run: |
         echo "🔍 Validating HTML structure..."
