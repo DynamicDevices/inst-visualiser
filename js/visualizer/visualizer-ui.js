@@ -87,6 +87,41 @@ class VisualizerUIManager {
             if (valueElement) valueElement.textContent = e.target.value;
         }, '(Scale)');
 
+        // Zoom In/Out button controls
+        const scaleSlider = document.getElementById('scaleSlider');
+        const scaleValue = document.getElementById('scaleValue');
+        const zoomInBtn = document.getElementById('zoomIn');
+        const zoomOutBtn = document.getElementById('zoomOut');
+        if (zoomInBtn && scaleSlider) {
+            zoomInBtn.addEventListener('click', () => {
+                let newValue = Math.min(parseInt(scaleSlider.value) + 10, parseInt(scaleSlider.max));
+                scaleSlider.value = newValue;
+                if (scaleValue) scaleValue.textContent = newValue;
+                this.visualizer.physicsManager.updateScale(newValue);
+            });
+        }
+        if (zoomOutBtn && scaleSlider) {
+            zoomOutBtn.addEventListener('click', () => {
+                let newValue = Math.max(parseInt(scaleSlider.value) - 10, parseInt(scaleSlider.min));
+                scaleSlider.value = newValue;
+                if (scaleValue) scaleValue.textContent = newValue;
+                this.visualizer.physicsManager.updateScale(newValue);
+            });
+        }
+
+        // Mouse wheel zoom support on canvas
+        if (scaleSlider && this.visualizer.canvas) {
+            this.visualizer.canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                let delta = e.deltaY < 0 ? 10 : -10;
+                let newValue = parseInt(scaleSlider.value) + delta;
+                newValue = Math.max(parseInt(scaleSlider.min), Math.min(parseInt(scaleSlider.max), newValue));
+                scaleSlider.value = newValue;
+                if (scaleValue) scaleValue.textContent = newValue;
+                this.visualizer.physicsManager.updateScale(newValue);
+            }, { passive: false });
+        }
+
         safeAddEventListener('enablePhysics', 'change', (e) => {
             this.visualizer.togglePhysics(e.target.checked);
         }, '(Enable Physics)');
@@ -136,6 +171,16 @@ class VisualizerUIManager {
             if (valueElement) valueElement.textContent = rateLimitSeconds;
             this.visualizer.mqttManager?.publishRateLimitCommand(rateLimitSeconds);
         }, '(Rate Limit)');
+
+        // Add event listener for auto scale toggle
+        const autoScaleCheckbox = document.getElementById('autoScaleToggle');
+        if (autoScaleCheckbox) {
+            autoScaleCheckbox.addEventListener('change', (e) => {
+                const enabled = e.target.checked;
+                this.visualizer.physics.autoScaleEnabled = enabled;
+                this.visualizer.loggingManager?.logInfo(`Auto Scale ${enabled ? 'enabled' : 'disabled'}`);
+            });
+        }
 
         // Button controls with touch feedback
         this.setupButtonControls();

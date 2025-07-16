@@ -29,6 +29,7 @@ class SpringMassSystem {
         // Auto-scaling parameters - highly responsive with better centering
         this.targetScreenUsage = 0.7;   // Target 70% usage for better centering
         this.scaleAdjustmentRate = 0.1; // Ultra-fast scale adjustments
+        this.autoScaleEnabled = true; // Allow toggling auto/manual scaling
     }
     
     initializeNode(node, canvasWidth, canvasHeight) {
@@ -126,8 +127,13 @@ class SpringMassSystem {
     }
     
     applyBoundaryForces(nodes, canvasWidth, canvasHeight) {
-        // Keep masses within the usable screen area (70% of total) - stronger containment
-        const margin = Math.min(canvasWidth, canvasHeight) * 0.15; // Increased margin for better centering
+        // Use a smaller margin when zoomed out (distanceScale < 40)
+        let margin;
+        if (this.distanceScale < 40) {
+            margin = Math.min(canvasWidth, canvasHeight) * 0.05;
+        } else {
+            margin = Math.min(canvasWidth, canvasHeight) * 0.15;
+        }
         const minX = margin;
         const maxX = canvasWidth - margin;
         const minY = margin;
@@ -209,7 +215,8 @@ class SpringMassSystem {
                 // More aggressive scale adjustment for faster response
                 const adjustment = (sizeRatio - 1) * this.scaleAdjustmentRate;
                 this.distanceScale *= (1 + adjustment);
-                this.distanceScale = Math.max(50, Math.min(this.distanceScale, 300));
+                // Use the same min/max as the UI slider
+                this.distanceScale = Math.max(10, Math.min(this.distanceScale, 500));
             }
         }
     }
@@ -251,8 +258,10 @@ class SpringMassSystem {
         this.applyBoundaryForces(nodes, canvasWidth, canvasHeight);
         this.applyCenteringForce(nodes, canvasWidth, canvasHeight);
         
-        // Auto-scale to maintain 80% screen usage - faster adjustments
-        this.autoScale(nodes, canvasWidth, canvasHeight);
+        // Auto-scale to maintain 80% screen usage - only if enabled
+        if (this.autoScaleEnabled) {
+            this.autoScale(nodes, canvasWidth, canvasHeight);
+        }
         
         // Integrate equations of motion - less damping, lighter mass = faster movement
         this.integrateMotion(nodes);
