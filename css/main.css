@@ -1,3 +1,4 @@
+
 /**
  * UWB Position Visualiser - Mobile-Optimised Stylesheet v3.7
  * Copyright (C) Dynamic Devices Ltd 2025
@@ -10,8 +11,8 @@
 
  * {
   box-sizing: border-box;
-  margin: 0;
   padding: 0;
+  margin: 0;
 }
 
 :root {
@@ -58,15 +59,6 @@ body {
   grid-template-columns: 0 1fr;
 }
 
-.container.visualization-maximized .controls,
-.container.visualization-maximized .console,
-.container.visualization-maximized .header {
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.95);
-}
-
 .header {
   display: flex;
   grid-column: 1 / -1;
@@ -77,6 +69,15 @@ body {
   backdrop-filter: blur(10px);
   border-radius: 6px;
   box-shadow: 0 2px 6px rgb(0 0 0 / 10%);
+}
+
+.container.visualization-maximized .controls,
+.container.visualization-maximized .console,
+.container.visualization-maximized .header {
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.95);
 }
 
 .header h1 {
@@ -92,8 +93,8 @@ body {
   justify-content: center;
   width: 24px;
   height: 24px;
-  margin-right: 8px;
   padding: 3px;
+  margin-right: 8px;
   color: #fff;
   background: linear-gradient(135deg, #3498db, #2980b9);
   border: 1px solid rgb(255 255 255 / 20%);
@@ -109,8 +110,8 @@ body {
 
 .status {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   margin-left: auto;
 }
 
@@ -547,8 +548,8 @@ body {
 
 .view-controls {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .view-toggle {
@@ -818,9 +819,9 @@ body {
 .bounding-box {
   position: absolute;
   z-index: 15;
+  pointer-events: none;
   background: none;
   border: 2px dashed var(--warning-color);
-  pointer-events: none;
 }
 
 .bounding-box-label {
@@ -831,9 +832,9 @@ body {
   font-weight: bold;
   color: #fff;
   white-space: nowrap;
+  pointer-events: none;
   background: rgb(243 156 18 / 90%);
   border-radius: 2px;
-  pointer-events: none;
 }
 
 .bounding-box-label.horizontal {
@@ -871,8 +872,8 @@ body {
 
 .console-content.hidden {
   max-height: 0;
-  margin-top: 0;
   padding-top: 0;
+  margin-top: 0;
   overflow: hidden;
 }
 
@@ -1062,11 +1063,11 @@ body {
   font-weight: bold !important;
   color: #333 !important;
   text-align: center !important;
+  pointer-events: none !important;
   background: rgb(255 255 255 / 90%) !important;
   border: 2px solid #333 !important;
   border-radius: 4px !important;
   box-shadow: 0 2px 6px rgb(0 0 0 / 30%) !important;
-  pointer-events: none !important;
 }
 
 /* Map controls styling */
@@ -1081,9 +1082,9 @@ body {
 
 /* Custom node markers for map */
 .custom-node-marker {
+  cursor: pointer;
   background: transparent !important;
   border: none !important;
-  cursor: pointer;
   transition: transform 0.2s ease;
 }
 
@@ -1139,8 +1140,8 @@ body {
   .header .logo {
     width: 18px;
     height: 18px;
-    margin-right: 5px;
     padding: 2px;
+    margin-right: 5px;
     border-radius: 4px;
   }
 
