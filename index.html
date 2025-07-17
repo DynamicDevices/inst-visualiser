@@ -1,4 +1,21 @@
 <!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>UWB Position Visualiser - Real-Time Tracking</title>
+    <meta name="description" content="Real-time UWB positioning visualiser with advanced physics simulation, optimised for tablets and desktop systems">
+    <meta name="keywords" content="UWB, positioning, tracking, MQTT, INST, real-time monitoring, location tracking">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <!-- Leaflet for OpenStreetMap support -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
 <!--
     UWB Position Visualiser - Part of the INST Project
     INST: Instantly Networked Smart Triage - Emergency Response System
@@ -24,23 +41,6 @@
     Developed with funding from European Space Agency (ESA) and UK Space Agency (UKSA)
     through the Business Applications and Space Solutions Programme (BASS).
 -->
-<html lang="en-GB">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>UWB Position Visualiser - Real-Time Tracking</title>
-    <meta name="description" content="Real-time UWB positioning visualiser with advanced physics simulation, optimised for tablets and desktop systems">
-    <meta name="keywords" content="UWB, positioning, tracking, MQTT, INST, real-time monitoring, location tracking">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-    <!-- Leaflet for OpenStreetMap support -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="css/main.css">
-</head>
-<body>
     <div class="container">
         <div class="header">
             <div class="logo">
