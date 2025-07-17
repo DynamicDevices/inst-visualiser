@@ -8,30 +8,10 @@
  * Added simulation control styling
  */
 
-/* Distance labels on map */
-.distance-label {
-  z-index: 1000;
-  pointer-events: none;
-}
-
-.distance-label div {
-  transform: translate(-50%, -50%);
-}
-
-/* Ensure map container has proper stacking */
-.map-container {
-  position: relative;
-  z-index: 1;
-}
-
-.map-container .leaflet-container {
-  background: #f8f9fa;
-}
-
-* {
+ * {
   box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 
 :root {
@@ -82,8 +62,8 @@ body {
 .container.visualization-maximized .console,
 .container.visualization-maximized .header {
   overflow: hidden;
-  pointer-events: none;
   opacity: 0;
+  pointer-events: none;
   transform: scale(0.95);
 }
 
@@ -112,9 +92,9 @@ body {
   justify-content: center;
   width: 24px;
   height: 24px;
-  padding: 3px;
   margin-right: 8px;
-  color: white;
+  padding: 3px;
+  color: #fff;
   background: linear-gradient(135deg, #3498db, #2980b9);
   border: 1px solid rgb(255 255 255 / 20%);
   border-radius: 6px;
@@ -124,13 +104,13 @@ body {
 .header .logo svg {
   width: 100%;
   height: 100%;
-  color: white;
+  color: #fff;
 }
 
 .status {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 8px;
   margin-left: auto;
 }
 
@@ -153,14 +133,26 @@ body {
 
 @keyframes pulse {
   0%,
-  100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes simulation-pulse {
   0%,
-  100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.1); }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 .controls {
@@ -213,7 +205,7 @@ body {
 .controls-toggle {
   padding: 6px 10px;
   font-size: 10px;
-  color: white;
+  color: #fff;
   cursor: pointer;
   background: var(--primary-color);
   border: none;
@@ -329,8 +321,13 @@ body {
 }
 
 @keyframes status-glow {
-  0% { box-shadow: 0 0 5px rgb(155 89 182 / 30%); }
-  100% { box-shadow: 0 0 10px rgb(155 89 182 / 60%); }
+  0% {
+    box-shadow: 0 0 5px rgb(155 89 182 / 30%);
+  }
+
+  100% {
+    box-shadow: 0 0 10px rgb(155 89 182 / 60%);
+  }
 }
 
 .stats-grid {
@@ -411,7 +408,7 @@ body {
   height: 14px;
   appearance: none;
   cursor: pointer;
-  background: white;
+  background: #fff;
   border: 2px solid var(--primary-color);
   border-radius: 50%;
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
@@ -427,7 +424,7 @@ body {
   margin-bottom: 6px;
   font-size: 11px;
   font-weight: 500;
-  color: white;
+  color: #fff;
   cursor: pointer;
   background: var(--primary-color);
   border: none;
@@ -491,7 +488,7 @@ body {
   width: 16px;
   height: 16px;
   content: '';
-  background: white;
+  background: #fff;
   border-radius: 50%;
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
   transition: all 0.3s ease;
@@ -550,9 +547,8 @@ body {
 
 .view-controls {
   display: flex;
-  gap: 8px;
   align-items: center;
-  flex-direction: column;
+  gap: 8px;
 }
 
 .view-toggle {
@@ -622,56 +618,6 @@ body {
   transform: scale(1.2);
 }
 
-/* Distance label styling */
-.map-distance-label {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.distance-text {
-  padding: 2px 6px;
-  font-family: Arial, sans-serif;
-  font-size: 10px;
-  font-weight: bold;
-  color: #2c3e50;
-  text-align: center;
-  white-space: nowrap;
-  background: rgb(255 255 255 / 95%);
-  border: 1px solid #3498db;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
-}
-
-/* Map controls styling */
-.leaflet-control-custom {
-  margin-bottom: 5px !important;
-}
-
-.distance-label-control {
-  border-radius: 4px;
-  box-shadow: 0 1px 5px rgb(0 0 0 / 40%);
-}
-
-/* Mobile responsive adjustments */
-@media (width <= 768px) {
-  .view-controls {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .view-toggle {
-    padding: 4px 6px;
-    font-size: 9px;
-  }
-
-  .maximize-toggle {
-    min-width: 20px;
-    padding: 3px 5px;
-    font-size: 8px;
-  }
-}
-
 .canvas-container {
   position: relative;
   flex: 1;
@@ -690,7 +636,7 @@ body {
   font-size: 9px;
   font-weight: bold;
   line-height: 1;
-  color: white;
+  color: #fff;
   text-align: center;
   cursor: pointer;
   border: 2px solid rgb(255 255 255 / 30%);
@@ -721,7 +667,7 @@ body {
   font-weight: bold;
   color: #3498db;
   content: 'T';
-  background: white;
+  background: #fff;
   border-radius: 2px;
   transform: translateX(-50%);
 }
@@ -735,7 +681,7 @@ body {
   font-weight: bold;
   color: #e74c3c;
   content: 'GW';
-  background: white;
+  background: #fff;
   border-radius: 2px;
   transform: translateX(-50%);
 }
@@ -763,7 +709,7 @@ body {
   font-weight: bold;
   color: #27ae60;
   content: 'T';
-  background: white;
+  background: #fff;
   border-radius: 2px;
   transform: translateX(-50%);
 }
@@ -777,34 +723,9 @@ body {
   font-weight: bold;
   color: #3498db;
   content: 'R';
-  background: white;
+  background: #fff;
   border-radius: 2px;
   transform: translateX(-50%);
-}
-
-@media (width <= 768px) {
-  .node.mobile,
-  .node.anchor {
-    width: 35px;
-    height: 35px;
-    font-size: 7px;
-  }
-
-  .node.mobile::before,
-  .node.anchor::before {
-    top: -8px;
-    padding: 1px 2px;
-    font-size: 5px;
-  }
-}
-
-@media (width <= 480px) {
-  .node.mobile,
-  .node.anchor {
-    width: 30px;
-    height: 30px;
-    font-size: 6px;
-  }
 }
 
 .node.stale {
@@ -818,9 +739,17 @@ body {
 }
 
 @keyframes node-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .connection {
@@ -842,7 +771,17 @@ body {
   opacity: 0.4;
 }
 
+/* Distance labels on map */
 .distance-label {
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.distance-label div {
+  transform: translate(-50%, -50%);
+}
+
+.distance-label:not(.map-distance-label) {
   position: absolute;
   z-index: 5;
   padding: 3px 6px;
@@ -857,7 +796,7 @@ body {
 }
 
 .distance-label.stale {
-  color: white;
+  color: #fff;
   background: rgb(149 165 166 / 80%);
 }
 
@@ -879,9 +818,9 @@ body {
 .bounding-box {
   position: absolute;
   z-index: 15;
-  pointer-events: none;
   background: none;
   border: 2px dashed var(--warning-color);
+  pointer-events: none;
 }
 
 .bounding-box-label {
@@ -890,11 +829,11 @@ body {
   padding: 2px 4px;
   font-size: 9px;
   font-weight: bold;
-  color: white;
+  color: #fff;
   white-space: nowrap;
-  pointer-events: none;
   background: rgb(243 156 18 / 90%);
   border-radius: 2px;
+  pointer-events: none;
 }
 
 .bounding-box-label.horizontal {
@@ -932,8 +871,8 @@ body {
 
 .console-content.hidden {
   max-height: 0;
-  padding-top: 0;
   margin-top: 0;
+  padding-top: 0;
   overflow: hidden;
 }
 
@@ -968,7 +907,9 @@ body {
 }
 
 @keyframes fade-in {
-  to { opacity: 1; }
+  to {
+    opacity: 1;
+  }
 }
 
 .log-timestamp {
@@ -993,6 +934,169 @@ body {
 
 .log-simulation {
   color: #9b59b6;
+}
+
+/* Ensure map container has proper stacking */
+.map-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.map-container .leaflet-container {
+  background: #f8f9fa;
+}
+
+.map-container.hidden {
+  display: none;
+}
+
+.map-container.loading::before {
+  display: block;
+}
+
+/* Map loading indicator */
+.map-container::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1000;
+  display: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  color: #666;
+  content: 'Loading map...';
+  background: rgb(255 255 255 / 90%);
+  border-radius: 6px;
+  transform: translate(-50%, -50%);
+}
+
+/* Single view toggle button styling */
+.view-toggle-single {
+  min-width: 120px;
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  background: var(--primary-color);
+  border: none;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.view-toggle-single:hover {
+  background: var(--dark-bg);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 20%);
+  transform: translateY(-1px);
+}
+
+.view-toggle-single.map-active {
+  background: var(--success-color);
+}
+
+.view-toggle-single.map-active:hover {
+  background: var(--secondary-color);
+}
+
+/* Map-specific distance labels (different from physics view) */
+.map-distance-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.distance-text {
+  padding: 2px 6px;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  font-weight: bold;
+  color: #2c3e50;
+  text-align: center;
+  white-space: nowrap;
+  background: rgb(255 255 255 / 95%);
+  border: 1px solid #3498db;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+}
+
+/* Map node marker styling to match physics view */
+.map-node-marker-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+.map-node-marker {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.map-node-marker:hover {
+  transform: scale(1.1);
+}
+
+.map-node-marker.gateway {
+  box-shadow: 0 4px 12px rgb(231 76 60 / 50%) !important;
+}
+
+.map-node-marker.mobile {
+  box-shadow: 0 3px 8px rgb(52 152 219 / 40%) !important;
+}
+
+.map-node-marker.anchor {
+  box-shadow: 0 3px 8px rgb(39 174 96 / 40%) !important;
+}
+
+/* Custom scale control styling */
+.custom-scale-control {
+  min-width: 80px !important;
+  padding: 4px 8px !important;
+  font-family: Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  color: #333 !important;
+  text-align: center !important;
+  background: rgb(255 255 255 / 90%) !important;
+  border: 2px solid #333 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 30%) !important;
+  pointer-events: none !important;
+}
+
+/* Map controls styling */
+.leaflet-control-custom {
+  margin-bottom: 5px !important;
+}
+
+.distance-label-control {
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 40%);
+}
+
+/* Custom node markers for map */
+.custom-node-marker {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.custom-node-marker:hover {
+  transform: scale(1.1);
+}
+
+.custom-node-marker.gateway {
+  box-shadow: 0 3px 8px rgb(231 76 60 / 40%);
+}
+
+.custom-node-marker.standard {
+  box-shadow: 0 2px 6px rgb(52 152 219 / 40%);
 }
 
 /* Mobile-First Responsive Design */
@@ -1035,8 +1139,8 @@ body {
   .header .logo {
     width: 18px;
     height: 18px;
-    padding: 2px;
     margin-right: 5px;
+    padding: 2px;
     border-radius: 4px;
   }
 
@@ -1182,8 +1286,17 @@ body {
     font-size: 7px;
   }
 
+  .node.mobile,
+  .node.anchor {
+    width: 35px;
+    height: 35px;
+    font-size: 7px;
+  }
+
   .node.standard::before,
-  .node.gateway::before {
+  .node.gateway::before,
+  .node.mobile::before,
+  .node.anchor::before {
     top: -8px;
     padding: 1px 2px;
     font-size: 5px;
@@ -1265,286 +1378,45 @@ body {
   .debug-toggle-label {
     font-size: 9px;
   }
-}
 
-/* Map container styles */
-.map-container {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border-radius: 8px;
-}
-
-/* Single view toggle button styling */
-.view-toggle-single {
-  min-width: 120px;
-  padding: 6px 12px;
-  font-size: 10px;
-  font-weight: 500;
-  color: white;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  background: var(--primary-color);
-  border: none;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-}
-
-.view-toggle-single:hover {
-  background: var(--dark-bg);
-  box-shadow: 0 2px 6px rgb(0 0 0 / 20%);
-  transform: translateY(-1px);
-}
-
-.view-toggle-single.map-active {
-  background: var(--success-color);
-}
-
-.view-toggle-single.map-active:hover {
-  background: var(--secondary-color);
-}
-
-/* Map-specific distance labels (different from physics view) */
-.map-distance-label {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.distance-text {
-  padding: 2px 6px;
-  font-family: Arial, sans-serif;
-  font-size: 10px;
-  font-weight: bold;
-  color: #2c3e50;
-  text-align: center;
-  white-space: nowrap;
-  background: rgb(255 255 255 / 95%);
-  border: 1px solid #3498db;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
-}
-
-/* Map node marker styling to match physics view */
-.map-node-marker-container {
-  background: transparent !important;
-  border: none !important;
-}
-
-.map-node-marker {
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.map-node-marker:hover {
-  transform: scale(1.1);
-}
-
-.map-node-marker.gateway {
-  box-shadow: 0 4px 12px rgb(231 76 60 / 50%) !important;
-}
-
-.map-node-marker.mobile {
-  box-shadow: 0 3px 8px rgb(52 152 219 / 40%) !important;
-}
-
-.map-node-marker.anchor {
-  box-shadow: 0 3px 8px rgb(39 174 96 / 40%) !important;
-}
-
-/* Custom scale control styling */
-.custom-scale-control {
-  min-width: 80px !important;
-  padding: 4px 8px !important;
-  font-family: Arial, sans-serif !important;
-  font-size: 12px !important;
-  font-weight: bold !important;
-  color: #333 !important;
-  text-align: center !important;
-  pointer-events: none !important;
-  background: rgb(255 255 255 / 90%) !important;
-  border: 2px solid #333 !important;
-  border-radius: 4px !important;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 30%) !important;
-}
-
-/* Mobile responsive scale control */
-@media (width <= 768px) {
-  .custom-scale-control {
-    min-width: 60px !important;
-    padding: 3px 6px !important;
-    font-size: 10px !important;
+  .view-controls {
+    flex-direction: column;
+    gap: 4px;
   }
-}
 
-/* Mobile responsive adjustments for single toggle */
-@media (width <= 768px) {
+  .view-toggle {
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+
   .view-toggle-single {
     min-width: 100px;
     padding: 4px 8px;
     font-size: 9px;
   }
-}
 
-@media (width <= 480px) {
-  .view-toggle-single {
-    min-width: 80px;
-    padding: 3px 6px;
-    font-size: 8px;
-  }
-}
-
-/* Custom node markers for map */
-.custom-node-marker {
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.custom-node-marker:hover {
-  transform: scale(1.1);
-}
-
-.custom-node-marker.gateway {
-  box-shadow: 0 3px 8px rgb(231 76 60 / 40%);
-}
-
-.custom-node-marker.standard {
-  box-shadow: 0 2px 6px rgb(52 152 219 / 40%);
-}
-
-/* Ensure existing distance labels for physics view remain unchanged */
-.distance-label:not(.map-distance-label) {
-  position: absolute;
-  z-index: 5;
-  padding: 3px 6px;
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--dark-bg);
-  pointer-events: none;
-  background: rgb(255 255 255 / 95%);
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgb(0 0 0 / 10%);
-  transform: translate(-50%, -50%);
-}
-
-.map-container.hidden {
-  display: none;
-}
-
-/* View control buttons */
-.view-controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.view-toggle {
-  padding: 6px 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  background: var(--secondary-color);
-  border: none;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.view-toggle:hover {
-  background: var(--primary-color);
-  transform: translateY(-1px);
-}
-
-.view-toggle.active {
-  background: var(--primary-color);
-  box-shadow: 0 2px 4px rgb(0 0 0 / 20%);
-}
-
-.maximize-toggle {
-  min-width: 28px;
-  padding: 6px 8px;
-  font-size: 10px;
-  font-weight: 500;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  background: var(--primary-color);
-  border: none;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-}
-
-.maximize-toggle:hover {
-  background: var(--dark-bg);
-  transform: scale(1.05);
-}
-
-/* Mobile responsive adjustments */
-@media (width <= 768px) {
-  .view-controls {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .view-toggle {
-    padding: 4px 6px;
-    font-size: 9px;
-  }
-
-  .maximize-toggle {
-    min-width: 20px;
-    padding: 3px 5px;
-    font-size: 8px;
-  }
-}
-
-/* Map loading indicator */
-.map-container::before {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 1000;
-  display: none;
-  padding: 12px 20px;
-  font-size: 14px;
-  color: #666;
-  content: 'Loading map...';
-  background: rgb(255 255 255 / 90%);
-  border-radius: 6px;
-  transform: translate(-50%, -50%);
-}
-
-.map-container.loading::before {
-  display: block;
-}
-
-/* Mobile-First Responsive Design */
-@media (width <= 768px) {
-  body {
-    font-size: 12px;
-  }
-
-  .view-controls {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .view-toggle {
-    padding: 4px 6px;
-    font-size: 12px;
+  .custom-scale-control {
+    min-width: 60px !important;
+    padding: 3px 6px !important;
+    font-size: 10px !important;
   }
 
   .control-group-content input[type='number'] {
     font-size: 14px;
   }
+}
 
+@media (width <= 480px) {
+  .node.mobile,
+  .node.anchor {
+    width: 30px;
+    height: 30px;
+    font-size: 6px;
+  }
+
+  .view-toggle-single {
+    min-width: 80px;
+    padding: 3px 6px;
+    font-size: 8px;
+  }
 }
