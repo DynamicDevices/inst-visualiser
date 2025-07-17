@@ -43,6 +43,12 @@ jobs:
         npm ci
         npm install -g stylelint eslint
         
+    - name: ☕ Install Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
     - name: 🌐 HTML Validation
       run: |
         echo "🔍 Validating HTML structure..."
