@@ -6,10 +6,9 @@
 
 class AppCore {
     constructor() {
-        this.version = "4.0";
+        this.version = '4.0';
         this.visualizer = null;
         this.initialized = false;
-        
         // Sub-managers
         this.simulationManager = null;
         this.gpsManager = null;
@@ -33,7 +32,6 @@ class AppCore {
             // Initialize core visualizer first
             // eslint-disable-next-line no-undef
             this.visualizer = new UWBVisualizer();
-            
             // Initialize sub-managers
             // eslint-disable-next-line no-undef
             this.gpsManager = new AppGPSManager(this);
@@ -45,19 +43,14 @@ class AppCore {
             this.controlsManager = new AppControlsManager(this);
             // eslint-disable-next-line no-undef
             this.utilsManager = new AppUtilsManager(this);
-
             // Initialize all managers
             await this.initializeManagers();
-
             // Set up event listeners
             this.setupEventListeners();
-
             // Log initialization complete
             this.logInitializationComplete();
-
             this.initialized = true;
             console.log('✅ UWB Position Visualiser v4.0 ready for crisis operations!');
-
         } catch (error) {
             console.error('❌ Failed to initialize application:', error);
             throw error;
@@ -70,20 +63,16 @@ class AppCore {
     async initializeManagers() {
         // Initialize GPS and mapping first
         await this.gpsManager.initialize();
-        
         // Initialize view management
         this.viewManager.initialize();
-        
         // Initialize simulation after visualizer is ready
         if (this.visualizer && this.visualizer.mqttManager) {
             this.simulationManager.initialize();
         } else {
             console.error('❌ Failed to initialize simulation - MQTT Manager not available');
         }
-        
         // Initialize controls
         this.controlsManager.initialize();
-        
         // Initialize utilities
         this.utilsManager.initialize();
     }
@@ -97,29 +86,24 @@ class AppCore {
         eventBus.on('mqtt-connected', () => {
             this.simulationManager.onMQTTConnected();
         });
-
         // eslint-disable-next-line no-undef
         eventBus.on('mqtt-disconnected', () => {
             this.simulationManager.onMQTTDisconnected();
         });
-
         // View switching events
         // eslint-disable-next-line no-undef
         eventBus.on('view-switched', (data) => {
             console.log(`🔄 View switched to: ${data.view}`);
         });
-
         // Simulation events
         // eslint-disable-next-line no-undef
         eventBus.on('simulation-started', () => {
             this.updateStatusIndicator();
         });
-
         // eslint-disable-next-line no-undef
         eventBus.on('simulation-stopped', () => {
             this.updateStatusIndicator();
         });
-
         // GPS events
         // eslint-disable-next-line no-undef
         eventBus.on('gps-updated', (data) => {
@@ -133,12 +117,9 @@ class AppCore {
     updateStatusIndicator() {
         const statusIndicator = document.getElementById('statusIndicator');
         const statusText = document.getElementById('statusText');
-        
         if (!statusIndicator || !statusText) return;
-        
         // Clear existing classes
         statusIndicator.classList.remove('connected', 'simulating');
-        
         if (this.simulationManager?.isRunning()) {
             statusIndicator.classList.add('simulating');
             statusText.textContent = 'Simulating';
@@ -172,7 +153,6 @@ class AppCore {
         console.log('');
         console.log('🚨 INST Mission: "Every second counts. Every life matters. Every position is precisely known."');
     }
-
     /**
      * Get application statistics
      */
