@@ -17,7 +17,6 @@ class AppSimulationManager {
         if (this.appCore.visualizer && this.appCore.visualizer.mqttManager) {
             this.uwbSimulator = new UWBSimulator(this.appCore.visualizer.mqttManager); // eslint-disable-line no-undef
             console.log('🎭 UWB Simulator initialized');
-            
             this.setupSimulationControls();
             this.setupMQTTConnectionHandler();
             this.startStatusUpdates();
@@ -75,8 +74,7 @@ class AppSimulationManager {
             stopSimBtn.addEventListener('click', () => {
                 this.stopSimulation();
             });
-        }
-        
+        }    
         console.log('🎭 Simulation controls set up successfully');
     }
 
@@ -125,15 +123,13 @@ class AppSimulationManager {
         setTimeout(() => {
             if (this.appCore.visualizer && this.appCore.visualizer.mqttManager) {
                 // Store the original onConnect callback
-                const originalOnConnect = this.appCore.visualizer.mqttManager.onConnect;
-                
+                const originalOnConnect = this.appCore.visualizer.mqttManager.onConnect;         
                 // Override the onConnect callback to include simulation pane opening
                 this.appCore.visualizer.mqttManager.onConnect = () => {
                     // Call the original callback first
                     if (originalOnConnect) {
                         originalOnConnect.call(this.appCore.visualizer.mqttManager);
-                    }
-                    
+                    }        
                     // Auto-open simulation pane when connected
                     setTimeout(() => this.autoOpenSimulationPane(), 500);
                     eventBus.emit('mqtt-connected'); // eslint-disable-line no-undef
@@ -149,13 +145,11 @@ class AppSimulationManager {
         const simulationHeader = document.querySelector('[data-section="simulation"] .control-group-header');
         const simulationContent = document.querySelector('[data-section="simulation"] .control-group-content');
         const collapseToggle = document.querySelector('[data-section="simulation"] .collapse-toggle');
-
         if (simulationHeader && simulationContent && collapseToggle) {
             // Open the simulation pane
             simulationContent.classList.remove('collapsed');
             collapseToggle.classList.remove('collapsed');
             collapseToggle.textContent = '▼';
-
             console.log('🎭 Simulation pane auto-opened after MQTT connection');
         }
     }
@@ -166,9 +160,7 @@ class AppSimulationManager {
     updateSimulationStatus() {
         const statusElement = document.getElementById('simulationStatus');
         if (!statusElement || !this.uwbSimulator) return;
-
         const stats = this.uwbSimulator.getStats();
-
         if (stats.running) {
 //            statusElement.textContent = `🎭 Running: ${stats.messagesPublished} msgs, ${stats.averageRate.toFixed(2)} msg/s, ${stats.currentInterval}s interval`;
 //            statusElement.classList.add('active');

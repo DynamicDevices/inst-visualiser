@@ -18,10 +18,8 @@ class AppGPSManager {
         this.gpsUtils = new GPSUtils();
         // eslint-disable-next-line no-undef
         this.mapManager = new MapManager();
-
         this.setupGPSControls();
         this.setupMapIntegration();
-
         console.log('🗺️ GPS and Map functionality initialized');
     }
 
@@ -34,7 +32,6 @@ class AppGPSManager {
         if (updateGPSBtn) {
             updateGPSBtn.addEventListener('click', () => this.updateGatewayGPS());
         }
-
         // UWB scale control
         const uwbScaleSlider = document.getElementById('uwbScaleSlider');
         const uwbScaleValue = document.getElementById('uwbScaleValue');
@@ -57,8 +54,7 @@ class AppGPSManager {
         setTimeout(() => {
             if (this.mapManager && this.appCore.visualizer) {
                 this.mapManager.setVisualizer(this.appCore.visualizer);
-                console.log('🗺️ Map manager integrated with visualizer');
-                
+                console.log('🗺️ Map manager integrated with visualizer');                
                 this.hookVisualizerEvents();
             }
         }, 100);
@@ -71,23 +67,19 @@ class AppGPSManager {
         // Hook into visualizer's message processing
         const originalProcessMessage = this.appCore.visualizer.processMessage;
         this.appCore.visualizer.processMessage = (message) => {
-            const result = originalProcessMessage.call(this.appCore.visualizer, message);
-            
+            const result = originalProcessMessage.call(this.appCore.visualizer, message);           
             // Update map if in map view
             if (this.mapManager && this.appCore.viewManager?.getCurrentView() === 'map') {
                 setTimeout(() => {
                     this.mapManager.updateAllNodesOnMap();
                 }, 100);
-            }
-            
+            }           
             return result;
-        };
-        
+        };       
         // Hook into visualizer's clear nodes
         const originalClearAllNodes = this.appCore.visualizer.clearAllNodes;
         this.appCore.visualizer.clearAllNodes = () => {
-            const result = originalClearAllNodes.call(this.appCore.visualizer);
-            
+            const result = originalClearAllNodes.call(this.appCore.visualizer);           
             // Clear map nodes
             if (this.mapManager) {
                 this.mapManager.clearAllNodes();
@@ -96,14 +88,13 @@ class AppGPSManager {
             return result;
         };
     }
-
     /**
      * Update gateway GPS position
      */
     updateGatewayGPS() {
         const latInput = document.getElementById('gatewayLat');
         const lngInput = document.getElementById('gatewayLng');
-
+ 
         if (latInput && lngInput) {
             const lat = parseFloat(latInput.value);
             const lng = parseFloat(lngInput.value);

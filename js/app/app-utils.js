@@ -42,8 +42,7 @@ class AppUtilsManager {
                     simulation: stats.simulation?.running ? 'ACTIVE' : 'INACTIVE',
                     view: stats.view?.currentView || 'unknown',
                     mqttConnected: stats.visualizer?.mqttManager?.isConnected() || false
-                };
-                
+                };     
                 console.table(crisisStatus);
                 return crisisStatus;
             },
@@ -101,8 +100,7 @@ class AppUtilsManager {
 
             // System diagnostics
             runDiagnostics: () => {
-                console.log('🔧 Running INST Crisis System Diagnostics...');
-                
+                console.log('🔧 Running INST Crisis System Diagnostics...');     
                 const diagnostics = {
                     timestamp: new Date().toISOString(),
                     system: 'INST Crisis Response System v4.0',
@@ -123,12 +121,10 @@ class AppUtilsManager {
                         connectionCount: this.appCore.visualizer?.connections?.size || 0,
                         physicsRunning: this.appCore.visualizer?.simulationRunning || false
                     }
-                };
-                
+                };     
                 console.table(diagnostics.modules);
                 console.table(diagnostics.connectivity);
-                console.table(diagnostics.performance);
-                
+                console.table(diagnostics.performance);      
                 return diagnostics;
             },
 
@@ -180,7 +176,6 @@ class AppUtilsManager {
                 link.href = URL.createObjectURL(dataBlob);
                 link.download = `crisis-data-${new Date().toISOString().slice(0, 19)}.json`;
                 link.click();
-
                 console.log('📊 Crisis data exported successfully');
                 return crisisData;
             },
@@ -220,7 +215,6 @@ class AppUtilsManager {
                 `);
             }
         };
-
         // Show help on initialization
         console.log('🛠️ Crisis utilities loaded. Type crisisUtils.help() for available commands.');
     }
