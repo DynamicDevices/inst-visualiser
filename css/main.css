@@ -250,7 +250,7 @@ body {
   background: rgb(52 152 219 / 15%);
 }
 
-.control-group[data-section='simulation'] .control-group-header:hover {
+.control-group-header:hover .control-group[data-section='simulation']  {
   background: rgb(155 89 182 / 20%);
 }
 
