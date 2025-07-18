@@ -155,7 +155,7 @@ class MapManager {
             maxZoom: 19
         });
 
-       // Wikimedia Maps (updated working URL - preferred fallback)
+        // Wikimedia Maps (updated working URL - preferred fallback)
         this.tileLayers.wikimedia = L.tileLayer('https://maps.wikimedia.org/osm/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors, Wikimedia Foundation',
             maxZoom: 19
@@ -214,7 +214,7 @@ class MapManager {
 
         // Create tile selector control
         const TileSelectorControl = L.Control.extend({
-            onAdd: (map) => {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom tile-selector-control');
                 
                 // Create dropdown select
@@ -463,7 +463,7 @@ class MapManager {
     /**
      * Handle tile loading errors with Wikimedia as preferred fallback
      */
-    handleTileError(layerType, errorEvent) {
+    handleTileError(layerType) {
         const zoom = this.map ? this.map.getZoom() : 0;
         const errorKey = `${layerType}_${zoom}`;
         
@@ -515,7 +515,7 @@ class MapManager {
             console.error(`🗺️ Error adding tile layer ${layerType}:`, error);    
             // If this layer fails to load, try Wikimedia as last resort
             if (layerType !== 'wikimedia' && this.autoSwitchEnabled) {
-                console.log(`🗺️ Falling back to Wikimedia due to layer error`);
+                console.log('🗺️ Falling back to Wikimedia due to layer error');
                 setTimeout(() => this.switchToTileLayer('wikimedia', true), 1000);
             }
         }
@@ -672,7 +672,7 @@ class MapManager {
                     this.gpsAnchors.set(nodeId, {
                         lat: gpsCoords.lat,
                         lng: gpsCoords.lng,
-                        nodeId: nodeId,
+                        nodeId,
                         timestamp: Date.now(),
                         accuracy: node.gps?.accuracy || null,
                         isAbsolute: !node.gps?.derived // Mark as absolute if not derived
@@ -911,7 +911,7 @@ class MapManager {
                 duration: AppConfig.map.animationDuration,
                 easeLinearity: 0.1
             });         
-            console.log(`🗺️ Map fitted to ${this.markers.nodeMarkers.size} nodes`);
+            console.log('🗺️ Map fitted to ${this.markers.nodeMarkers.size} nodes');
             
         } catch (error) {
             console.error('🗺️ Error fitting map to nodes:', error);
@@ -927,7 +927,7 @@ class MapManager {
         if (this.autoFitDebounceTimeout) {
             clearTimeout(this.autoFitDebounceTimeout);
         }
-              
+
         this.autoFitDebounceTimeout = setTimeout(() => {
             this.fitMapToNodes();
             this.autoFitDebounceTimeout = null;

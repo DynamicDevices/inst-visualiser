@@ -121,7 +121,7 @@ class AppUtilsManager {
                         mqtt: this.appCore.visualizer?.mqttManager?.isConnected() || false,
                         simulation: this.appCore.simulationManager?.isRunning() || false
                     },
-                    performance,
+                    performance
                 };     
                 console.table(diagnostics.modules);
                 console.table(diagnostics.connectivity);
