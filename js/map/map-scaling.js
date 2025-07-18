@@ -91,8 +91,8 @@ class MapScalingManager {
             
             if (physicsPos1 && physicsPos2 && connection.distance) {
                 const physicsDistance = Math.sqrt(
-                    Math.pow(physicsPos2.x - physicsPos1.x, 2) + 
-                    Math.pow(physicsPos2.y - physicsPos1.y, 2)
+                    Math.pow(physicsPos2.x - physicsPos1.x, 2)
+                    + Math.pow(physicsPos2.y - physicsPos1.y, 2)
                 );
                 
                 if (physicsDistance > 0.1) {

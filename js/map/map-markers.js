@@ -147,7 +147,8 @@ class MapMarkerManager {
             <div class="map-node-marker ${nodeType} ${styling.typeLabel === 'GPS' ? 'gps-absolute' : ''}" style="
                 width: ${styling.size}px;
                 height: ${styling.size}px;
-                background: radial-gradient(circle at 30% 30%, ${styling.color}dd, ${styling.color}, ${styling.borderColor});
+                background: radial-gradient(circle at 30% 30%, ${styling.color}dd, 
+                ${styling.color}, ${styling.borderColor});
                 border: 3px solid ${styling.typeLabel === 'GPS' ? '#ff0000' : 'rgba(255, 255, 255, 0.8)'};
                 border-radius: 50%;
                 display: flex;
@@ -185,7 +186,8 @@ class MapMarkerManager {
      * Create popup content with GPS information
      */
     createPopupContent(nodeId, styling, nodeType, gpsCoords, hasAbsoluteGPS) {
-        let typeEmoji, typeName;
+        let typeEmoji;
+        let typeName;
         if (hasAbsoluteGPS) {
             typeEmoji = '🛰️';
             typeName = 'GPS Anchor';
@@ -375,7 +377,7 @@ class MapMarkerManager {
         let gpsMarkers = 0;
         let derivedMarkers = 0;
 
-        this.nodeMarkers.forEach((marker, nodeId) => {
+        this.nodeMarkers.forEach((marker) => {
             // Check if this is a GPS marker by looking at the marker's class
             const markerElement = marker.getElement();
             if (markerElement && markerElement.querySelector('.gps-absolute')) {

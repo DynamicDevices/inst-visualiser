@@ -164,7 +164,6 @@ class MQTTManager {
     }
 
     onMessageArrived(message) {
-        const topic = message.destinationName;
         const payload = message.payloadString;
         
         this.visualizer.logSuccess(`📨 MQTT message received: ${payload}`);

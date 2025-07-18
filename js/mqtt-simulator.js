@@ -155,10 +155,8 @@ class UWBSimulator {
             if (distances.length > 0) {
                 console.log(`📍 Sample: ${distances[0][0]} ↔ ${distances[0][1]} = ${distances[0][2]}m`);
             }
-
             // Update simulation statistics
             this.updateSimulationStats();
-
         } catch (error) {
             console.error('❌ Simulation publish error:', error);
         }
@@ -207,19 +205,16 @@ class UWBSimulator {
         const intervalMs = this.publishInterval * 1000; // Fixed: use publishInterval instead of publishRate
 
         console.log('🎭 Starting UWB simulation...');
-        console.log(
-            '📍 Simulated network: Gateway B5A4 + 3 anchors + ' +
-            this.tagCount + ' mobile tags'
-        );
-        console.log(`🔄 Mobile tags moving in circular patterns with 5cm measurement noise`);
-        console.log(`📡 Publishing every ${this.publishInterval}s (${intervalMs}ms)`); // Fixed: use publishInterval
+        console.log('📍 Simulated network: Gateway B5A4 + 3 anchors + ${this.tagCount} mobile tags');
+        console.log('🔄 Mobile tags moving in circular patterns with 5cm measurement noise');
+        console.log('📡 Publishing every ${this.publishInterval}s (${intervalMs}ms)'); // Fixed: use publishInterval
 
         // Start the publishing interval
         this.intervalId = setInterval(() => {
             this.publishDistances();
         }, intervalMs);
 
-        console.log(`✅ Simulation started with interval ID: ${this.intervalId}`);
+        console.log('✅ Simulation started with interval ID: ${this.intervalId}');
 
         // Update UI
         this.updateSimulationUI(true);
@@ -293,15 +288,15 @@ class UWBSimulator {
      * @param {number} alt - Altitude in meters
      */
     updateGatewayGPS(lat, lng, alt = 25) {
-        if (this.nodes["B5A4"]) {
-            this.nodes["B5A4"].gps = { lat, lng };
+        if (this.nodes['B5A4']) {
+            this.nodes['B5A4'].gps = { lat, lng };
             if (alt !== undefined) {
-                this.nodes["B5A4"].alt = alt;
+                this.nodes['B5A4'].alt = alt;
             }
             console.log(`🎭 Simulator: Gateway GPS updated to ${lat}, ${lng}, ${alt}m`);
             
             // Also ensure the gateway is marked as having GPS coordinates
-            this.nodes["B5A4"].hasGPS = true;
+            this.nodes['B5A4'].hasGPS = true;
         }
     }
 
@@ -406,3 +401,4 @@ class UWBSimulator {
         };
     }
 }
+window.UWBSimulator = UWBSimulator;
