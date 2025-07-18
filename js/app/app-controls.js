@@ -23,7 +23,6 @@ class AppControlsManager {
         // Any additional control setup can go here
         // Most controls are handled by the visualizer UI manager
         // This is for app-level controls that don't fit elsewhere
-        
         this.setupKeyboardShortcuts();
         this.setupWindowEvents();
     }
@@ -45,14 +44,12 @@ class AppControlsManager {
                         this.appCore.viewManager.toggleView();
                     }
                     break;
-                    
                 case 'c':
                     // C key to center nodes
                     if (this.appCore.visualizer) {
                         this.appCore.visualizer.centerNodes();
                     }
                     break;
-                    
                 case 's':
                     // S key to toggle simulation
                     if (e.ctrlKey || e.metaKey) {
@@ -66,7 +63,6 @@ class AppControlsManager {
                         }
                     }
                     break;
-                    
                 case 'm':
                     // M key to maximize visualization
                     if (this.appCore.visualizer) {

@@ -68,7 +68,7 @@ class VisualizerLoggingManager {
         const consoleContent = document.getElementById('consoleContent'); // FIXED: Renamed from 'console' to 'consoleContent'
         if (!consoleContent) return;
         
-        const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         
         const entry = document.createElement('div');
         entry.className = `log-entry log-${type}`;
@@ -220,7 +220,9 @@ class VisualizerLoggingManager {
      */
     setMaxLogEntries(max) {
         this.maxLogEntries = Math.max(10, Math.min(1000, max));
-        this.logInfo(`📋 Max log entries set to ${this.maxLogEntries}`);
+        this.logInfo(
+            `📋 Max log entries set to ${this.maxLogEntries}`
+        );
     }
 
     /**
@@ -232,7 +234,7 @@ class VisualizerLoggingManager {
         
         return {
             consoleVisible: this.consoleVisible,
-            logCount: logCount,
+            logCount,
             maxLogEntries: this.maxLogEntries
         };
     }
@@ -253,7 +255,9 @@ class VisualizerLoggingManager {
             }
         });
         
-        this.logInfo(`📋 Filtered logs to show: ${type}`);
+        this.logInfo(
+            `📋 Filtered logs to show: ${type}`
+        );
     }
 }
 

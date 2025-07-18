@@ -1,3 +1,4 @@
+/* global eventBus */
 /**
  * Map Scaling Management
  * Handles physics-to-GPS scaling and scale control display
@@ -18,7 +19,7 @@ class MapScalingManager {
         if (!this.mapManager.map) return;
 
         const ScaleControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd(map) {
                 const container = L.DomUtil.create('div', 'custom-scale-control');
                 container.style.cssText = `
                     background: rgba(255, 255, 255, 0.9);
@@ -34,32 +35,24 @@ class MapScalingManager {
                     min-width: 80px;
                     text-align: center;
                 `;
-                
                 this._container = container;
                 this._map = map;
-                
                 map.on('zoomend moveend', this._updateScale, this);
                 this._updateScale();
-                
                 return container;
             },
-
-            onRemove: function(map) {
+            onRemove(map) {
                 map.off('zoomend moveend', this._updateScale, this);
             },
-
-            _updateScale: function() {
+            _updateScale() {
                 if (!this._map || !this._container) return;
-
                 const bounds = this._map.getBounds();
                 const centerLat = bounds.getCenter().lat;
-                
                 const zoom = this._map.getZoom();
-                const metersPerPixel = 40075016.686 * Math.cos(centerLat * Math.PI / 180) / Math.pow(2, zoom + 8);
-                
+                const metersPerPixel = 40075016.686 * Math.cos(centerLat * Math.PI / 180)
+                    / Math.pow(2, zoom + 8);
                 const scalePixels = 100;
                 const scaleMeters = metersPerPixel * scalePixels;
-                
                 let scaleText;
                 if (scaleMeters >= 1000) {
                     const scaleDistance = Math.round(scaleMeters / 100) / 10;
@@ -71,7 +64,6 @@ class MapScalingManager {
                     const scaleDistance = Math.round(scaleMeters * 100);
                     scaleText = `${scaleDistance} cm`;
                 }
-                
                 this._container.innerHTML = `
                     <div style="border-bottom: 3px solid #333; width: ${scalePixels}px; margin: 0 auto 2px auto;"></div>
                     <div>${scaleText}</div>
@@ -99,8 +91,8 @@ class MapScalingManager {
             
             if (physicsPos1 && physicsPos2 && connection.distance) {
                 const physicsDistance = Math.sqrt(
-                    Math.pow(physicsPos2.x - physicsPos1.x, 2) + 
-                    Math.pow(physicsPos2.y - physicsPos1.y, 2)
+                    Math.pow(physicsPos2.x - physicsPos1.x, 2)
+                    + Math.pow(physicsPos2.y - physicsPos1.y, 2)
                 );
                 
                 if (physicsDistance > 0.1) {

@@ -1,3 +1,6 @@
+/* global eventBus, SpringMassSystem, VisualizerNodeManager, VisualizerConnectionManager, 
+   VisualizerPhysicsManager, VisualizerUIManager, VisualizerMobileManager, VisualizerStatsManager, 
+   VisualizerLoggingManager, MQTTManager */
 /**
  * UWB Visualizer Core - Main Coordination Class
  * Coordinates all visualizer sub-modules using event-driven architecture
@@ -5,7 +8,7 @@
 
 class UWBVisualizer {
     constructor() {
-        this.version = "4.0";
+        this.version = '4.0';
         this.canvas = document.getElementById('canvas');
         this.nodes = new Map();
         this.connections = new Map();
@@ -90,7 +93,7 @@ class UWBVisualizer {
         this.mqttManager = new MQTTManager(this);
         
         // Add compatibility methods for the modular system
-        this.mqttManager.setMessageHandler = (handler) => {
+        this.mqttManager.setMessageHandler = () => {
             // The original MQTTManager already handles messages via this.processMessage
             this.loggingManager.logInfo('📡 Message handler set (using original MQTTManager)');
         };
@@ -111,27 +114,27 @@ class UWBVisualizer {
      */
     setupEventListeners() {
         // Node events
-        eventBus.on('node-created', (data) => {
+        eventBus.on('node-created', () => {
             this.statsManager.updateStats();
-            this.loggingManager.logSuccess(`✨ Created new ${data.type} node: ${data.nodeId}`);
+            this.loggingManager.logSuccess('✨ Created new node');
         });
 
-        eventBus.on('node-removed', (data) => {
+        eventBus.on('node-removed', () => {
             this.statsManager.updateStats();
-            this.loggingManager.logWarning(`❌ Node ${data.nodeId} removed`);
+            this.loggingManager.logWarning('❌ Node removed');
         });
 
-        eventBus.on('node-restored', (data) => {
+        eventBus.on('node-restored', () => {
             this.statsManager.updateStats();
-            this.loggingManager.logSuccess(`🔄 Restored node: ${data.nodeId}`);
+            this.loggingManager.logSuccess('🔄 Restored node');
         });
 
         // Connection events
-        eventBus.on('connection-created', (data) => {
+        eventBus.on('connection-created', () => {
             this.statsManager.updateStats();
         });
 
-        eventBus.on('connection-removed', (data) => {
+        eventBus.on('connection-removed', () => {
             this.statsManager.updateStats();
         });
 
@@ -155,7 +158,7 @@ class UWBVisualizer {
         });
 
         // Message processing events
-        eventBus.on('message-processed', (data) => {
+        eventBus.on('message-processed', () => {
             this.messageCount++;
             this.lastUpdateTime = Date.now();
             this.statsManager.updateStats();
@@ -204,7 +207,7 @@ class UWBVisualizer {
         }
         
         // Process nodes
-        distanceArray.forEach(([node1, node2, distance]) => {
+        distanceArray.forEach(([node1, node2]) => {
             this.nodeManager.ensureNodeExists(node1);
             this.nodeManager.ensureNodeExists(node2);
             this.nodeManager.updateNodeTimestamp(node1, this.lastUpdateTime);
@@ -310,11 +313,11 @@ class UWBVisualizer {
             const node2 = this.nodes.get(connection.node2);
             const wasRemoved = connection.isRemoved;
             
-            connection.isStale = (node1?.isStale || node2?.isStale) || 
-                               (currentTime - connection.lastUpdate > this.staleTimeoutMs);
+            connection.isStale = (node1?.isStale || node2?.isStale)
+                || (currentTime - connection.lastUpdate > this.staleTimeoutMs);
             
-            connection.isRemoved = (node1?.isRemoved || node2?.isRemoved) || 
-                                 (currentTime - connection.lastUpdate > (this.staleTimeoutMs + this.removalTimeoutMs));
+            connection.isRemoved = (node1?.isRemoved || node2?.isRemoved)
+                || (currentTime - connection.lastUpdate > (this.staleTimeoutMs + this.removalTimeoutMs));
             
             if (connection.isRemoved && !wasRemoved) {
                 this.connectionManager.removeConnectionFromDisplay(key);
@@ -352,7 +355,9 @@ class UWBVisualizer {
     clearAllNodes() {
         this.nodes.clear();
         this.connections.clear();
-        this.canvas.querySelectorAll('.node, .connection, .distance-label, .bounding-box, .bounding-box-label').forEach(el => el.remove());
+        this.canvas.querySelectorAll(
+            '.node, .connection, .distance-label, .bounding-box, .bounding-box-label'
+        ).forEach(el => el.remove());
         this.loggingManager.logInfo('🗑️ All nodes cleared');
         this.statsManager.updateStats();
     }
