@@ -777,9 +777,9 @@ body {
   position: absolute;
   z-index: 5;
   padding: 3px 6px;
-  pointer-events: none;
   font-size: 9px;
   font-weight: 600;
+  pointer-events: none;
   color: var(--dark-bg);
   background: rgb(255 255 255 / 95%);
   border-radius: 8px;
