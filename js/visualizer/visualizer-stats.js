@@ -46,7 +46,8 @@ class VisualizerStatsManager {
     updateConnectionCount() {
         const connectionCountElement = document.getElementById('connectionCount');
         if (connectionCountElement) {
-            const currentConnectionCount = Array.from(this.visualizer.connections.values()).filter(conn => !conn.isRemoved).length;
+            const currentConnectionCount = Array.from(this.visualizer.connections.values())
+                .filter(conn => !conn.isRemoved).length;
             connectionCountElement.textContent = currentConnectionCount;
             this.addUpdateAnimation(connectionCountElement);
         }

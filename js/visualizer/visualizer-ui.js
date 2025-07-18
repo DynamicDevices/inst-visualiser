@@ -152,8 +152,8 @@ class VisualizerUIManager {
         }, '(Show Accuracy)');
 
         // Debug controls
-        safeAddEventListener('debugMode', 'change', (e) => {
-            this.debugMode = e.target.checked;
+        safeAddEventListener('debugMode', 'change', () => {
+            this.debugMode = document.getElementById('debugMode').checked;
             this.visualizer.loggingManager?.logInfo(`🐛 Debug mode ${this.debugMode ? 'enabled' : 'disabled'}`);
         }, '(Debug Mode)');
 

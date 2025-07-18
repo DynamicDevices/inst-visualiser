@@ -1,4 +1,6 @@
-/* global eventBus, SpringMassSystem, VisualizerNodeManager, VisualizerConnectionManager, VisualizerPhysicsManager, VisualizerUIManager, VisualizerMobileManager, VisualizerStatsManager, VisualizerLoggingManager, MQTTManager */
+/* global eventBus, SpringMassSystem, VisualizerNodeManager, VisualizerConnectionManager, 
+   VisualizerPhysicsManager, VisualizerUIManager, VisualizerMobileManager, VisualizerStatsManager, 
+   VisualizerLoggingManager, MQTTManager */
 /**
  * UWB Visualizer Core - Main Coordination Class
  * Coordinates all visualizer sub-modules using event-driven architecture
@@ -112,19 +114,19 @@ class UWBVisualizer {
      */
     setupEventListeners() {
         // Node events
-        eventBus.on('node-created', (data) => {
+        eventBus.on('node-created', () => {
             this.statsManager.updateStats();
-            this.loggingManager.logSuccess(`✨ Created new ${data.type} node: ${data.nodeId}`);
+            this.loggingManager.logSuccess('✨ Created new node');
         });
 
-        eventBus.on('node-removed', (data) => {
+        eventBus.on('node-removed', () => {
             this.statsManager.updateStats();
-            this.loggingManager.logWarning(`❌ Node ${data.nodeId} removed`);
+            this.loggingManager.logWarning('❌ Node removed');
         });
 
-        eventBus.on('node-restored', (data) => {
+        eventBus.on('node-restored', () => {
             this.statsManager.updateStats();
-            this.loggingManager.logSuccess(`🔄 Restored node: ${data.nodeId}`);
+            this.loggingManager.logSuccess('🔄 Restored node');
         });
 
         // Connection events

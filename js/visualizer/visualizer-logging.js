@@ -255,7 +255,9 @@ class VisualizerLoggingManager {
             }
         });
         
-        this.logInfo(`📋 Filtered logs to show: ${type}`);
+        this.logInfo(
+            `📋 Filtered logs to show: ${type}`
+        );
     }
 }
 

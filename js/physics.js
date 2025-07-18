@@ -281,3 +281,4 @@ class SpringMassSystem {
         return kineticEnergy;
     }
 }
+window.SpringMassSystem = SpringMassSystem;

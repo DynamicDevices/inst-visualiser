@@ -255,3 +255,5 @@ class MQTTManager {
         return this.client;
     }
 }
+
+window.MQTTManager = MQTTManager;
