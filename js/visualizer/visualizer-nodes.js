@@ -1,3 +1,4 @@
+/* global eventBus, AppConfig */
 /**
  * Visualizer Node Management
  * Handles node creation, updating, and rendering

@@ -34,7 +34,7 @@ class MQTTManager {
         }
 
         const host = document.getElementById('mqttHost').value.trim();
-        const port = parseInt(document.getElementById('mqttPort').value);
+        const port = parseInt(document.getElementById('mqttPort').value, 10);
         const topic = document.getElementById('mqttTopic').value.trim();
 
         if (!host || !port || !topic) {

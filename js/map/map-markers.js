@@ -1,3 +1,4 @@
+/* global eventBus, AppConfig */
 /**
  * Map Marker Management
  * Handles creation, updating, and styling of map markers
@@ -97,7 +98,7 @@ class MapMarkerManager {
             className: 'map-node-marker-container',
             html: markerHtml,
             iconSize: [styling.size, styling.size],
-            iconAnchor: [styling.size/2, styling.size/2]
+            iconAnchor: [styling.size / 2, styling.size / 2]
         });
 
         marker.setIcon(customIcon);
@@ -119,7 +120,7 @@ class MapMarkerManager {
             className: 'map-node-marker-container',
             html: markerHtml,
             iconSize: [styling.size, styling.size],
-            iconAnchor: [styling.size/2, styling.size/2]
+            iconAnchor: [styling.size / 2, styling.size / 2]
         });
 
         const marker = L.marker([gpsCoords.lat, gpsCoords.lng], {
@@ -184,17 +185,26 @@ class MapMarkerManager {
      * Create popup content with GPS information
      */
     createPopupContent(nodeId, styling, nodeType, gpsCoords, hasAbsoluteGPS) {
-        const typeEmoji = hasAbsoluteGPS ? '🛰️' : 
-                         nodeType === 'gateway' ? '🚪' : 
-                         nodeType === 'mobile' ? '📱' : '⚓';
-        
-        const typeName = hasAbsoluteGPS ? 'GPS Anchor' :
-                        nodeType === 'gateway' ? 'Gateway' : 
-                        nodeType === 'mobile' ? 'Mobile Tag' : 'Anchor';
-
+        let typeEmoji, typeName;
+        if (hasAbsoluteGPS) {
+            typeEmoji = '🛰️';
+            typeName = 'GPS Anchor';
+        } else if (nodeType === 'gateway') {
+            typeEmoji = '🚪';
+            typeName = 'Gateway';
+        } else if (nodeType === 'mobile') {
+            typeEmoji = '📱';
+            typeName = 'Mobile Tag';
+        } else {
+            typeEmoji = '⚓';
+            typeName = 'Anchor';
+        }
         const positionType = hasAbsoluteGPS ? 'Absolute GPS' : 'Derived Position';
         const accuracy = gpsCoords.accuracy ? ` (±${gpsCoords.accuracy}m)` : '';
-
+        let reference = '';
+        if (gpsCoords.derived && gpsCoords.referenceNode) {
+            reference = `<strong>Reference:</strong> ${gpsCoords.referenceNode}<br>`;
+        }
         return `
             <div style="text-align: center; font-family: Arial, sans-serif;">
                 <strong style="font-size: 16px; color: ${styling.color};">${nodeId}</strong><br>
@@ -203,8 +213,7 @@ class MapMarkerManager {
                     <strong>Position:</strong> ${positionType}${accuracy}<br>
                     <strong>Lat:</strong> ${gpsCoords.lat.toFixed(6)}<br>
                     <strong>Lng:</strong> ${gpsCoords.lng.toFixed(6)}<br>
-                    ${gpsCoords.derived && gpsCoords.referenceNode ? 
-                        `<strong>Reference:</strong> ${gpsCoords.referenceNode}<br>` : ''}
+                    ${reference}
                     <strong>Scale:</strong> ${this.mapManager.scaling?.physicsToMetersScale?.toFixed(3) || '1.000'} m/unit
                 </div>
             </div>
@@ -292,7 +301,7 @@ class MapMarkerManager {
             }
             
             this.connectionLines.set(connectionKey, {
-                line: line,
+                line,
                 label: distanceMarker
             });
         }
@@ -378,8 +387,8 @@ class MapMarkerManager {
 
         return {
             nodeMarkers: this.nodeMarkers.size,
-            gpsMarkers: gpsMarkers,
-            derivedMarkers: derivedMarkers,
+            gpsMarkers,
+            derivedMarkers,
             connectionLines: this.connectionLines.size,
             showDistanceLabels: this.showDistanceLabels,
             showBoundingBox: this.showBoundingBox
@@ -414,8 +423,10 @@ class MapMarkerManager {
         if (this.nodeMarkers.size < 2) return; // Need at least 2 nodes for a meaningful box
 
         // Calculate bounds
-        let minLat = Infinity, maxLat = -Infinity;
-        let minLng = Infinity, maxLng = -Infinity;
+        let minLat = Infinity;
+        let maxLat = -Infinity;
+        let minLng = Infinity;
+        let maxLng = -Infinity;
 
         this.nodeMarkers.forEach(marker => {
             const pos = marker.getLatLng();
@@ -452,7 +463,9 @@ class MapMarkerManager {
         // Add distance labels
         this.addBoundingBoxLabels(minLat, maxLat, minLng, maxLng, widthMeters, heightMeters);
 
-        console.log(`🗺️ Bounding box updated: ${widthMeters.toFixed(1)}m × ${heightMeters.toFixed(1)}m`);
+        console.log(
+            `🗺️ Bounding box updated: ${widthMeters.toFixed(1)}m × ${heightMeters.toFixed(1)}m`
+        );
     }
 
     /**

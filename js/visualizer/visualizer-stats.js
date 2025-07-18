@@ -33,7 +33,8 @@ class VisualizerStatsManager {
     updateNodeCount() {
         const nodeCountElement = document.getElementById('nodeCount');
         if (nodeCountElement) {
-            const currentNodeCount = Array.from(this.visualizer.nodes.values()).filter(node => !node.isRemoved).length;
+            const currentNodeCount = Array.from(this.visualizer.nodes.values())
+                .filter(node => !node.isRemoved).length;
             nodeCountElement.textContent = currentNodeCount;
             this.addUpdateAnimation(nodeCountElement);
         }
@@ -80,7 +81,7 @@ class VisualizerStatsManager {
     updateLastMessageTime() {
         const lastMessageTimeElement = document.getElementById('lastMessageTime');
         if (lastMessageTimeElement && this.visualizer.lastUpdateTime) {
-            const timestamp = new Date(this.visualizer.lastUpdateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const timestamp = new Date(this.visualizer.lastUpdateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             lastMessageTimeElement.textContent = timestamp;
             this.addUpdateAnimation(lastMessageTimeElement);
         }
@@ -105,8 +106,10 @@ class VisualizerStatsManager {
         }
         
         // Calculate bounding box in pixels
-        let minX = Infinity, maxX = -Infinity;
-        let minY = Infinity, maxY = -Infinity;
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
         
         activeNodes.forEach(node => {
             minX = Math.min(minX, node.x);
@@ -137,8 +140,10 @@ class VisualizerStatsManager {
         }
         
         // Calculate bounding box coordinates
-        let minX = Infinity, maxX = -Infinity;
-        let minY = Infinity, maxY = -Infinity;
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
         
         activeNodes.forEach(node => {
             minX = Math.min(minX, node.x);

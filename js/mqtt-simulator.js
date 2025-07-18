@@ -23,15 +23,15 @@ class UWBSimulator {
 
         // Define node positions in coordinate system (metres) and GPS coordinates
         this.nodes = {
-            "B5A4": {
+            B5A4: {
                 x: 0.0,
                 y: 0.0,
                 type: 'gateway',
                 gps: { lat: 53.4084, lng: -2.9916 } // Gateway has GPS coordinates
             },
-            "R001": { x: 3.0, y: 2.0, type: 'anchor' },    // Room 1
-            "R002": { x: 1.5, y: 4.0, type: 'anchor' },    // Room 2
-            "R003": { x: 5.0, y: 3.5, type: 'anchor' },    // Room 3
+            R001: { x: 3.0, y: 2.0, type: 'anchor' },    // Room 1
+            R002: { x: 1.5, y: 4.0, type: 'anchor' },    // Room 2
+            R003: { x: 5.0, y: 3.5, type: 'anchor' }    // Room 3
         };
 
         // Initialize mobile tags (configurable 1-10)
@@ -87,7 +87,7 @@ class UWBSimulator {
     updateMobilePositions() {
         this.timeOffset += 0.1;
 
-        this.mobileTags.forEach((tagId, index) => {
+        this.mobileTags.forEach((tagId) => {
             const movement = this.tagMovement.get(tagId);
             if (!movement) return;
 
@@ -207,7 +207,10 @@ class UWBSimulator {
         const intervalMs = this.publishInterval * 1000; // Fixed: use publishInterval instead of publishRate
 
         console.log('🎭 Starting UWB simulation...');
-        console.log(`📍 Simulated network: Gateway B5A4 + 3 anchors + ${this.tagCount} mobile tags`);
+        console.log(
+            '📍 Simulated network: Gateway B5A4 + 3 anchors + ' +
+            this.tagCount + ' mobile tags'
+        );
         console.log(`🔄 Mobile tags moving in circular patterns with 5cm measurement noise`);
         console.log(`📡 Publishing every ${this.publishInterval}s (${intervalMs}ms)`); // Fixed: use publishInterval
 
@@ -394,7 +397,7 @@ class UWBSimulator {
         return {
             running: this.running,
             messagesPublished: this.messagesPublished,
-            uptimeSeconds: uptimeSeconds,
+            uptimeSeconds,
             averageRate: avgRate,
             currentInterval: this.publishInterval,
             nodeCount: Object.keys(this.nodes).length,

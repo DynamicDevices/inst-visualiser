@@ -75,28 +75,22 @@ class MapManager {
                 scaleControl: false,
                 maxZoom: 25 // Increased max zoom for ~0.5m resolution
             });
-
             // Initialize tile layers
             this.initializeTileLayers();
-
             // Add default tile layer
             this.currentTileLayer = this.tileLayers.standard;
             this.currentTileLayer.addTo(this.map);
-
             // Set up automatic tile switching
             this.setupAutoTileSwitching();
-
             this.scaling.addCustomScaleControl();
             this.addTileLayerSelector();
             this.addAutoZoomToggle();
             this.addDistanceLabelToggle();
             this.addBoundingBoxToggle();
             this.addForceCenterButton();
-            
             console.log('🗺️ Map initialized successfully with max zoom 25');
             eventBus.emit('map-initialized', { map: this.map });
             return true;
-
         } catch (error) {
             console.error('❌ Failed to initialize map:', error);
             return false;
@@ -504,7 +498,6 @@ class MapManager {
             this.map.removeLayer(this.currentTileLayer);
             console.log(`🗺️ Removed current layer: ${this.tileLayerType}`);
         }
-
         // Switch to new layer
         this.tileLayerType = layerType;
         this.currentTileLayer = this.tileLayers[layerType];
@@ -517,11 +510,9 @@ class MapManager {
             this.updateTileSelector();
             const switchType = isAutoSwitch ? 'Auto-switched' : 'Switched';
             const layerName = this.getTileLayerOptions()[layerType]?.name || layerType;
-            console.log(`🗺️ ${switchType} to ${layerName}`);
-            
+            console.log(`🗺️ ${switchType} to ${layerName}`); 
         } catch (error) {
-            console.error(`🗺️ Error adding tile layer ${layerType}:`, error);
-            
+            console.error(`🗺️ Error adding tile layer ${layerType}:`, error);    
             // If this layer fails to load, try Wikimedia as last resort
             if (layerType !== 'wikimedia' && this.autoSwitchEnabled) {
                 console.log(`🗺️ Falling back to Wikimedia due to layer error`);
@@ -912,16 +903,14 @@ class MapManager {
             const bounds = Group.getBounds();           
             const mapSize = this.map.getSize();
             const paddingX = Math.max(30, mapSize.x * 0.1);
-            const paddingY = Math.max(30, mapSize.y * 0.1);
-            
+            const paddingY = Math.max(30, mapSize.y * 0.1);     
             this.map.fitBounds(bounds, {
                 padding: [paddingY, paddingX],
                 maxZoom: 25, // Allow fitting to use high zoom levels
                 animate: true,
                 duration: AppConfig.map.animationDuration,
                 easeLinearity: 0.1
-            });
-            
+            });         
             console.log(`🗺️ Map fitted to ${this.markers.nodeMarkers.size} nodes`);
             
         } catch (error) {
@@ -938,7 +927,7 @@ class MapManager {
         if (this.autoFitDebounceTimeout) {
             clearTimeout(this.autoFitDebounceTimeout);
         }
-        
+              
         this.autoFitDebounceTimeout = setTimeout(() => {
             this.fitMapToNodes();
             this.autoFitDebounceTimeout = null;

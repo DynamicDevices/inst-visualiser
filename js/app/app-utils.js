@@ -160,7 +160,7 @@ class AppUtilsManager {
                     this.appCore.visualizer.connections.forEach((connection, key) => {
                         if (!connection.isRemoved) {
                             crisisData.connections.push({
-                                key: key,
+                                key,
                                 nodes: [connection.node1, connection.node2],
                                 distance: connection.distance,
                                 accuracy: connection.accuracy,

@@ -1,3 +1,4 @@
+/* global eventBus, SpringMassSystem, VisualizerNodeManager, VisualizerConnectionManager, VisualizerPhysicsManager, VisualizerUIManager, VisualizerMobileManager, VisualizerStatsManager, VisualizerLoggingManager, MQTTManager */
 /**
  * UWB Visualizer Core - Main Coordination Class
  * Coordinates all visualizer sub-modules using event-driven architecture
@@ -90,7 +91,7 @@ class UWBVisualizer {
         this.mqttManager = new MQTTManager(this);
         
         // Add compatibility methods for the modular system
-        this.mqttManager.setMessageHandler = (handler) => {
+        this.mqttManager.setMessageHandler = () => {
             // The original MQTTManager already handles messages via this.processMessage
             this.loggingManager.logInfo('📡 Message handler set (using original MQTTManager)');
         };
@@ -310,11 +311,11 @@ class UWBVisualizer {
             const node2 = this.nodes.get(connection.node2);
             const wasRemoved = connection.isRemoved;
             
-            connection.isStale = (node1?.isStale || node2?.isStale) || 
-                               (currentTime - connection.lastUpdate > this.staleTimeoutMs);
+            connection.isStale = (node1?.isStale || node2?.isStale)
+                || (currentTime - connection.lastUpdate > this.staleTimeoutMs);
             
-            connection.isRemoved = (node1?.isRemoved || node2?.isRemoved) || 
-                                 (currentTime - connection.lastUpdate > (this.staleTimeoutMs + this.removalTimeoutMs));
+            connection.isRemoved = (node1?.isRemoved || node2?.isRemoved)
+                || (currentTime - connection.lastUpdate > (this.staleTimeoutMs + this.removalTimeoutMs));
             
             if (connection.isRemoved && !wasRemoved) {
                 this.connectionManager.removeConnectionFromDisplay(key);
@@ -352,7 +353,9 @@ class UWBVisualizer {
     clearAllNodes() {
         this.nodes.clear();
         this.connections.clear();
-        this.canvas.querySelectorAll('.node, .connection, .distance-label, .bounding-box, .bounding-box-label').forEach(el => el.remove());
+        this.canvas.querySelectorAll(
+            '.node, .connection, .distance-label, .bounding-box, .bounding-box-label'
+        ).forEach(el => el.remove());
         this.loggingManager.logInfo('🗑️ All nodes cleared');
         this.statsManager.updateStats();
     }

@@ -1,3 +1,4 @@
+/* global eventBus */
 /**
  * Visualizer Connection Management
  * Handles connection creation, updating, and rendering

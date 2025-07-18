@@ -13,7 +13,7 @@ class SpringMassSystem {
         this.damping = 0.6;            // Minimal damping: allows maximum sustained motion
         this.mass = 0.2;               // 1/10 original mass: near-instant acceleration
         this.distanceScale = 120;      // Keep same visual scale
-        this.timeStep = 1/60;          // 60fps unchanged
+        this.timeStep = 1 / 60;          // 60fps unchanged
         
         // EXTREME FORCES - All scaled up 100x for lightning-fast response
         this.boundaryForce = 10.0;     // 100x increase: instant boundary containment
@@ -67,7 +67,7 @@ class SpringMassSystem {
             // Calculate current distance between masses
             const dx = node2.x - node1.x;
             const dy = node2.y - node1.y;
-            const currentDistance = Math.sqrt(dx*dx + dy*dy);
+            const currentDistance = Math.sqrt(dx * dx + dy * dy);
             
             if (currentDistance > 0) {
                 // Target spring rest length in pixels
@@ -105,7 +105,7 @@ class SpringMassSystem {
                 
                 const dx = node2.x - node1.x;
                 const dy = node2.y - node1.y;
-                const distance = Math.sqrt(dx*dx + dy*dy);
+                const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (distance > 0 && distance < this.minDistance) {
                     // Much stronger repulsion force for faster separation
@@ -167,7 +167,7 @@ class SpringMassSystem {
             
             const dx = centerX - node.x;
             const dy = centerY - node.y;
-            const distanceFromCenter = Math.sqrt(dx*dx + dy*dy);
+            const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
             
             // Base centering force
             node.fx += dx * this.centeringForce;
@@ -191,8 +191,10 @@ class SpringMassSystem {
         if (activeNodes.length < 2) return;
         
         // Calculate current bounding box
-        let minX = Infinity, maxX = -Infinity;
-        let minY = Infinity, maxY = -Infinity;
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
         
         activeNodes.forEach(node => {
             minX = Math.min(minX, node.x);
@@ -272,7 +274,7 @@ class SpringMassSystem {
         let kineticEnergy = 0;
         nodes.forEach(node => {
             if (!node.isRemoved) {
-                const speed = Math.sqrt(node.vx*node.vx + node.vy*node.vy);
+                const speed = Math.sqrt(node.vx * node.vx + node.vy * node.vy);
                 kineticEnergy += 0.5 * node.mass * speed * speed;
             }
         });
