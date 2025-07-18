@@ -43,7 +43,7 @@ class VisualizerUIManager {
             
             // Add touch feedback
             if (this.visualizer.mobileManager?.isMobileDevice) {
-                header.addEventListener('touchstart', (e) => {
+                header.addEventListener('touchstart', () => {
                     header.style.transform = 'scale(0.98)';
                 }, { passive: true });
                 
@@ -147,7 +147,7 @@ class VisualizerUIManager {
             this.visualizer.loggingManager?.logInfo(`Removal timeout set to ${e.target.value}s (after stale)`);
         }, '(Removal Timeout)');
 
-        safeAddEventListener('showAccuracy', 'change', (e) => {
+        safeAddEventListener('showAccuracy', 'change', () => {
             this.visualizer.connectionManager.updateDistanceLabels();
         }, '(Show Accuracy)');
 
