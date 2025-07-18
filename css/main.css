@@ -242,12 +242,12 @@ body {
   transition: background-color 0.3s ease;
 }
 
-.control-group[data-section='simulation'] .control-group-header {
-  background: rgb(155 89 182 / 15%);
-}
-
 .control-group-header:hover {
   background: rgb(52 152 219 / 15%);
+}
+
+.control-group[data-section='simulation'] .control-group-header {
+  background: rgb(155 89 182 / 15%);
 }
 
 .control-group-header:hover .control-group[data-section='simulation']  {
@@ -776,6 +776,7 @@ body {
 .distance-label:not(.map-distance-label) {
   position: absolute;
   z-index: 5;
+  pointer-events: none;
   padding: 3px 6px;
   font-size: 9px;
   font-weight: 600;
@@ -783,7 +784,6 @@ body {
   background: rgb(255 255 255 / 95%);
   border-radius: 8px;
   box-shadow: 0 1px 4px rgb(0 0 0 / 10%);
-  pointer-events: none;
   transform: translate(-50%, -50%);
 }
 
@@ -813,7 +813,6 @@ body {
   pointer-events: none;
   background: none;
   border: 2px dashed var(--warning-color);
-  pointer-events: none;
   box-shadow: 0 1px 4px rgb(0 0 0 / 10%);
   transform: translateY(-50%);
 }
