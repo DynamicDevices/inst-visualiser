@@ -779,9 +779,9 @@ body {
   padding: 3px 6px;
   font-size: 9px;
   font-weight: 600;
-  pointer-events: none;
   color: var(--dark-bg);
   background: rgb(255 255 255 / 95%);
+  pointer-events: none;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgb(0 0 0 / 10%);
   transform: translate(-50%, -50%);
