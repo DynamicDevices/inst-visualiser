@@ -90,7 +90,7 @@ class MQTTManager {
 
     attemptConnection(host, port, topic, useSSL, path, onFailure) {
         try {
-            const clientId = "uwb_visualiser_" + Math.random().toString(16).substring(2, 8);
+            const clientId = `uwb_visualiser_${Math.random().toString(16).substring(2, 8)}`;
             
             if (path) {
                 this.client = new Paho.MQTT.Client(host, port, path, clientId);
@@ -116,11 +116,9 @@ class MQTTManager {
                 timeout: 10,
                 keepAliveInterval: 30,
                 cleanSession: true,
-                useSSL: useSSL,
+                useSSL
             };
-
-            this.client.connect(connectOptions);
-            
+            this.client.connect(connectOptions);            
         } catch (error) {
             this.visualizer.logError(`❌ Connection setup error: ${error.message}`);
             if (onFailure) onFailure();

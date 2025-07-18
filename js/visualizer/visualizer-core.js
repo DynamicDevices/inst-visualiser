@@ -8,7 +8,7 @@
 
 class UWBVisualizer {
     constructor() {
-        this.version = "4.0";
+        this.version = '4.0';
         this.canvas = document.getElementById('canvas');
         this.nodes = new Map();
         this.connections = new Map();
@@ -130,11 +130,11 @@ class UWBVisualizer {
         });
 
         // Connection events
-        eventBus.on('connection-created', (data) => {
+        eventBus.on('connection-created', () => {
             this.statsManager.updateStats();
         });
 
-        eventBus.on('connection-removed', (data) => {
+        eventBus.on('connection-removed', () => {
             this.statsManager.updateStats();
         });
 
@@ -158,7 +158,7 @@ class UWBVisualizer {
         });
 
         // Message processing events
-        eventBus.on('message-processed', (data) => {
+        eventBus.on('message-processed', () => {
             this.messageCount++;
             this.lastUpdateTime = Date.now();
             this.statsManager.updateStats();
@@ -207,7 +207,7 @@ class UWBVisualizer {
         }
         
         // Process nodes
-        distanceArray.forEach(([node1, node2, distance]) => {
+        distanceArray.forEach(([node1, node2]) => {
             this.nodeManager.ensureNodeExists(node1);
             this.nodeManager.ensureNodeExists(node2);
             this.nodeManager.updateNodeTimestamp(node1, this.lastUpdateTime);
