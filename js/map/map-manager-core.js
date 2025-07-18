@@ -39,13 +39,13 @@ class MapManager {
      * Set up event listeners
      */
     setupEventListeners() {
-        eventBus.on('uwb-scale-updated', (data) => {
+        eventBus.on('uwb-scale-updated', () => {
             if (this.isMapView) {
                 this.updatePhysicsBasedPositions();
             }
         });
 
-        eventBus.on('physics-scale-updated', (data) => {
+        eventBus.on('physics-scale-updated', () => {
             // Scale has been updated, positions may need refreshing
         });
 
@@ -199,14 +199,14 @@ class MapManager {
      */
     getTileLayerOptions() {
         return {
-            'standard': { name: '🗺️ Standard (OSM)', description: 'OpenStreetMap standard tiles' },
-            'satellite': { name: '🛰️ Satellite', description: 'Google satellite imagery' },
-            'hybrid': { name: '🌍 Hybrid', description: 'Satellite with labels' },
-            'positron': { name: '⚪ Light', description: 'Clean minimal style' },
-            'dark': { name: '⚫ Dark', description: 'Dark theme' },
-            'topo': { name: '🏔️ Topographic', description: 'Topographic map' },
-            'toner': { name: '🔲 High Contrast', description: 'Black and white' },
-            'esri': { name: '🌐 Esri Imagery', description: 'Esri satellite imagery' }
+            standard: { name: '🗺️ Standard (OSM)', description: 'OpenStreetMap standard tiles' },
+            satellite: { name: '🛰️ Satellite', description: 'Google satellite imagery' },
+            hybrid: { name: '🌍 Hybrid', description: 'Satellite with labels' },
+            positron: { name: '⚪ Light', description: 'Clean minimal style' },
+            dark: { name: '⚫ Dark', description: 'Dark theme' },
+            topo: { name: '🏔️ Topographic', description: 'Topographic map' },
+            toner: { name: '🔲 High Contrast', description: 'Black and white' },
+            esri: { name: '🌐 Esri Imagery', description: 'Esri satellite imagery' }
         };
     }
 
@@ -216,12 +216,11 @@ class MapManager {
     addTileLayerSelector() {
         if (!this.map) return;
 
-        const mapManager = this;
         const tileOptions = this.getTileLayerOptions();
 
         // Create tile selector control
         const TileSelectorControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: (map) => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom tile-selector-control');
                 
                 // Create dropdown select
@@ -239,7 +238,7 @@ class MapManager {
                     option.value = layerType;
                     option.textContent = tileOptions[layerType].name;
                     option.title = tileOptions[layerType].description;
-                    if (layerType === mapManager.tileLayerType) {
+                    if (layerType === this.tileLayerType) {
                         option.selected = true;
                     }
                     select.appendChild(option);
@@ -250,7 +249,7 @@ class MapManager {
                     L.DomEvent.stopPropagation(e);
                     const selectedType = e.target.value;
                     console.log(`🗺️ Dropdown changed to: ${selectedType}`);
-                    mapManager.switchToTileLayer(selectedType, false);
+                    this.switchToTileLayer(selectedType, false);
                 });
 
                 // Prevent map interaction when using dropdown
@@ -274,18 +273,15 @@ class MapManager {
     addAutoZoomToggle() {
         if (!this.map) return;
 
-        const mapManager = this;
-
         // Create auto-zoom toggle control
         const AutoZoomToggleControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom auto-zoom-control');
-                
                 const button = L.DomUtil.create('a', 'auto-zoom-toggle', container);
                 button.href = '#';
-                button.title = mapManager.autoFitEnabled ? 'Disable Auto-Zoom' : 'Enable Auto-Zoom';
-                button.innerHTML = mapManager.autoFitEnabled ? '🔒' : '🔓';
-                button.style.backgroundColor = mapManager.autoFitEnabled ? '#e8f5e8' : '#f5f5f5';
+                button.title = this.autoFitEnabled ? 'Disable Auto-Zoom' : 'Enable Auto-Zoom';
+                button.innerHTML = this.autoFitEnabled ? '🔒' : '🔓';
+                button.style.backgroundColor = this.autoFitEnabled ? '#e8f5e8' : '#f5f5f5';
                 button.style.width = '30px';
                 button.style.height = '30px';
                 button.style.lineHeight = '30px';
@@ -295,10 +291,10 @@ class MapManager {
                 button.style.fontSize = '16px';
                 button.style.cursor = 'pointer';
 
-                L.DomEvent.on(button, 'click', function(e) {
+                L.DomEvent.on(button, 'click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     L.DomEvent.preventDefault(e);
-                    mapManager.toggleAutoZoom();
+                    this.toggleAutoZoom();
                 });
 
                 // Prevent map interaction when clicking the button
@@ -311,7 +307,6 @@ class MapManager {
         // Add control to map (below tile selector)
         this.autoZoomToggleControl = new AutoZoomToggleControl({ position: 'topright' });
         this.autoZoomToggleControl.addTo(this.map);
-        
         console.log('🗺️ Auto-zoom toggle added to map');
     }
 
@@ -321,18 +316,15 @@ class MapManager {
     addDistanceLabelToggle() {
         if (!this.map) return;
 
-        const mapManager = this;
-
         // Create distance label toggle control
         const DistanceLabelToggleControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom distance-label-control');
-                
                 const button = L.DomUtil.create('a', 'distance-label-toggle', container);
                 button.href = '#';
-                button.title = mapManager.markers.showDistanceLabels ? 'Hide Distance Labels' : 'Show Distance Labels';
-                button.innerHTML = mapManager.markers.showDistanceLabels ? '📏' : '📐';
-                button.style.backgroundColor = mapManager.markers.showDistanceLabels ? '#e8f5e8' : '#f5f5f5';
+                button.title = this.markers.showDistanceLabels ? 'Hide Distance Labels' : 'Show Distance Labels';
+                button.innerHTML = this.markers.showDistanceLabels ? '📏' : '📐';
+                button.style.backgroundColor = this.markers.showDistanceLabels ? '#e8f5e8' : '#f5f5f5';
                 button.style.width = '30px';
                 button.style.height = '30px';
                 button.style.lineHeight = '30px';
@@ -342,10 +334,10 @@ class MapManager {
                 button.style.fontSize = '16px';
                 button.style.cursor = 'pointer';
 
-                L.DomEvent.on(button, 'click', function(e) {
+                L.DomEvent.on(button, 'click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     L.DomEvent.preventDefault(e);
-                    mapManager.toggleDistanceLabels();
+                    this.toggleDistanceLabels();
                 });
 
                 // Prevent map interaction when clicking the button
@@ -358,7 +350,6 @@ class MapManager {
         // Add control to map (below auto-zoom toggle)
         this.distanceLabelToggleControl = new DistanceLabelToggleControl({ position: 'topright' });
         this.distanceLabelToggleControl.addTo(this.map);
-        
         console.log('🗺️ Distance label toggle added to map');
     }
 
@@ -916,9 +907,9 @@ class MapManager {
         if (!this.map || !this.isMapView || this.markers.nodeMarkers.size === 0) return;
 
         try {
-            const markerArray = Array.from(this.markers.nodeMarkers.values());
-            const group = new L.featureGroup(markerArray);
-            const bounds = group.getBounds();           
+            const MarkerArray = Array.from(this.markers.nodeMarkers.values());
+            const Group = new L.FeatureGroup(MarkerArray);
+            const bounds = Group.getBounds();           
             const mapSize = this.map.getSize();
             const paddingX = Math.max(30, mapSize.x * 0.1);
             const paddingY = Math.max(30, mapSize.y * 0.1);
@@ -982,8 +973,10 @@ class MapManager {
     getNodeBounds() {
         if (this.markers.nodeMarkers.size === 0) return null;
 
-        let minLat = Infinity, maxLat = -Infinity;
-        let minLng = Infinity, maxLng = -Infinity;
+        let minLat = Infinity;
+        let maxLat = -Infinity;
+        let minLng = Infinity;
+        let maxLng = -Infinity;
 
         this.markers.nodeMarkers.forEach(marker => {
             const pos = marker.getLatLng();
@@ -1002,10 +995,12 @@ class MapManager {
     boundsChanged(oldBounds, newBounds) {
         if (!oldBounds || !newBounds) return true;
 
-        return Math.abs(oldBounds.minLat - newBounds.minLat) > this.movementThreshold ||
-               Math.abs(oldBounds.maxLat - newBounds.maxLat) > this.movementThreshold ||
-               Math.abs(oldBounds.minLng - newBounds.minLng) > this.movementThreshold ||
-               Math.abs(oldBounds.maxLng - newBounds.maxLng) > this.movementThreshold;
+        return (
+            Math.abs(oldBounds.minLat - newBounds.minLat) > this.movementThreshold
+            || Math.abs(oldBounds.maxLat - newBounds.maxLat) > this.movementThreshold
+            || Math.abs(oldBounds.minLng - newBounds.minLng) > this.movementThreshold
+            || Math.abs(oldBounds.maxLng - newBounds.maxLng) > this.movementThreshold
+        );
     }
 
     /**
@@ -1085,18 +1080,15 @@ class MapManager {
     addBoundingBoxToggle() {
         if (!this.map) return;
 
-        const mapManager = this;
-
         // Create bounding box toggle control
         const BoundingBoxToggleControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom bounding-box-control');
-
                 const button = L.DomUtil.create('a', 'bounding-box-toggle', container);
                 button.href = '#';
-                button.title = mapManager.markers.showBoundingBox ? 'Hide Bounding Box' : 'Show Bounding Box';
-                button.innerHTML = mapManager.markers.showBoundingBox ? '📦' : '📋';
-                button.style.backgroundColor = mapManager.markers.showBoundingBox ? '#e8f5e8' : '#f5f5f5';
+                button.title = this.markers.showBoundingBox ? 'Hide Bounding Box' : 'Show Bounding Box';
+                button.innerHTML = this.markers.showBoundingBox ? '📦' : '📋';
+                button.style.backgroundColor = this.markers.showBoundingBox ? '#e8f5e8' : '#f5f5f5';
                 button.style.width = '30px';
                 button.style.height = '30px';
                 button.style.lineHeight = '30px';
@@ -1106,10 +1098,10 @@ class MapManager {
                 button.style.fontSize = '16px';
                 button.style.cursor = 'pointer';
 
-                L.DomEvent.on(button, 'click', function(e) {
+                L.DomEvent.on(button, 'click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     L.DomEvent.preventDefault(e);
-                    mapManager.toggleBoundingBox();
+                    this.toggleBoundingBox();
                 });
 
                 L.DomEvent.disableClickPropagation(container);
@@ -1120,7 +1112,6 @@ class MapManager {
 
         this.boundingBoxToggleControl = new BoundingBoxToggleControl({ position: 'topright' });
         this.boundingBoxToggleControl.addTo(this.map);
-
         console.log('🗺️ Bounding box toggle added to map');
     }
 
@@ -1130,12 +1121,9 @@ class MapManager {
     addForceCenterButton() {
         if (!this.map) return;
 
-        const mapManager = this;
-
         const ForceCenterControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom force-center-control');
-
                 const button = L.DomUtil.create('a', 'force-center-button', container);
                 button.href = '#';
                 button.title = 'Force Center and Scale';
@@ -1149,10 +1137,10 @@ class MapManager {
                 button.style.fontSize = '16px';
                 button.style.cursor = 'pointer';
 
-                L.DomEvent.on(button, 'click', function(e) {
+                L.DomEvent.on(button, 'click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     L.DomEvent.preventDefault(e);
-                    mapManager.forceCenterAndScale();
+                    this.forceCenterAndScale();
                 });
 
                 L.DomEvent.disableClickPropagation(container);
@@ -1163,7 +1151,6 @@ class MapManager {
 
         this.forceCenterControl = new ForceCenterControl({ position: 'topright' });
         this.forceCenterControl.addTo(this.map);
-
         console.log('🗺️ Force center button added to map');
     }
 

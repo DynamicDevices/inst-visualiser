@@ -101,6 +101,11 @@ class AppUtilsManager {
             // System diagnostics
             runDiagnostics: () => {
                 console.log('🔧 Running INST Crisis System Diagnostics...');     
+                const performance = {
+                    nodeCount: this.appCore.visualizer?.nodes?.size || 0,
+                    connectionCount: this.appCore.visualizer?.connections?.size || 0,
+                    physicsRunning: this.appCore.visualizer?.simulationRunning || false
+                };
                 const diagnostics = {
                     timestamp: new Date().toISOString(),
                     system: 'INST Crisis Response System v4.0',
@@ -116,11 +121,7 @@ class AppUtilsManager {
                         mqtt: this.appCore.visualizer?.mqttManager?.isConnected() || false,
                         simulation: this.appCore.simulationManager?.isRunning() || false
                     },
-                    performance: {
-                        nodeCount: this.appCore.visualizer?.nodes?.size || 0,
-                        connectionCount: this.appCore.visualizer?.connections?.size || 0,
-                        physicsRunning: this.appCore.visualizer?.simulationRunning || false
-                    }
+                    performance,
                 };     
                 console.table(diagnostics.modules);
                 console.table(diagnostics.connectivity);
