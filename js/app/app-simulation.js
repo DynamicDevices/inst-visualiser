@@ -162,8 +162,9 @@ class AppSimulationManager {
         if (!statusElement || !this.uwbSimulator) return;
         const stats = this.uwbSimulator.getStats();
         if (stats.running) {
-            //statusElement.textContent = `🎭 Running: ${stats.messagesPublished} msgs, ${stats.averageRate.toFixed(2)} msg/s, ${stats.currentInterval}s interval`;
-            //statusElement.classList.add('active');
+            //            statusElement.textContent = `🎭 Running: ${stats.messagesPublished} msgs, ${stats.averageRate.toFixed(2)} msg/s,\n` +
+            //              `${stats.currentInterval}s interval`;
+            //            statusElement.classList.add('active');
         } else {
             statusElement.textContent = '🎭 Simulation: Ready';
             statusElement.classList.remove('active');

@@ -487,9 +487,7 @@ class MapManager {
             this.tileLoadErrors.set(errorKey, 0);
         }
         this.tileLoadErrors.set(errorKey, this.tileLoadErrors.get(errorKey) + 1);
-
-        const errorCount = this.tileLoadErrors.get(errorKey);
-        
+        const errorCount = this.tileLoadErrors.get(errorKey); 
         // Only switch if we're currently using the failing layer and auto-switch is enabled
         if (this.autoSwitchEnabled && layerType === this.tileLayerType) {
             // If tiles are failing, try satellite as fallback
@@ -510,7 +508,6 @@ class MapManager {
         }
 
         console.log(`🗺️ Switching from ${this.tileLayerType} to ${layerType}${isAutoSwitch ? ' (auto)' : ''}`);
-
         // Remove current layer
         if (this.currentTileLayer) {
             this.map.removeLayer(this.currentTileLayer);
@@ -521,15 +518,12 @@ class MapManager {
         this.tileLayerType = layerType;
         this.currentTileLayer = this.tileLayers[layerType];
         this.wasAutoSwitched = isAutoSwitch;
-
         // Add new layer with error handling
         try {
             this.currentTileLayer.addTo(this.map);
-            console.log(`🗺️ Added new layer: ${layerType}`);
-            
+            console.log(`🗺️ Added new layer: ${layerType}`);           
             // Update dropdown selection
             this.updateTileSelector();
-
             const switchType = isAutoSwitch ? 'Auto-switched' : 'Switched';
             const layerName = this.getTileLayerOptions()[layerType]?.name || layerType;
             console.log(`🗺️ ${switchType} to ${layerName}`);
@@ -553,8 +547,8 @@ class MapManager {
 
         const select = this.tileSelectorControl.getContainer().querySelector('.tile-selector');
         if (select) {
-            select.value = this.tileLayerType;
-            
+            select.value = this.tileLayerType;  
+
             // Visual indication of auto-switch
             if (this.wasAutoSwitched) {
                 if (this.tileLayerType === 'wikimedia') {
@@ -598,8 +592,7 @@ class MapManager {
             if (this.map) {
                 this.map.invalidateSize();
                 this.updateAllNodesOnMap();
-                this.startPhysicsPositioning();
-                
+                this.startPhysicsPositioning();              
                 // Only auto-fit if enabled
                 if (this.autoFitEnabled) {
                     setTimeout(() => this.fitMapToNodes(), 500);
@@ -616,11 +609,10 @@ class MapManager {
      */
     hideMapView() {
         this.isMapView = false;
-        
+       
         if (this.mapContainer) {
             this.mapContainer.classList.add('hidden');
         }
-
         this.stopPhysicsPositioning();
         eventBus.emit('map-view-hidden');
         console.log('🗺️ Map view deactivated');
@@ -674,8 +666,8 @@ class MapManager {
 
         this.updateGPSAnchors();
         this.updateUWBNodesWithPhysics();
-        this.markers.updateConnectionLines(this.visualizer.connections);
-        
+        this.markers.updateConnectionLines(this.visualizer.connections); 
+
         if (this.autoFitEnabled && this.shouldAutoFit()) {
             this.debouncedAutoFit();
         }
@@ -926,8 +918,7 @@ class MapManager {
         try {
             const markerArray = Array.from(this.markers.nodeMarkers.values());
             const group = new L.featureGroup(markerArray);
-            const bounds = group.getBounds();
-            
+            const bounds = group.getBounds();           
             const mapSize = this.map.getSize();
             const paddingX = Math.max(30, mapSize.x * 0.1);
             const paddingY = Math.max(30, mapSize.y * 0.1);
