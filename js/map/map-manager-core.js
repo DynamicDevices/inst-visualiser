@@ -1,3 +1,4 @@
+/* global GPSUtils, AppConfig, MapMarkerManager, MapScalingManager, eventBus */
 /**
  * Core Map Manager - Simplified and Modular
  * Main coordination class for map functionality

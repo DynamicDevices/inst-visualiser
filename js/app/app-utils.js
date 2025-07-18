@@ -116,6 +116,7 @@ class AppUtilsManager {
                         mqtt: this.appCore.visualizer?.mqttManager?.isConnected() || false,
                         simulation: this.appCore.simulationManager?.isRunning() || false
                     },
+                    /* eslint-disable-next-line object-shorthand */
                     performance: {
                         nodeCount: this.appCore.visualizer?.nodes?.size || 0,
                         connectionCount: this.appCore.visualizer?.connections?.size || 0,
