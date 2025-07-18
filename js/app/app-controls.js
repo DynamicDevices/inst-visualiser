@@ -44,18 +44,12 @@ class AppControlsManager {
                         this.appCore.viewManager.toggleView();
                     }
                     break;
-                case 'm':
-                    // M key to toggle view
-                    if (this.appCore.viewManager) {
-                        this.appCore.viewManager.toggleView();
-                    }
-                    break;
                 case 'c':
                     // C key to center nodes
                     if (this.appCore.visualizer) {
                         this.appCore.visualizer.centerNodes();
                     }
-                    break;     
+                    break;
                 case 's':
                     // S key to toggle simulation
                     if (e.ctrlKey || e.metaKey) {
