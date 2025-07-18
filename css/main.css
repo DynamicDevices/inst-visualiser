@@ -776,8 +776,8 @@ body {
 .distance-label:not(.map-distance-label) {
   position: absolute;
   z-index: 5;
-  pointer-events: none;
   padding: 3px 6px;
+  pointer-events: none;
   font-size: 9px;
   font-weight: 600;
   color: var(--dark-bg);
