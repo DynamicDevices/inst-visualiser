@@ -70,15 +70,6 @@ body {
   box-shadow: 0 2px 6px rgb(0 0 0 / 10%);
 }
 
-.container.visualization-maximized .controls,
-.container.visualization-maximized .console,
-.container.visualization-maximized .header {
-  overflow: hidden;
-  pointer-events: none;
-  opacity: 0;
-  transform: scale(0.95);
-}
-
 .header h1 {
   font-size: 1.1em;
   font-weight: 600;
@@ -822,6 +813,8 @@ body {
   pointer-events: none;
   background: none;
   border: 2px dashed var(--warning-color);
+  pointer-events: none;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 10%);
   transform: translateY(-50%);
 }
 
@@ -858,6 +851,15 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
   transition: all 0.3s ease;
+}
+
+.container.visualization-maximized .controls,
+.container.visualization-maximized .console,
+.container.visualization-maximized .header {
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.95);
 }
 
 .console.collapsed {
