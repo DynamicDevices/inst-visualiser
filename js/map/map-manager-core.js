@@ -773,7 +773,7 @@ class MapManager {
         let bestAnchor = null;
         let latestTimestamp = 0;
 
-        this.gpsAnchors.forEach((anchor, nodeId) => {
+        this.gpsAnchors.forEach((anchor) => {
             if (anchor.timestamp > latestTimestamp) {
                 latestTimestamp = anchor.timestamp;
                 bestAnchor = anchor;
@@ -911,8 +911,7 @@ class MapManager {
                 duration: AppConfig.map.animationDuration,
                 easeLinearity: 0.1
             });         
-            console.log('🗺️ Map fitted to ${this.markers.nodeMarkers.size} nodes');
-            
+            console.log('🗺️ Map fitted to ${this.markers.nodeMarkers.size} nodes');  
         } catch (error) {
             console.error('🗺️ Error fitting map to nodes:', error);
         }
