@@ -8,7 +8,7 @@
  * Added simulation control styling
  */
 
- * {
+* {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
@@ -615,6 +615,7 @@ body {
 }
 
 .map-node-marker.gps-absolute:hover {
+  pointer-events: auto;
   transform: scale(1.2);
 }
 
@@ -791,8 +792,8 @@ body {
   background: rgb(255 255 255 / 95%);
   border-radius: 8px;
   box-shadow: 0 1px 4px rgb(0 0 0 / 10%);
-  transform: translate(-50%, -50%);
   pointer-events: none;
+  transform: translate(-50%, -50%);
 }
 
 .distance-label.stale {
@@ -821,6 +822,7 @@ body {
   pointer-events: none;
   background: none;
   border: 2px dashed var(--warning-color);
+  transform: translateY(-50%);
 }
 
 .bounding-box-label {
