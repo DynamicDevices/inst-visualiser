@@ -52,6 +52,7 @@ class AppViewManager {
             }
         }
 
+        // eslint-disable-next-line no-undef
         eventBus.emit('view-switched', { view: this.currentView });
     }
 

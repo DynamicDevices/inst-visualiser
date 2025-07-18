@@ -31,13 +31,19 @@ class AppCore {
 
         try {
             // Initialize core visualizer first
+            // eslint-disable-next-line no-undef
             this.visualizer = new UWBVisualizer();
             
             // Initialize sub-managers
+            // eslint-disable-next-line no-undef
             this.gpsManager = new AppGPSManager(this);
+            // eslint-disable-next-line no-undef
             this.viewManager = new AppViewManager(this);
+            // eslint-disable-next-line no-undef
             this.simulationManager = new AppSimulationManager(this);
+            // eslint-disable-next-line no-undef
             this.controlsManager = new AppControlsManager(this);
+            // eslint-disable-next-line no-undef
             this.utilsManager = new AppUtilsManager(this);
 
             // Initialize all managers
@@ -87,29 +93,35 @@ class AppCore {
      */
     setupEventListeners() {
         // MQTT connection events
+        // eslint-disable-next-line no-undef
         eventBus.on('mqtt-connected', () => {
             this.simulationManager.onMQTTConnected();
         });
 
+        // eslint-disable-next-line no-undef
         eventBus.on('mqtt-disconnected', () => {
             this.simulationManager.onMQTTDisconnected();
         });
 
         // View switching events
+        // eslint-disable-next-line no-undef
         eventBus.on('view-switched', (data) => {
             console.log(`🔄 View switched to: ${data.view}`);
         });
 
         // Simulation events
+        // eslint-disable-next-line no-undef
         eventBus.on('simulation-started', () => {
             this.updateStatusIndicator();
         });
 
+        // eslint-disable-next-line no-undef
         eventBus.on('simulation-stopped', () => {
             this.updateStatusIndicator();
         });
 
         // GPS events
+        // eslint-disable-next-line no-undef
         eventBus.on('gps-updated', (data) => {
             console.log(`🗺️ GPS updated: ${data.lat}, ${data.lng}`);
         });

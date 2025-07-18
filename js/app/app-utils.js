@@ -84,7 +84,7 @@ class AppUtilsManager {
 
             // Emergency functions
             clearAllCasualties: () => {
-                if (confirm('⚠️ CRISIS WARNING: This will clear all casualty positions. Continue?')) {
+                if (confirm('⚠️ CRISIS WARNING: This will clear all casualty positions. Continue?')) { // eslint-disable-line no-alert
                     if (this.appCore.visualizer) {
                         this.appCore.visualizer.clearAllNodes();
                         console.log('🚨 Crisis: All casualty positions cleared');

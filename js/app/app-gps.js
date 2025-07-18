@@ -14,7 +14,9 @@ class AppGPSManager {
      * Initialize GPS and map functionality
      */
     async initialize() {
+        // eslint-disable-next-line no-undef
         this.gpsUtils = new GPSUtils();
+        // eslint-disable-next-line no-undef
         this.mapManager = new MapManager();
 
         this.setupGPSControls();
@@ -119,9 +121,9 @@ class AppGPSManager {
                 }
 
                 console.log(`🗺️ Gateway GPS updated to: ${lat}, ${lng}`);
-                eventBus.emit('gps-updated', { lat, lng });
+                eventBus.emit('gps-updated', { lat, lng }); // eslint-disable-line no-undef
             } else {
-                alert('Invalid GPS coordinates. Please check latitude and longitude values.');
+                alert('Invalid GPS coordinates. Please check latitude and longitude values.'); // eslint-disable-line no-alert
             }
         }
     }

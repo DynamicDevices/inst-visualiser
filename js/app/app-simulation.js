@@ -15,7 +15,7 @@ class AppSimulationManager {
      */
     initialize() {
         if (this.appCore.visualizer && this.appCore.visualizer.mqttManager) {
-            this.uwbSimulator = new UWBSimulator(this.appCore.visualizer.mqttManager);
+            this.uwbSimulator = new UWBSimulator(this.appCore.visualizer.mqttManager); // eslint-disable-line no-undef
             console.log('🎭 UWB Simulator initialized');
             
             this.setupSimulationControls();
@@ -36,7 +36,7 @@ class AppSimulationManager {
         
         if (simulationRateSlider && simulationRateValue) {
             simulationRateSlider.addEventListener('input', (e) => {
-                const intervalSeconds = parseInt(e.target.value);
+                const intervalSeconds = parseInt(e.target.value, 10);
                 simulationRateValue.textContent = intervalSeconds;
                 
                 if (this.uwbSimulator) {
@@ -53,7 +53,7 @@ class AppSimulationManager {
         const tagCountValue = document.getElementById('tagCountValue');
         if (tagCountSlider && tagCountValue) {
             tagCountSlider.addEventListener('input', (e) => {
-                const count = parseInt(e.target.value);
+                const count = parseInt(e.target.value, 10);
                 tagCountValue.textContent = count;
                 if (this.uwbSimulator) {
                     this.uwbSimulator.setTagCount(count);
@@ -90,7 +90,7 @@ class AppSimulationManager {
         }
         
         if (!this.appCore.visualizer?.mqttManager.isConnected()) {
-            alert('Please connect to MQTT broker first before starting simulation');
+            alert('Please connect to MQTT broker first before starting simulation'); // eslint-disable-line no-alert
             return;
         }
         
@@ -98,10 +98,10 @@ class AppSimulationManager {
             this.uwbSimulator.start();
             this.updateSimulationStatus();
             this.appCore.updateStatusIndicator();
-            eventBus.emit('simulation-started');
+            eventBus.emit('simulation-started'); // eslint-disable-line no-undef
         } catch (error) {
             console.error('❌ Failed to start simulation:', error);
-            alert('Failed to start simulation. Check console for details.');
+            alert('Failed to start simulation. Check console for details.'); // eslint-disable-line no-alert
         }
     }
 
@@ -113,7 +113,7 @@ class AppSimulationManager {
             this.uwbSimulator.stop();
             this.updateSimulationStatus();
             this.appCore.updateStatusIndicator();
-            eventBus.emit('simulation-stopped');
+            eventBus.emit('simulation-stopped'); // eslint-disable-line no-undef
         }
     }
 
@@ -136,7 +136,7 @@ class AppSimulationManager {
                     
                     // Auto-open simulation pane when connected
                     setTimeout(() => this.autoOpenSimulationPane(), 500);
-                    eventBus.emit('mqtt-connected');
+                    eventBus.emit('mqtt-connected'); // eslint-disable-line no-undef
                 };
             }
         }, 1000);
