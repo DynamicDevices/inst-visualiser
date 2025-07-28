@@ -1,3 +1,4 @@
+/* global eventBus */
 /**
  * Visualizer UI Management
  * Handles UI controls, event listeners, and user interactions
@@ -36,14 +37,13 @@ class VisualizerUIManager {
 
         // Collapsible sections with improved touch handling
         document.querySelectorAll('.control-group-header').forEach(header => {
-            header.addEventListener('click', (e) => {
-                e.preventDefault();
+            header.addEventListener('click', () => {
                 this.toggleSection(header);
             });
             
             // Add touch feedback
             if (this.visualizer.mobileManager?.isMobileDevice) {
-                header.addEventListener('touchstart', (e) => {
+                header.addEventListener('touchstart', () => {
                     header.style.transform = 'scale(0.98)';
                 }, { passive: true });
                 
@@ -94,7 +94,7 @@ class VisualizerUIManager {
         const zoomOutBtn = document.getElementById('zoomOut');
         if (zoomInBtn && scaleSlider) {
             zoomInBtn.addEventListener('click', () => {
-                let newValue = Math.min(parseInt(scaleSlider.value) + 10, parseInt(scaleSlider.max));
+                const newValue = Math.min(parseInt(scaleSlider.value, 10) + 10, parseInt(scaleSlider.max, 10));
                 scaleSlider.value = newValue;
                 if (scaleValue) scaleValue.textContent = newValue;
                 this.visualizer.physicsManager.updateScale(newValue);
@@ -102,7 +102,7 @@ class VisualizerUIManager {
         }
         if (zoomOutBtn && scaleSlider) {
             zoomOutBtn.addEventListener('click', () => {
-                let newValue = Math.max(parseInt(scaleSlider.value) - 10, parseInt(scaleSlider.min));
+                const newValue = Math.max(parseInt(scaleSlider.value, 10) - 10, parseInt(scaleSlider.min, 10));
                 scaleSlider.value = newValue;
                 if (scaleValue) scaleValue.textContent = newValue;
                 this.visualizer.physicsManager.updateScale(newValue);
@@ -113,9 +113,9 @@ class VisualizerUIManager {
         if (scaleSlider && this.visualizer.canvas) {
             this.visualizer.canvas.addEventListener('wheel', (e) => {
                 e.preventDefault();
-                let delta = e.deltaY < 0 ? 10 : -10;
-                let newValue = parseInt(scaleSlider.value) + delta;
-                newValue = Math.max(parseInt(scaleSlider.min), Math.min(parseInt(scaleSlider.max), newValue));
+                const delta = e.deltaY < 0 ? 10 : -10;
+                let newValue = parseInt(scaleSlider.value, 10) + delta;
+                newValue = Math.max(parseInt(scaleSlider.min, 10), Math.min(parseInt(scaleSlider.max, 10), newValue));
                 scaleSlider.value = newValue;
                 if (scaleValue) scaleValue.textContent = newValue;
                 this.visualizer.physicsManager.updateScale(newValue);
@@ -132,7 +132,7 @@ class VisualizerUIManager {
 
         // Settings
         safeAddEventListener('staleTimeoutSlider', 'input', (e) => {
-            this.visualizer.staleTimeoutMs = parseInt(e.target.value) * 1000;
+            this.visualizer.staleTimeoutMs = parseInt(e.target.value, 10) * 1000;
             const valueElement = document.getElementById('staleTimeoutValue');
             if (valueElement) valueElement.textContent = e.target.value;
             this.updateTotalTimeout();
@@ -140,20 +140,20 @@ class VisualizerUIManager {
         }, '(Stale Timeout)');
 
         safeAddEventListener('removalTimeoutSlider', 'input', (e) => {
-            this.visualizer.removalTimeoutMs = parseInt(e.target.value) * 1000;
+            this.visualizer.removalTimeoutMs = parseInt(e.target.value, 10) * 1000;
             const valueElement = document.getElementById('removalTimeoutValue');
             if (valueElement) valueElement.textContent = e.target.value;
             this.updateTotalTimeout();
             this.visualizer.loggingManager?.logInfo(`Removal timeout set to ${e.target.value}s (after stale)`);
         }, '(Removal Timeout)');
 
-        safeAddEventListener('showAccuracy', 'change', (e) => {
+        safeAddEventListener('showAccuracy', 'change', () => {
             this.visualizer.connectionManager.updateDistanceLabels();
         }, '(Show Accuracy)');
 
         // Debug controls
-        safeAddEventListener('debugMode', 'change', (e) => {
-            this.debugMode = e.target.checked;
+        safeAddEventListener('debugMode', 'change', () => {
+            this.debugMode = document.getElementById('debugMode').checked;
             this.visualizer.loggingManager?.logInfo(`🐛 Debug mode ${this.debugMode ? 'enabled' : 'disabled'}`);
         }, '(Debug Mode)');
 
@@ -166,7 +166,7 @@ class VisualizerUIManager {
         }, '(Show Bounding Box)');
 
         safeAddEventListener('rateLimitSlider', 'input', (e) => {
-            const rateLimitSeconds = parseInt(e.target.value);
+            const rateLimitSeconds = parseInt(e.target.value, 10);
             const valueElement = document.getElementById('rateLimitValue');
             if (valueElement) valueElement.textContent = rateLimitSeconds;
             this.visualizer.mqttManager?.publishRateLimitCommand(rateLimitSeconds);
@@ -324,7 +324,9 @@ class VisualizerUIManager {
         if (this.visualizer.visualizationMaximized) {
             maximizeButton.textContent = '⛷'; // Minimize icon
             maximizeButton.title = 'Exit Full Screen';
-            this.visualizer.loggingManager?.logInfo('🔍 Visualisation maximised - full-screen mode for optimal node viewing');
+            this.visualizer.loggingManager?.logInfo(
+                '🔍 Visualisation maximised - full-screen mode for optimal node viewing'
+            );
             
             // On mobile, provide haptic feedback if available
             if (this.visualizer.mobileManager?.isMobileDevice && navigator.vibrate) {
@@ -333,7 +335,9 @@ class VisualizerUIManager {
         } else {
             maximizeButton.textContent = '⛶'; // Maximize icon  
             maximizeButton.title = 'Maximise Visualisation';
-            this.visualizer.loggingManager?.logInfo('🔍 Visualisation restored to normal view');
+            this.visualizer.loggingManager?.logInfo(
+                '🔍 Visualisation restored to normal view'
+            );
         }
         
         eventBus.emit('visualization-maximized', { 

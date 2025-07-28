@@ -32,7 +32,6 @@ class AppViewManager {
      */
     toggleView() {
         const viewToggleBtn = document.getElementById('viewToggle');
-
         if (this.currentView === 'physics') {
             this.switchToMapView();
         } else {
@@ -52,6 +51,7 @@ class AppViewManager {
             }
         }
 
+        // eslint-disable-next-line no-undef
         eventBus.emit('view-switched', { view: this.currentView });
     }
 
@@ -69,7 +69,6 @@ class AppViewManager {
 
         // Show map view
         this.appCore.gpsManager?.showMapView();
-
         console.log('🗺️ Switched to map view');
     }
 
@@ -78,16 +77,13 @@ class AppViewManager {
      */
     switchToPhysicsView() {
         this.currentView = 'physics';
-
         // Show physics, hide map
         const canvas = document.getElementById('canvas');
         if (canvas) {
             canvas.style.display = 'block';
         }
-
         // Hide map view
         this.appCore.gpsManager?.hideMapView();
-
         console.log('🔬 Switched to physics view');
     }
 

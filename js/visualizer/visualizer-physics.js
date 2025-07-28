@@ -1,3 +1,4 @@
+/* global eventBus */
 /**
  * Visualizer Physics Management
  * Handles physics simulation integration and node positioning
@@ -90,7 +91,8 @@ class VisualizerPhysicsManager {
         if (activeNodes.length === 0) return;
         
         // Calculate centre of mass
-        let centerX = 0, centerY = 0;
+        let centerX = 0;
+        let centerY = 0;
         activeNodes.forEach(node => {
             centerX += node.x;
             centerY += node.y;
@@ -121,7 +123,8 @@ class VisualizerPhysicsManager {
         if (activeNodes.length === 0) return;
         
         // Calculate center of mass
-        let centerX = 0, centerY = 0;
+        let centerX = 0;
+        let centerY = 0;
         activeNodes.forEach(node => {
             centerX += node.x;
             centerY += node.y;
@@ -139,7 +142,9 @@ class VisualizerPhysicsManager {
         if (driftX > maxDrift || driftY > maxDrift) {
             this.centerNodes();
             if (this.visualizer.uiManager?.debugMode) {
-                this.visualizer.loggingManager?.logInfo(`🎯 Auto-centered nodes - drift detected: ${driftX.toFixed(1)}px, ${driftY.toFixed(1)}px`);
+                this.visualizer.loggingManager?.logInfo(
+                    `🎯 Auto-centered nodes - drift detected: ${driftX.toFixed(1)}px, ${driftY.toFixed(1)}px`
+                );
             }
         }
     }
@@ -176,7 +181,7 @@ class VisualizerPhysicsManager {
      * Update distance scale
      */
     updateScale(value) {
-        this.visualizer.physics.distanceScale = parseInt(value);
+        this.visualizer.physics.distanceScale = parseInt(value, 10);
         this.visualizer.loggingManager?.logInfo(`Distance scale set to ${value}px/m`);
     }
 

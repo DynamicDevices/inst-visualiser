@@ -86,9 +86,9 @@ class GPSUtils {
         const deltaLat = lat2Rad - lat1Rad;
         const deltaLng = lng2Rad - lng1Rad;
 
-        const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-                  Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-                  Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+        const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
+            + Math.cos(lat1Rad) * Math.cos(lat2Rad)
+            * Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
         
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         

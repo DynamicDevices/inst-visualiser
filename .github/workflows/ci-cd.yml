@@ -43,6 +43,9 @@ jobs:
         npm ci
         npm install -g stylelint eslint
         
+    - name: 📦 Install ESLint Table Formatter
+      run: npm install -D eslint-formatter-table
+        
     - name: ☕ Install Java
       uses: actions/setup-java@v4
       with:
