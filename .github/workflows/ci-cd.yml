@@ -97,9 +97,23 @@ jobs:
         
     - name: 🚀 Start Test Server
       run: |
+        echo "🚀 Starting development server..."
         npm start &
-        sleep 5
-        curl -f http://localhost:8080 || exit 1
+        SERVER_PID=$!
+        
+        # Wait for server to be ready
+        echo "⏳ Waiting for server to start..."
+        for i in {1..30}; do
+          if curl -f http://localhost:8080 >/dev/null 2>&1; then
+            echo "✅ Server is ready!"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "❌ Server failed to start within 30 seconds"
+            exit 1
+          fi
+          sleep 1
+        done
         
     - name: 🧪 Run Browser Tests
       run: |
