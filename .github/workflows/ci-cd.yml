@@ -286,7 +286,7 @@ jobs:
         path: lighthouse-report.json
         
   # ===============================================
-  # BUILD & MINIFICATION
+  # BUILD APPLICATION
   # ===============================================
   
   build:
@@ -299,68 +299,26 @@ jobs:
     - name: 📥 Checkout Repository
       uses: actions/checkout@v4
       
-    - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: 📦 Install Dependencies
-      run: |
-        npm ci
-        npm install -g terser clean-css-cli html-minifier
-        
     - name: 🗂️ Create Build Directory
       run: mkdir -p dist
       
-    - name: 🎨 Minify CSS
+    - name: 📋 Copy All Files
       run: |
-        echo "🎨 Minifying CSS files..."
-        cleancss -o dist/main.min.css css/main.css
-        echo "Original size: $(wc -c < css/main.css) bytes"
-        echo "Minified size: $(wc -c < dist/main.min.css) bytes"
-        
-    - name: ⚡ Minify JavaScript
-      run: |
-        echo "⚡ Minifying JavaScript files..."
-        terser js/visualizer/*.js -o dist/visualizer.min.js -c -m --module
-        echo "Original size: $(cat js/visualizer/*.js | wc -c) bytes"
-        echo "Minified size: $(wc -c < dist/visualizer.min.js) bytes"
-        
-    - name: 🌐 Minify HTML
-      run: |
-        echo "🌐 Minifying HTML..."
-        html-minifier --collapse-whitespace \
-          --remove-comments \
-          --remove-optional-tags \
-          --remove-redundant-attributes \
-          --remove-script-type-attributes \
-          --remove-tag-whitespace \
-          --use-short-doctype \
-          --minify-css true \
-          --minify-js true \
-          -o dist/index.html index.html
-          
-    - name: 📋 Copy Assets
-      run: |
-        echo "📋 Copying additional assets..."
+        echo "📋 Copying all application files..."
+        cp -r js/ dist/
+        cp -r css/ dist/
         cp -r examples/ dist/
         cp -r docs/ dist/
         cp README.md LICENSE dist/
+        cp index.html dist/
         [ -d resources/ ] && cp -r resources/ dist/ || echo "No resources directory"
-        
-    - name: 📁 Copy JavaScript Files
-      run: |
-        echo "📁 Copying JavaScript files..."
-        cp -r js/ dist/
-        cp -r css/ dist/
         
     - name: 📊 Build Report
       run: |
         echo "📊 Build Summary:"
-        echo "├── CSS: $(wc -c < dist/main.min.css) bytes"
-        echo "├── JS:  $(wc -c < dist/visualizer.min.js) bytes"
-        echo "├── HTML: $(wc -c < dist/index.html) bytes"
+        echo "├── JavaScript files: $(find dist/js -name '*.js' | wc -l)"
+        echo "├── CSS files: $(find dist/css -name '*.css' | wc -l)"
+        echo "├── HTML file: $(wc -c < dist/index.html) bytes"
         echo "└── Total build size: $(du -sh dist | cut -f1)"
         
     - name: 📤 Upload Build Artifacts
