@@ -385,10 +385,20 @@ function LatLonAltkm2UnityPos(lat_refPoint, lon_refPoint, alt_refPoint, lat_tran
 }
 
 // Export functions as needed
-export {
-    LatLonAltEstimate,
-    LatLonAltEstimate2,
-    LengthOneDegOfLatInMetresAtRefPoint,
-    LengthOneDegOfLonInMetresAtRefPoint,
-    LatLonAltkm2UnityPos,
-};
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        LatLonAltEstimate,
+        LatLonAltEstimate2,
+        LengthOneDegOfLatInMetresAtRefPoint,
+        LengthOneDegOfLonInMetresAtRefPoint,
+        LatLonAltkm2UnityPos,
+    };
+} else if (typeof window !== 'undefined') {
+    window.WGS84Converter = {
+        LatLonAltEstimate,
+        LatLonAltEstimate2,
+        LengthOneDegOfLatInMetresAtRefPoint,
+        LengthOneDegOfLonInMetresAtRefPoint,
+        LatLonAltkm2UnityPos,
+    };
+}
