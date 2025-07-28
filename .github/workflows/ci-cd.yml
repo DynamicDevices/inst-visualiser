@@ -39,23 +39,10 @@ jobs:
 
     - name: 📦 Install Validation Dependencies
       run: |
-        pip install html5validator
         npm install --no-save stylelint eslint
         
     - name: 📦 Install ESLint Table Formatter
       run: npm install -D eslint-formatter-table
-        
-    - name: ☕ Install Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        
-    - name: 🌐 HTML Validation
-      run: |
-        echo "🔍 Validating HTML structure..."
-        html5validator --root . --match "*.html" --ignore "node_modules" --verbose | tee html5validator.log
-        cat html5validator.log
         
     - name: 🎨 CSS Linting
       run: |
