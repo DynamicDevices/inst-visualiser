@@ -73,7 +73,7 @@ jobs:
     
     strategy:
       matrix:
-        browser: [chrome, firefox, msedge]
+        browser: [chromium, firefox, webkit]
         
     steps:
     - name: 📥 Checkout Repository
