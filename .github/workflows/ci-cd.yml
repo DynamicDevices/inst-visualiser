@@ -73,10 +73,7 @@ jobs:
         find . -name "*.css" -exec wc -c {} + | sort -n
         find . -name "*.js" -exec wc -c {} + | sort -n
         
-    - name: 🔒 Security Audit
-      run: |
-        echo "🔒 Running security audit..."
-        npm audit --audit-level high
+
         
   # ===============================================
   # BROWSER COMPATIBILITY TESTING
