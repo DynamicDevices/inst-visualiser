@@ -367,7 +367,7 @@ jobs:
     name: 🚀 Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: [build, performance, security]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cga-jen') && github.event_name == 'push'
     
     permissions:
       contents: read
@@ -404,7 +404,11 @@ jobs:
     - name: 🎉 Deployment Success
       if: success()
       run: |
-        echo "🎉 Successfully deployed to GitHub Pages!"
+        if [ "${{ github.ref }}" = "refs/heads/cga-jen" ]; then
+          echo "🎉 Successfully deployed cga-jen branch to GitHub Pages!"
+        else
+          echo "🎉 Successfully deployed main branch to GitHub Pages!"
+        fi
         echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
         
     - name: ⚠️ Deployment Warning
@@ -412,62 +416,11 @@ jobs:
       run: |
         echo "⚠️ Deployment may have failed due to concurrent deployment in progress"
         echo "This is normal when multiple commits are pushed quickly"
-        echo "The site should be available shortly at: https://dynamicdevices.github.io/inst-visualiser/"
-        
-  # ===============================================
-  # DEPLOYMENT TO GITHUB PAGES (CGA-JEN BRANCH)
-  # ===============================================
-  
-  deploy-cga-jen:
-    name: 🚀 Deploy cga-jen to GitHub Pages
-    runs-on: ubuntu-latest
-    needs: [build, performance, security]
-    if: github.ref == 'refs/heads/cga-jen' && github.event_name == 'push' && always()
-    
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-      
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment-cga-jen.outputs.page_url }}
-      
-    steps:
-    - name: 📥 Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: 📥 Download Build Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: build-artifacts
-        path: dist/
-        
-    - name: 🔧 Setup GitHub Pages
-      uses: actions/configure-pages@v4
-      
-    - name: 📦 Upload Pages Artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: dist/
-        
-    - name: 🚀 Deploy to GitHub Pages
-      id: deployment-cga-jen
-      uses: actions/deploy-pages@v4
-      continue-on-error: true
-      
-    - name: 🎉 Deployment Success
-      if: success()
-      run: |
-        echo "🎉 Successfully deployed cga-jen branch to GitHub Pages!"
-        echo "🌐 URL: ${{ steps.deployment-cga-jen.outputs.page_url }}"
-        
-    - name: ⚠️ Deployment Warning
-      if: failure()
-      run: |
-        echo "⚠️ Deployment may have failed due to concurrent deployment in progress"
-        echo "This is normal when multiple commits are pushed quickly"
-        echo "The site should be available shortly at: https://dynamicdevices.github.io/inst-visualiser/"
+        if [ "${{ github.ref }}" = "refs/heads/cga-jen" ]; then
+          echo "The cga-jen site should be available shortly at: https://dynamicdevices.github.io/inst-visualiser/"
+        else
+          echo "The main site should be available shortly at: https://dynamicdevices.github.io/inst-visualiser/"
+        fi
         
   # ===============================================
   # NOTIFICATION & REPORTING
@@ -476,7 +429,7 @@ jobs:
   notify:
     name: 📢 Build Notifications
     runs-on: ubuntu-latest
-    needs: [deploy, deploy-cga-jen]
+    needs: [deploy]
     if: always()
     
     steps:
@@ -494,7 +447,11 @@ jobs:
     - name: 📧 Success Notification
       if: needs.deploy.result == 'success'
       run: |
-        echo "✅ UWB Visualiser v4.0 successfully deployed!"
+        if [ "${{ github.ref }}" = "refs/heads/cga-jen" ]; then
+          echo "✅ UWB Visualiser v4.0 (cga-jen branch) successfully deployed!"
+        else
+          echo "✅ UWB Visualiser v4.0 successfully deployed!"
+        fi
         echo "🌐 Live at: https://dynamicdevices.github.io/inst-visualiser/"
         
     - name: ❌ Failure Notification
