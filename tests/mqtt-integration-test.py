@@ -18,8 +18,15 @@ class TestMQTTIntegration:
     @pytest.fixture
     def mqtt_client(self):
         """Create a test MQTT client"""
-        client = mqtt.Client()
-        client.connect("localhost", 1883, 60)
+        client = mqtt.Client(protocol=mqtt.MQTTv5)
+        try:
+            client.connect("localhost", 1883, 60)
+            # Wait a moment for connection to establish
+            time.sleep(1)
+            if not client.is_connected():
+                pytest.skip("MQTT broker not available - skipping MQTT tests")
+        except Exception as e:
+            pytest.skip(f"MQTT broker not available ({e}) - skipping MQTT tests")
         yield client
         client.disconnect()
     

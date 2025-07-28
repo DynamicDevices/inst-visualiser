@@ -170,7 +170,7 @@ jobs:
     - name: 🧪 MQTT Integration Tests
       run: |
         echo "🧪 Running MQTT integration tests..."
-        python -m pytest tests/test_mqtt_integration.py -v
+        python -m pytest tests/mqtt-integration-test.py -v
         
   # ===============================================
   # PERFORMANCE TESTING
