@@ -287,8 +287,8 @@ jobs:
     - name: ⚡ Minify JavaScript
       run: |
         echo "⚡ Minifying JavaScript files..."
-        terser js/visualizer.js -o dist/visualizer.min.js -c -m
-        echo "Original size: $(wc -c < js/visualizer.js) bytes"
+        terser js/visualizer/*.js -o dist/visualizer.min.js -c -m --module
+        echo "Original size: $(cat js/visualizer/*.js | wc -c) bytes"
         echo "Minified size: $(wc -c < dist/visualizer.min.js) bytes"
         
     - name: 🌐 Minify HTML
