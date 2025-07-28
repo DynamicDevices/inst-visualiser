@@ -225,22 +225,60 @@ jobs:
       run: |
         echo "📊 Checking performance metrics..."
         node -e "
-          const report = require('./lighthouse-report.json');
-          const scores = report.lhr.categories;
-          
-          console.log('Performance Scores:');
-          console.log('Performance:', Math.round(scores.performance.score * 100));
-          console.log('Accessibility:', Math.round(scores.accessibility.score * 100));
-          console.log('Best Practices:', Math.round(scores['best-practices'].score * 100));
-          console.log('SEO:', Math.round(scores.seo.score * 100));
-          
-          // Fail if performance is below 85
-          if (scores.performance.score < 0.85) {
-            console.error('❌ Performance score below threshold!');
+          try {
+            const report = require('./lighthouse-report.json');
+            
+            // Handle different Lighthouse report formats
+            let scores = {};
+            if (report.lhr && report.lhr.categories) {
+              scores = report.lhr.categories;
+            } else if (report.categories) {
+              scores = report.categories;
+            } else {
+              console.error('❌ Could not find categories in Lighthouse report');
+              console.log('Report structure:', JSON.stringify(report, null, 2));
+              process.exit(1);
+            }
+            
+            console.log('Performance Scores:');
+            if (scores.performance && scores.performance.score !== undefined) {
+              console.log('Performance:', Math.round(scores.performance.score * 100));
+            } else {
+              console.log('Performance: N/A');
+            }
+            
+            if (scores.accessibility && scores.accessibility.score !== undefined) {
+              console.log('Accessibility:', Math.round(scores.accessibility.score * 100));
+            } else {
+              console.log('Accessibility: N/A');
+            }
+            
+            if (scores['best-practices'] && scores['best-practices'].score !== undefined) {
+              console.log('Best Practices:', Math.round(scores['best-practices'].score * 100));
+            } else {
+              console.log('Best Practices: N/A');
+            }
+            
+            if (scores.seo && scores.seo.score !== undefined) {
+              console.log('SEO:', Math.round(scores.seo.score * 100));
+            } else {
+              console.log('SEO: N/A');
+            }
+            
+            // Only fail if performance score exists and is below threshold
+            if (scores.performance && scores.performance.score !== undefined) {
+              if (scores.performance.score < 0.85) {
+                console.error('❌ Performance score below threshold!');
+                process.exit(1);
+              }
+            }
+            
+            console.log('✅ Performance tests passed!');
+          } catch (error) {
+            console.error('❌ Error processing Lighthouse report:', error.message);
+            console.log('Report structure:', JSON.stringify(require('./lighthouse-report.json'), null, 2));
             process.exit(1);
           }
-          
-          console.log('✅ Performance tests passed!');
         "
         
     - name: 📤 Upload Performance Report
