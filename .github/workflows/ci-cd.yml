@@ -190,6 +190,7 @@ jobs:
     name: ⚡ Performance Tests
     runs-on: ubuntu-latest
     needs: validate
+    if: always()
     
     steps:
     - name: 📥 Checkout Repository
@@ -256,6 +257,7 @@ jobs:
     name: 🏗️ Build Application
     runs-on: ubuntu-latest
     needs: [validate, browser-test, mqtt-test]
+    if: always()
     
     steps:
     - name: 📥 Checkout Repository
@@ -334,6 +336,7 @@ jobs:
     name: 🔒 Security Scan
     runs-on: ubuntu-latest
     needs: validate
+    if: always()
     
     steps:
     - name: 📥 Checkout Repository
@@ -408,7 +411,7 @@ jobs:
     name: 🚀 Deploy cga-jen to GitHub Pages
     runs-on: ubuntu-latest
     needs: [build, performance, security]
-    if: github.ref == 'refs/heads/cga-jen' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/cga-jen' && github.event_name == 'push' && always()
     
     permissions:
       contents: read
