@@ -79,6 +79,11 @@ jobs:
     - name: 📥 Checkout Repository
       uses: actions/checkout@v4
       
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -99,7 +104,7 @@ jobs:
     - name: 🧪 Run Browser Tests
       run: |
         echo "🧪 Testing in ${{ matrix.browser }}..."
-        npx playwright test --browser=${{ matrix.browser }} tests/browser-tests.js
+        npx playwright test --config=config/playwrite.config.js --browser=${{ matrix.browser }} tests/browser-tests.js
         
     - name: 📊 Upload Test Results
       uses: actions/upload-artifact@v4
