@@ -367,7 +367,7 @@ jobs:
     name: 🚀 Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: [build, performance, security]
-    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cga-jen') && github.event_name == 'push'
+    if: github.event_name == 'push'
     
     permissions:
       contents: read
@@ -404,11 +404,7 @@ jobs:
     - name: 🎉 Deployment Success
       if: success()
       run: |
-        if [ "${{ github.ref }}" = "refs/heads/cga-jen" ]; then
-          echo "🎉 Successfully deployed cga-jen branch to GitHub Pages!"
-        else
-          echo "🎉 Successfully deployed main branch to GitHub Pages!"
-        fi
+        echo "🎉 Successfully deployed ${{ github.ref_name }} branch to GitHub Pages!"
         echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
         
     - name: ⚠️ Deployment Warning
@@ -416,11 +412,7 @@ jobs:
       run: |
         echo "⚠️ Deployment may have failed due to concurrent deployment in progress"
         echo "This is normal when multiple commits are pushed quickly"
-        if [ "${{ github.ref }}" = "refs/heads/cga-jen" ]; then
-          echo "The cga-jen site should be available shortly at: https://dynamicdevices.github.io/inst-visualiser/"
-        else
-          echo "The main site should be available shortly at: https://dynamicdevices.github.io/inst-visualiser/"
-        fi
+        echo "The ${{ github.ref_name }} site should be available shortly at: https://dynamicdevices.github.io/inst-visualiser/"
         
   # ===============================================
   # NOTIFICATION & REPORTING
@@ -447,11 +439,7 @@ jobs:
     - name: 📧 Success Notification
       if: needs.deploy.result == 'success'
       run: |
-        if [ "${{ github.ref }}" = "refs/heads/cga-jen" ]; then
-          echo "✅ UWB Visualiser v4.0 (cga-jen branch) successfully deployed!"
-        else
-          echo "✅ UWB Visualiser v4.0 successfully deployed!"
-        fi
+        echo "✅ UWB Visualiser v4.0 (${{ github.ref_name }} branch) successfully deployed!"
         echo "🌐 Live at: https://dynamicdevices.github.io/inst-visualiser/"
         
     - name: ❌ Failure Notification
