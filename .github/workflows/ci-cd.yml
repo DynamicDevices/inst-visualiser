@@ -199,17 +199,43 @@ jobs:
         
     - name: 🚀 Start Server
       run: |
+        echo "🚀 Starting development server..."
         npm start &
-        sleep 5
+        SERVER_PID=$!
+        
+        # Wait for server to be ready
+        echo "⏳ Waiting for server to start..."
+        for i in {1..30}; do
+          if curl -f http://localhost:8080 >/dev/null 2>&1; then
+            echo "✅ Server is ready!"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "❌ Server failed to start within 30 seconds"
+            exit 1
+          fi
+          sleep 1
+        done
         
     - name: 🔥 Lighthouse Performance Audit
       run: |
         echo "🔥 Running Lighthouse performance audit..."
+        # Double-check server is running
+        if ! curl -f http://localhost:8080 >/dev/null 2>&1; then
+          echo "❌ Server is not responding before Lighthouse test"
+          exit 1
+        fi
+        
+        # Run Lighthouse with better error handling
         lighthouse http://localhost:8080 \
-          --chrome-flags="--headless --no-sandbox" \
+          --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage" \
           --output=json \
           --output-path=./lighthouse-report.json \
-          --preset=desktop
+          --preset=desktop \
+          --timeout=60000 || {
+          echo "❌ Lighthouse failed to run"
+          exit 1
+        }
           
     - name: 📊 Performance Budget Check
       run: |
