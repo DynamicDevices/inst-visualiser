@@ -203,7 +203,7 @@ jobs:
     - name: 📦 Install Dependencies
       run: |
         npm ci
-        npx lighthouse --version
+        npm install -g lighthouse
         
     - name: 🚀 Start Server
       run: |
