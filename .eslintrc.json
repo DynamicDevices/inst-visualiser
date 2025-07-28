@@ -120,6 +120,7 @@
     "dist/",
     "build/",
     "coverage/",
-    "*.min.js"
+    "*.min.js",
+    "js/cga-jen/WGS84Converter.js"
   ]
 }
