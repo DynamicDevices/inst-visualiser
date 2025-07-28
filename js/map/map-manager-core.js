@@ -1,3 +1,4 @@
+/* global GPSUtils, AppConfig, MapMarkerManager, MapScalingManager, eventBus */
 /**
  * Core Map Manager - Simplified and Modular
  * Main coordination class for map functionality
@@ -38,13 +39,13 @@ class MapManager {
      * Set up event listeners
      */
     setupEventListeners() {
-        eventBus.on('uwb-scale-updated', (data) => {
+        eventBus.on('uwb-scale-updated', () => {
             if (this.isMapView) {
                 this.updatePhysicsBasedPositions();
             }
         });
 
-        eventBus.on('physics-scale-updated', (data) => {
+        eventBus.on('physics-scale-updated', () => {
             // Scale has been updated, positions may need refreshing
         });
 
@@ -74,28 +75,22 @@ class MapManager {
                 scaleControl: false,
                 maxZoom: 25 // Increased max zoom for ~0.5m resolution
             });
-
             // Initialize tile layers
             this.initializeTileLayers();
-
             // Add default tile layer
             this.currentTileLayer = this.tileLayers.standard;
             this.currentTileLayer.addTo(this.map);
-
             // Set up automatic tile switching
             this.setupAutoTileSwitching();
-
             this.scaling.addCustomScaleControl();
             this.addTileLayerSelector();
             this.addAutoZoomToggle();
             this.addDistanceLabelToggle();
             this.addBoundingBoxToggle();
             this.addForceCenterButton();
-            
             console.log('🗺️ Map initialized successfully with max zoom 25');
             eventBus.emit('map-initialized', { map: this.map });
             return true;
-
         } catch (error) {
             console.error('❌ Failed to initialize map:', error);
             return false;
@@ -160,7 +155,7 @@ class MapManager {
             maxZoom: 19
         });
 
-       // Wikimedia Maps (updated working URL - preferred fallback)
+        // Wikimedia Maps (updated working URL - preferred fallback)
         this.tileLayers.wikimedia = L.tileLayer('https://maps.wikimedia.org/osm/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors, Wikimedia Foundation',
             maxZoom: 19
@@ -198,14 +193,14 @@ class MapManager {
      */
     getTileLayerOptions() {
         return {
-            'standard': { name: '🗺️ Standard (OSM)', description: 'OpenStreetMap standard tiles' },
-            'satellite': { name: '🛰️ Satellite', description: 'Google satellite imagery' },
-            'hybrid': { name: '🌍 Hybrid', description: 'Satellite with labels' },
-            'positron': { name: '⚪ Light', description: 'Clean minimal style' },
-            'dark': { name: '⚫ Dark', description: 'Dark theme' },
-            'topo': { name: '🏔️ Topographic', description: 'Topographic map' },
-            'toner': { name: '🔲 High Contrast', description: 'Black and white' },
-            'esri': { name: '🌐 Esri Imagery', description: 'Esri satellite imagery' }
+            standard: { name: '🗺️ Standard (OSM)', description: 'OpenStreetMap standard tiles' },
+            satellite: { name: '🛰️ Satellite', description: 'Google satellite imagery' },
+            hybrid: { name: '🌍 Hybrid', description: 'Satellite with labels' },
+            positron: { name: '⚪ Light', description: 'Clean minimal style' },
+            dark: { name: '⚫ Dark', description: 'Dark theme' },
+            topo: { name: '🏔️ Topographic', description: 'Topographic map' },
+            toner: { name: '🔲 High Contrast', description: 'Black and white' },
+            esri: { name: '🌐 Esri Imagery', description: 'Esri satellite imagery' }
         };
     }
 
@@ -215,12 +210,11 @@ class MapManager {
     addTileLayerSelector() {
         if (!this.map) return;
 
-        const mapManager = this;
         const tileOptions = this.getTileLayerOptions();
 
         // Create tile selector control
         const TileSelectorControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom tile-selector-control');
                 
                 // Create dropdown select
@@ -238,7 +232,7 @@ class MapManager {
                     option.value = layerType;
                     option.textContent = tileOptions[layerType].name;
                     option.title = tileOptions[layerType].description;
-                    if (layerType === mapManager.tileLayerType) {
+                    if (layerType === this.tileLayerType) {
                         option.selected = true;
                     }
                     select.appendChild(option);
@@ -249,7 +243,7 @@ class MapManager {
                     L.DomEvent.stopPropagation(e);
                     const selectedType = e.target.value;
                     console.log(`🗺️ Dropdown changed to: ${selectedType}`);
-                    mapManager.switchToTileLayer(selectedType, false);
+                    this.switchToTileLayer(selectedType, false);
                 });
 
                 // Prevent map interaction when using dropdown
@@ -273,18 +267,15 @@ class MapManager {
     addAutoZoomToggle() {
         if (!this.map) return;
 
-        const mapManager = this;
-
         // Create auto-zoom toggle control
         const AutoZoomToggleControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom auto-zoom-control');
-                
                 const button = L.DomUtil.create('a', 'auto-zoom-toggle', container);
                 button.href = '#';
-                button.title = mapManager.autoFitEnabled ? 'Disable Auto-Zoom' : 'Enable Auto-Zoom';
-                button.innerHTML = mapManager.autoFitEnabled ? '🔒' : '🔓';
-                button.style.backgroundColor = mapManager.autoFitEnabled ? '#e8f5e8' : '#f5f5f5';
+                button.title = this.autoFitEnabled ? 'Disable Auto-Zoom' : 'Enable Auto-Zoom';
+                button.innerHTML = this.autoFitEnabled ? '🔒' : '🔓';
+                button.style.backgroundColor = this.autoFitEnabled ? '#e8f5e8' : '#f5f5f5';
                 button.style.width = '30px';
                 button.style.height = '30px';
                 button.style.lineHeight = '30px';
@@ -294,10 +285,10 @@ class MapManager {
                 button.style.fontSize = '16px';
                 button.style.cursor = 'pointer';
 
-                L.DomEvent.on(button, 'click', function(e) {
+                L.DomEvent.on(button, 'click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     L.DomEvent.preventDefault(e);
-                    mapManager.toggleAutoZoom();
+                    this.toggleAutoZoom();
                 });
 
                 // Prevent map interaction when clicking the button
@@ -310,7 +301,6 @@ class MapManager {
         // Add control to map (below tile selector)
         this.autoZoomToggleControl = new AutoZoomToggleControl({ position: 'topright' });
         this.autoZoomToggleControl.addTo(this.map);
-        
         console.log('🗺️ Auto-zoom toggle added to map');
     }
 
@@ -320,18 +310,15 @@ class MapManager {
     addDistanceLabelToggle() {
         if (!this.map) return;
 
-        const mapManager = this;
-
         // Create distance label toggle control
         const DistanceLabelToggleControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom distance-label-control');
-                
                 const button = L.DomUtil.create('a', 'distance-label-toggle', container);
                 button.href = '#';
-                button.title = mapManager.markers.showDistanceLabels ? 'Hide Distance Labels' : 'Show Distance Labels';
-                button.innerHTML = mapManager.markers.showDistanceLabels ? '📏' : '📐';
-                button.style.backgroundColor = mapManager.markers.showDistanceLabels ? '#e8f5e8' : '#f5f5f5';
+                button.title = this.markers.showDistanceLabels ? 'Hide Distance Labels' : 'Show Distance Labels';
+                button.innerHTML = this.markers.showDistanceLabels ? '📏' : '📐';
+                button.style.backgroundColor = this.markers.showDistanceLabels ? '#e8f5e8' : '#f5f5f5';
                 button.style.width = '30px';
                 button.style.height = '30px';
                 button.style.lineHeight = '30px';
@@ -341,10 +328,10 @@ class MapManager {
                 button.style.fontSize = '16px';
                 button.style.cursor = 'pointer';
 
-                L.DomEvent.on(button, 'click', function(e) {
+                L.DomEvent.on(button, 'click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     L.DomEvent.preventDefault(e);
-                    mapManager.toggleDistanceLabels();
+                    this.toggleDistanceLabels();
                 });
 
                 // Prevent map interaction when clicking the button
@@ -357,7 +344,6 @@ class MapManager {
         // Add control to map (below auto-zoom toggle)
         this.distanceLabelToggleControl = new DistanceLabelToggleControl({ position: 'topright' });
         this.distanceLabelToggleControl.addTo(this.map);
-        
         console.log('🗺️ Distance label toggle added to map');
     }
 
@@ -477,7 +463,7 @@ class MapManager {
     /**
      * Handle tile loading errors with Wikimedia as preferred fallback
      */
-    handleTileError(layerType, errorEvent) {
+    handleTileError(layerType) {
         const zoom = this.map ? this.map.getZoom() : 0;
         const errorKey = `${layerType}_${zoom}`;
         
@@ -486,9 +472,7 @@ class MapManager {
             this.tileLoadErrors.set(errorKey, 0);
         }
         this.tileLoadErrors.set(errorKey, this.tileLoadErrors.get(errorKey) + 1);
-
-        const errorCount = this.tileLoadErrors.get(errorKey);
-        
+        const errorCount = this.tileLoadErrors.get(errorKey); 
         // Only switch if we're currently using the failing layer and auto-switch is enabled
         if (this.autoSwitchEnabled && layerType === this.tileLayerType) {
             // If tiles are failing, try satellite as fallback
@@ -509,36 +493,29 @@ class MapManager {
         }
 
         console.log(`🗺️ Switching from ${this.tileLayerType} to ${layerType}${isAutoSwitch ? ' (auto)' : ''}`);
-
         // Remove current layer
         if (this.currentTileLayer) {
             this.map.removeLayer(this.currentTileLayer);
             console.log(`🗺️ Removed current layer: ${this.tileLayerType}`);
         }
-
         // Switch to new layer
         this.tileLayerType = layerType;
         this.currentTileLayer = this.tileLayers[layerType];
         this.wasAutoSwitched = isAutoSwitch;
-
         // Add new layer with error handling
         try {
             this.currentTileLayer.addTo(this.map);
-            console.log(`🗺️ Added new layer: ${layerType}`);
-            
+            console.log(`🗺️ Added new layer: ${layerType}`);           
             // Update dropdown selection
             this.updateTileSelector();
-
             const switchType = isAutoSwitch ? 'Auto-switched' : 'Switched';
             const layerName = this.getTileLayerOptions()[layerType]?.name || layerType;
-            console.log(`🗺️ ${switchType} to ${layerName}`);
-            
+            console.log(`🗺️ ${switchType} to ${layerName}`); 
         } catch (error) {
-            console.error(`🗺️ Error adding tile layer ${layerType}:`, error);
-            
+            console.error(`🗺️ Error adding tile layer ${layerType}:`, error);    
             // If this layer fails to load, try Wikimedia as last resort
             if (layerType !== 'wikimedia' && this.autoSwitchEnabled) {
-                console.log(`🗺️ Falling back to Wikimedia due to layer error`);
+                console.log('🗺️ Falling back to Wikimedia due to layer error');
                 setTimeout(() => this.switchToTileLayer('wikimedia', true), 1000);
             }
         }
@@ -552,8 +529,8 @@ class MapManager {
 
         const select = this.tileSelectorControl.getContainer().querySelector('.tile-selector');
         if (select) {
-            select.value = this.tileLayerType;
-            
+            select.value = this.tileLayerType;  
+
             // Visual indication of auto-switch
             if (this.wasAutoSwitched) {
                 if (this.tileLayerType === 'wikimedia') {
@@ -597,8 +574,7 @@ class MapManager {
             if (this.map) {
                 this.map.invalidateSize();
                 this.updateAllNodesOnMap();
-                this.startPhysicsPositioning();
-                
+                this.startPhysicsPositioning();              
                 // Only auto-fit if enabled
                 if (this.autoFitEnabled) {
                     setTimeout(() => this.fitMapToNodes(), 500);
@@ -615,11 +591,10 @@ class MapManager {
      */
     hideMapView() {
         this.isMapView = false;
-        
+       
         if (this.mapContainer) {
             this.mapContainer.classList.add('hidden');
         }
-
         this.stopPhysicsPositioning();
         eventBus.emit('map-view-hidden');
         console.log('🗺️ Map view deactivated');
@@ -673,8 +648,8 @@ class MapManager {
 
         this.updateGPSAnchors();
         this.updateUWBNodesWithPhysics();
-        this.markers.updateConnectionLines(this.visualizer.connections);
-        
+        this.markers.updateConnectionLines(this.visualizer.connections); 
+
         if (this.autoFitEnabled && this.shouldAutoFit()) {
             this.debouncedAutoFit();
         }
@@ -697,7 +672,7 @@ class MapManager {
                     this.gpsAnchors.set(nodeId, {
                         lat: gpsCoords.lat,
                         lng: gpsCoords.lng,
-                        nodeId: nodeId,
+                        nodeId,
                         timestamp: Date.now(),
                         accuracy: node.gps?.accuracy || null,
                         isAbsolute: !node.gps?.derived // Mark as absolute if not derived
@@ -798,7 +773,7 @@ class MapManager {
         let bestAnchor = null;
         let latestTimestamp = 0;
 
-        this.gpsAnchors.forEach((anchor, nodeId) => {
+        this.gpsAnchors.forEach((anchor) => {
             if (anchor.timestamp > latestTimestamp) {
                 latestTimestamp = anchor.timestamp;
                 bestAnchor = anchor;
@@ -923,24 +898,20 @@ class MapManager {
         if (!this.map || !this.isMapView || this.markers.nodeMarkers.size === 0) return;
 
         try {
-            const markerArray = Array.from(this.markers.nodeMarkers.values());
-            const group = new L.featureGroup(markerArray);
-            const bounds = group.getBounds();
-            
+            const MarkerArray = Array.from(this.markers.nodeMarkers.values());
+            const Group = new L.FeatureGroup(MarkerArray);
+            const bounds = Group.getBounds();           
             const mapSize = this.map.getSize();
             const paddingX = Math.max(30, mapSize.x * 0.1);
-            const paddingY = Math.max(30, mapSize.y * 0.1);
-            
+            const paddingY = Math.max(30, mapSize.y * 0.1);     
             this.map.fitBounds(bounds, {
                 padding: [paddingY, paddingX],
                 maxZoom: 25, // Allow fitting to use high zoom levels
                 animate: true,
                 duration: AppConfig.map.animationDuration,
                 easeLinearity: 0.1
-            });
-            
-            console.log(`🗺️ Map fitted to ${this.markers.nodeMarkers.size} nodes`);
-            
+            });         
+            console.log('🗺️ Map fitted to ${this.markers.nodeMarkers.size} nodes');  
         } catch (error) {
             console.error('🗺️ Error fitting map to nodes:', error);
         }
@@ -955,7 +926,7 @@ class MapManager {
         if (this.autoFitDebounceTimeout) {
             clearTimeout(this.autoFitDebounceTimeout);
         }
-        
+
         this.autoFitDebounceTimeout = setTimeout(() => {
             this.fitMapToNodes();
             this.autoFitDebounceTimeout = null;
@@ -990,8 +961,10 @@ class MapManager {
     getNodeBounds() {
         if (this.markers.nodeMarkers.size === 0) return null;
 
-        let minLat = Infinity, maxLat = -Infinity;
-        let minLng = Infinity, maxLng = -Infinity;
+        let minLat = Infinity;
+        let maxLat = -Infinity;
+        let minLng = Infinity;
+        let maxLng = -Infinity;
 
         this.markers.nodeMarkers.forEach(marker => {
             const pos = marker.getLatLng();
@@ -1010,10 +983,12 @@ class MapManager {
     boundsChanged(oldBounds, newBounds) {
         if (!oldBounds || !newBounds) return true;
 
-        return Math.abs(oldBounds.minLat - newBounds.minLat) > this.movementThreshold ||
-               Math.abs(oldBounds.maxLat - newBounds.maxLat) > this.movementThreshold ||
-               Math.abs(oldBounds.minLng - newBounds.minLng) > this.movementThreshold ||
-               Math.abs(oldBounds.maxLng - newBounds.maxLng) > this.movementThreshold;
+        return (
+            Math.abs(oldBounds.minLat - newBounds.minLat) > this.movementThreshold
+            || Math.abs(oldBounds.maxLat - newBounds.maxLat) > this.movementThreshold
+            || Math.abs(oldBounds.minLng - newBounds.minLng) > this.movementThreshold
+            || Math.abs(oldBounds.maxLng - newBounds.maxLng) > this.movementThreshold
+        );
     }
 
     /**
@@ -1093,18 +1068,15 @@ class MapManager {
     addBoundingBoxToggle() {
         if (!this.map) return;
 
-        const mapManager = this;
-
         // Create bounding box toggle control
         const BoundingBoxToggleControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom bounding-box-control');
-
                 const button = L.DomUtil.create('a', 'bounding-box-toggle', container);
                 button.href = '#';
-                button.title = mapManager.markers.showBoundingBox ? 'Hide Bounding Box' : 'Show Bounding Box';
-                button.innerHTML = mapManager.markers.showBoundingBox ? '📦' : '📋';
-                button.style.backgroundColor = mapManager.markers.showBoundingBox ? '#e8f5e8' : '#f5f5f5';
+                button.title = this.markers.showBoundingBox ? 'Hide Bounding Box' : 'Show Bounding Box';
+                button.innerHTML = this.markers.showBoundingBox ? '📦' : '📋';
+                button.style.backgroundColor = this.markers.showBoundingBox ? '#e8f5e8' : '#f5f5f5';
                 button.style.width = '30px';
                 button.style.height = '30px';
                 button.style.lineHeight = '30px';
@@ -1114,10 +1086,10 @@ class MapManager {
                 button.style.fontSize = '16px';
                 button.style.cursor = 'pointer';
 
-                L.DomEvent.on(button, 'click', function(e) {
+                L.DomEvent.on(button, 'click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     L.DomEvent.preventDefault(e);
-                    mapManager.toggleBoundingBox();
+                    this.toggleBoundingBox();
                 });
 
                 L.DomEvent.disableClickPropagation(container);
@@ -1128,7 +1100,6 @@ class MapManager {
 
         this.boundingBoxToggleControl = new BoundingBoxToggleControl({ position: 'topright' });
         this.boundingBoxToggleControl.addTo(this.map);
-
         console.log('🗺️ Bounding box toggle added to map');
     }
 
@@ -1138,12 +1109,9 @@ class MapManager {
     addForceCenterButton() {
         if (!this.map) return;
 
-        const mapManager = this;
-
         const ForceCenterControl = L.Control.extend({
-            onAdd: function(map) {
+            onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom force-center-control');
-
                 const button = L.DomUtil.create('a', 'force-center-button', container);
                 button.href = '#';
                 button.title = 'Force Center and Scale';
@@ -1157,10 +1125,10 @@ class MapManager {
                 button.style.fontSize = '16px';
                 button.style.cursor = 'pointer';
 
-                L.DomEvent.on(button, 'click', function(e) {
+                L.DomEvent.on(button, 'click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     L.DomEvent.preventDefault(e);
-                    mapManager.forceCenterAndScale();
+                    this.forceCenterAndScale();
                 });
 
                 L.DomEvent.disableClickPropagation(container);
@@ -1171,7 +1139,6 @@ class MapManager {
 
         this.forceCenterControl = new ForceCenterControl({ position: 'topright' });
         this.forceCenterControl.addTo(this.map);
-
         console.log('🗺️ Force center button added to map');
     }
 

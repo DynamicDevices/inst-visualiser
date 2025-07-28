@@ -1,3 +1,4 @@
+/* global eventBus */
 /**
  * Visualizer Connection Management
  * Handles connection creation, updating, and rendering
@@ -125,8 +126,8 @@ class VisualizerConnectionManager {
      * Remove connection element
      */
     removeConnectionElement(key, existingConnections) {
-        const line = existingConnections?.get(key) || 
-                    this.visualizer.canvas.querySelector(`[data-connection-key="${key}"]`);
+        const line = existingConnections?.get(key)
+            || this.visualizer.canvas.querySelector(`[data-connection-key="${key}"]`);
         if (line) {
             line.remove();
             existingConnections?.delete(key);
@@ -241,8 +242,8 @@ class VisualizerConnectionManager {
      * Remove label element
      */
     removeLabelElement(key, existingLabels) {
-        const label = existingLabels?.get(key) || 
-                     this.visualizer.canvas.querySelector(`.distance-label[data-connection-key="${key}"]`);
+        const label = existingLabels?.get(key)
+            || this.visualizer.canvas.querySelector(`.distance-label[data-connection-key="${key}"]`);
         if (label) {
             label.remove();
             existingLabels?.delete(key);
