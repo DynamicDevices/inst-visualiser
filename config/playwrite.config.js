@@ -37,7 +37,7 @@ module.exports = defineConfig({
   ],
   
   // Global test setup
-  globalSetup: './tests/global-setup.js',
+  globalSetup: '../tests/global-setup.js',
   
   // Shared settings for all projects
   use: {
@@ -157,5 +157,5 @@ module.exports = defineConfig({
   outputDir: 'test-results/artifacts',
   
   // Global teardown
-  globalTeardown: './tests/global-teardown.js'
+  globalTeardown: '../tests/global-teardown.js'
 });
