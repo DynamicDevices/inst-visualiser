@@ -60,14 +60,12 @@ jobs:
     - name: 🎨 CSS Linting
       run: |
         echo "🔍 Linting CSS files..."
-        npx stylelint "css/**/*.css" --formatter verbose || echo "⚠️ CSS linting found issues (continuing anyway)"
-      continue-on-error: true
+        npx stylelint "css/**/*.css" --formatter verbose --max-warnings 999
         
     - name: ⚡ JavaScript Linting
       run: |
         echo "🔍 Linting JavaScript files..."
-        npx eslint "js/**/*.js" --format table || echo "⚠️ JavaScript linting found issues (continuing anyway)"
-      continue-on-error: true
+        npx eslint "js/**/*.js" --format table --quiet
         
     - name: 📊 Check File Sizes
       run: |
