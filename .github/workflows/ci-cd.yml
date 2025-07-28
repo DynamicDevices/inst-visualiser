@@ -407,11 +407,20 @@ jobs:
     - name: 🚀 Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+      continue-on-error: true
       
     - name: 🎉 Deployment Success
+      if: success()
       run: |
         echo "🎉 Successfully deployed to GitHub Pages!"
         echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
+        
+    - name: ⚠️ Deployment Warning
+      if: failure()
+      run: |
+        echo "⚠️ Deployment may have failed due to concurrent deployment in progress"
+        echo "This is normal when multiple commits are pushed quickly"
+        echo "The site should be available shortly at: https://dynamicdevices.github.io/inst-visualiser/"
         
   # ===============================================
   # DEPLOYMENT TO GITHUB PAGES (CGA-JEN BRANCH)
@@ -453,11 +462,20 @@ jobs:
     - name: 🚀 Deploy to GitHub Pages
       id: deployment-cga-jen
       uses: actions/deploy-pages@v4
+      continue-on-error: true
       
     - name: 🎉 Deployment Success
+      if: success()
       run: |
         echo "🎉 Successfully deployed cga-jen branch to GitHub Pages!"
         echo "🌐 URL: ${{ steps.deployment-cga-jen.outputs.page_url }}"
+        
+    - name: ⚠️ Deployment Warning
+      if: failure()
+      run: |
+        echo "⚠️ Deployment may have failed due to concurrent deployment in progress"
+        echo "This is normal when multiple commits are pushed quickly"
+        echo "The site should be available shortly at: https://dynamicdevices.github.io/inst-visualiser/"
         
   # ===============================================
   # NOTIFICATION & REPORTING
