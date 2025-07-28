@@ -349,6 +349,12 @@ jobs:
         cp README.md LICENSE dist/
         [ -d resources/ ] && cp -r resources/ dist/ || echo "No resources directory"
         
+    - name: 📁 Copy JavaScript Files
+      run: |
+        echo "📁 Copying JavaScript files..."
+        cp -r js/ dist/
+        cp -r css/ dist/
+        
     - name: 📊 Build Report
       run: |
         echo "📊 Build Summary:"
