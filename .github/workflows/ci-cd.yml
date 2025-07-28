@@ -37,11 +37,10 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: 📦 Install Dependencies
+    - name: 📦 Install Validation Dependencies
       run: |
         pip install html5validator
-        npm ci
-        npm install -g stylelint eslint
+        npm install --no-save stylelint eslint
         
     - name: ☕ Install Java
       uses: actions/setup-java@v4
@@ -102,7 +101,6 @@ jobs:
     - name: 📦 Install Dependencies
       run: |
         npm ci
-        npm install -g playwright
         npx playwright install --with-deps ${{ matrix.browser }}
         
     - name: 🚀 Start Test Server
@@ -205,7 +203,7 @@ jobs:
     - name: 📦 Install Dependencies
       run: |
         npm ci
-        npm install -g lighthouse
+        npx lighthouse --version
         
     - name: 🚀 Start Server
       run: |
