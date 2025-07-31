@@ -53,13 +53,23 @@ class MapMarkerManager {
                 size: 24 // Slightly larger for GPS nodes
             };
         }
+        else
+        {
+            return {
+                ...AppConfig.nodes.anchor,
+                color: '#0300ccff',
+                borderColor: '#0300ccff',
+                typeLabel: (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'),
+                size: 24 // Slightly larger for GPS nodes
+            };
+        }
 
         if (isGateway) {
             return AppConfig.nodes.gateway;
         } else if (isMobile) {
-            return (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'); // AppConfig.nodes.mobile;
+            return AppConfig.nodes.mobile;
         } else {
-            return (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'); // AppConfig.nodes.anchor;
+            return AppConfig.nodes.anchor;
         }
     }
 
