@@ -151,7 +151,7 @@ class VisualizerNodeManager {
         node.element.textContent = displayText;
     }
 
-    //(node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS');
+    // (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'); 
 
     /**
      * Update node appearance based on state
