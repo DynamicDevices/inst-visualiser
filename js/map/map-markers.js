@@ -52,15 +52,15 @@ class MapMarkerManager {
                 typeLabel: 'GPS',
                 size: 24 // Slightly larger for GPS nodes
             };
-        } else {
-            return {
-                ...AppConfig.nodes.anchor,
-                color: '#0300ccff',
-                borderColor: '#0300ccff',
-                typeLabel: (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'),
-                size: 24 // Slightly larger for GPS nodes
-            };
         }
+
+        return {
+            ...AppConfig.nodes.anchor,
+            color: '#0300ccff',
+            borderColor: '#0300ccff',
+            typeLabel: (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'),
+            size: 10 // Slightly larger for GPS nodes
+        };
 
         // if (isGateway) {
         //     return AppConfig.nodes.gateway;
