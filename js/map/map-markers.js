@@ -40,8 +40,8 @@ class MapMarkerManager {
      * Get node styling configuration with GPS detection
      */
     getNodeStyling(nodeId, node, hasAbsoluteGPS = false) {
-        // const isGateway = nodeId === 'B5A4' || node.type === 'gateway';
-        // const isMobile = nodeId.startsWith('T') && nodeId.length === 4;
+        const isGateway = nodeId === 'B5A4' || node.type === 'gateway';
+        const isMobile = nodeId.startsWith('T') && nodeId.length === 4;
 
         // Override color for absolute GPS nodes
         if (hasAbsoluteGPS) {
@@ -54,21 +54,13 @@ class MapMarkerManager {
             };
         }
 
-        return {
-            ...AppConfig.nodes.anchor,
-            color: '#0300ccff',
-            borderColor: '#0300ccff',
-            typeLabel: (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'),
-            size: 10 // Slightly larger for GPS nodes
-        };
-
-        // if (isGateway) {
-        //     return AppConfig.nodes.gateway;
-        // } else if (isMobile) {
-        //     return AppConfig.nodes.mobile;
-        // } else {
-        //     return AppConfig.nodes.anchor;
-        // }
+        if (isGateway) {
+            return AppConfig.nodes.gateway;
+        } else if (isMobile) {
+            return AppConfig.nodes.mobile;
+        } else {
+            return AppConfig.nodes.anchor;
+        }
     }
 
     /**
@@ -146,9 +138,9 @@ class MapMarkerManager {
     }
 
     /**
-     * Create marker HTML with GPS indication
+     * Create marker HTML with GPS indication **and with a latitude/longitude tag (2 dp)**
      */
-    createMarkerHTML(nodeId, styling, nodeType) {
+    createMarkerHTML(nodeId, styling, nodeType, gpsCoords) {
         const displayId = nodeId.length > 4 ? nodeId.substring(0, 4) : nodeId;
         
         return `
@@ -172,6 +164,23 @@ class MapMarkerManager {
                 ${styling.typeLabel === 'GPS' ? 'animation: gps-pulse 2s infinite;' : ''}
             ">
                 ${displayId}
+                
+                <!-- ✨ NEW – Lat/Lon tag (2 dp) -->
+                <div style="
+                    position: absolute;
+                    top: -35px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 9px;
+                    color: ${styling.color};
+                   font-weight: bold;
+                    background: white;
+                    padding: 2px 4px;
+                    border-radius: 3px;
+                    border: 1px solid ${styling.color};
+                ">
+                    ${gpsCoords.lat.toFixed(2)}, ${gpsCoords.lng.toFixed(2)}
+                </div>
                 <div style="
                     position: absolute;
                     top: -18px;
