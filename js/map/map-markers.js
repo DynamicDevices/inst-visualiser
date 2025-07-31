@@ -93,7 +93,7 @@ class MapMarkerManager {
         const nodeType = this.getNodeType(nodeId, node, hasAbsoluteGPS);
 
         // Recreate the icon with new styling
-        const markerHtml = this.createMarkerHTML(nodeId, styling, nodeType);
+        const markerHtml = this.createMarkerHTML(nodeId, styling, nodeType, gpsCoords);
         const customIcon = L.divIcon({
             className: 'map-node-marker-container',
             html: markerHtml,
@@ -115,7 +115,7 @@ class MapMarkerManager {
         const styling = this.getNodeStyling(nodeId, node, hasAbsoluteGPS);
         const nodeType = this.getNodeType(nodeId, node, hasAbsoluteGPS);
 
-        const markerHtml = this.createMarkerHTML(nodeId, styling, nodeType);
+        const markerHtml = this.createMarkerHTML(nodeId, styling, nodeType, gpsCoords);
         const customIcon = L.divIcon({
             className: 'map-node-marker-container',
             html: markerHtml,
@@ -138,7 +138,7 @@ class MapMarkerManager {
     }
 
     /**
-     * Create marker HTML with GPS indication **and with a latitude/longitude tag (2 dp)**
+     * Create marker HTML with GPS indication and with a latitude/longitude tag (2 dp)
      */
     createMarkerHTML(nodeId, styling, nodeType, gpsCoords) {
         const displayId = nodeId.length > 4 ? nodeId.substring(0, 4) : nodeId;
@@ -165,7 +165,7 @@ class MapMarkerManager {
             ">
                 ${displayId}
                 
-                <!-- ✨ NEW – Lat/Lon tag (2 dp) -->
+
                 <div style="
                     position: absolute;
                     top: -35px;
@@ -178,8 +178,7 @@ class MapMarkerManager {
                     padding: 2px 4px;
                     border-radius: 3px;
                     border: 1px solid ${styling.color};
-                ">
-                    ${gpsCoords.lat.toFixed(2)}, ${gpsCoords.lng.toFixed(2)}
+                ">${gpsCoords.lat.toFixed(2)}, ${gpsCoords.lng.toFixed(2)}
                 </div>
                 <div style="
                     position: absolute;
