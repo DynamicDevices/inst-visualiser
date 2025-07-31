@@ -52,9 +52,7 @@ class MapMarkerManager {
                 typeLabel: 'GPS',
                 size: 24 // Slightly larger for GPS nodes
             };
-        }
-        else
-        {
+        } else {
             return {
                 ...AppConfig.nodes.anchor,
                 color: '#0300ccff',
@@ -64,13 +62,13 @@ class MapMarkerManager {
             };
         }
 
-        if (isGateway) {
-            return AppConfig.nodes.gateway;
-        } else if (isMobile) {
-            return AppConfig.nodes.mobile;
-        } else {
-            return AppConfig.nodes.anchor;
-        }
+        // if (isGateway) {
+        //     return AppConfig.nodes.gateway;
+        // } else if (isMobile) {
+        //     return AppConfig.nodes.mobile;
+        // } else {
+        //     return AppConfig.nodes.anchor;
+        // }
     }
 
     /**
