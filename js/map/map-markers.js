@@ -138,7 +138,7 @@ class MapMarkerManager {
     }
 
     /**
-     * Create marker HTML with GPS indication and with a latitude/longitude tag (2 dp)
+     *Create marker HTML with GPS information - two tags, one with lat/long and one with type label
      */
     createMarkerHTML(nodeId, styling, nodeType, gpsCoords) {
         const displayId = nodeId.length > 4 ? nodeId.substring(0, 4) : nodeId;
@@ -178,7 +178,7 @@ class MapMarkerManager {
                     padding: 2px 4px;
                     border-radius: 3px;
                     border: 1px solid ${styling.color};
-                ">${gpsCoords.lat.toFixed(2)}, ${gpsCoords.lng.toFixed(2)}
+                ">${gpsCoords.lat.toFixed(2)}, ${gpsCoords.lng.toFixed(2)}
                 </div>
                 <div style="
                     position: absolute;
