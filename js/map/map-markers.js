@@ -178,7 +178,7 @@ class MapMarkerManager {
                     border: 1px solid ${styling.color};
                     white-space: nowrap;
                     text-align: center;
-                ">${gpsCoords.lat.toFixed(2)}, ${gpsCoords.lng.toFixed(2)}
+                ">${gpsCoords.lat.toFixed(10)}, ${gpsCoords.lng.toFixed(10)}
                 </div>
                 <div style="
                     position: absolute;
