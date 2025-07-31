@@ -57,9 +57,9 @@ class MapMarkerManager {
         if (isGateway) {
             return AppConfig.nodes.gateway;
         } else if (isMobile) {
-            return AppConfig.nodes.mobile;
+            return (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'); // AppConfig.nodes.mobile;
         } else {
-            return AppConfig.nodes.anchor;
+            return (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'); // AppConfig.nodes.anchor;
         }
     }
 

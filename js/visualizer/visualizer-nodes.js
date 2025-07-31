@@ -133,7 +133,7 @@ class VisualizerNodeManager {
      * Update node position
      */
     updateNodePosition(node) {
-        if (!node.element || node.isGateway) return;
+        if (!node.element) return;
         
         const element = node.element;
         element.style.transition = 'none';
@@ -147,11 +147,9 @@ class VisualizerNodeManager {
     updateNodeContent(node, nodeId) {
         if (!node.element) return;
         
-        const displayText = (nodeId.length > 3 ? nodeId.substring(0, 3) : nodeId);
+        const displayText = (nodeId.length > 4 ? nodeId.substring(0, 4) : nodeId);
         node.element.textContent = displayText;
-    }
-
-    // (node.gps ? `( ${node.gps.lat.toFixed(2)}, ${node.gps.lng.toFixed(2)})` : 'no GPS'); 
+    }    
 
     /**
      * Update node appearance based on state
