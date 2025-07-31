@@ -40,8 +40,8 @@ class MapMarkerManager {
      * Get node styling configuration with GPS detection
      */
     getNodeStyling(nodeId, node, hasAbsoluteGPS = false) {
-        const isGateway = nodeId === 'B5A4' || node.type === 'gateway';
-        const isMobile = nodeId.startsWith('T') && nodeId.length === 4;
+        // const isGateway = nodeId === 'B5A4' || node.type === 'gateway';
+        // const isMobile = nodeId.startsWith('T') && nodeId.length === 4;
 
         // Override color for absolute GPS nodes
         if (hasAbsoluteGPS) {
