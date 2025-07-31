@@ -164,20 +164,20 @@ class MapMarkerManager {
                 ${styling.typeLabel === 'GPS' ? 'animation: gps-pulse 2s infinite;' : ''}
             ">
                 ${displayId}
-                
-
                 <div style="
                     position: absolute;
-                    top: -35px;
+                    top: -${styling.size + 22}px;
                     left: 50%;
                     transform: translateX(-50%);
                     font-size: 9px;
                     color: ${styling.color};
-                   font-weight: bold;
+                    font-weight: bold;
                     background: white;
-                    padding: 2px 4px;
+                    padding: 2px 8px;
                     border-radius: 3px;
                     border: 1px solid ${styling.color};
+                    white-space: nowrap;
+                    text-align: center;
                 ">${gpsCoords.lat.toFixed(2)}, ${gpsCoords.lng.toFixed(2)}
                 </div>
                 <div style="
